@@ -1,0 +1,15 @@
+/* src/Login.css */
+.login-page {
+    min-height: 100vh;
+    background-image: url("../image/Radha madhav.jpeg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.login-form-container {
+    background-color: rgba(0, 0, 0, 0.6);
+    width: 100%;
+    max-width: 400px;
+}
+

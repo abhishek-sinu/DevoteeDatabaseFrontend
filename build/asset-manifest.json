@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/static/css/main.6d5c3024.css",
+    "main.js": "/static/js/main.a62c2d64.js",
+    "static/media/Radha madhav.jpeg": "/static/media/Radha madhav.f34a9a71264e04303cfc.jpeg",
+    "index.html": "/index.html",
+    "main.6d5c3024.css.map": "/static/css/main.6d5c3024.css.map",
+    "main.a62c2d64.js.map": "/static/js/main.a62c2d64.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.6d5c3024.css",
+    "static/js/main.a62c2d64.js"
+  ]
+}
