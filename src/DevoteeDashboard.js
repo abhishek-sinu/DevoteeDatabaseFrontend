@@ -6,6 +6,7 @@ import ViewDevoteesTable from "./ViewDevoteesTable";
 import Register from "./createUser";
 import SadhanaEntryForm from "./SadhanaEntryForm"; // new
 import SadhanaViewDownload from "./DownloadViewSadhanaCard"; // new
+import './DevoteeApp.css';
 
 const handleLogout = () => {
     localStorage.removeItem("token");
@@ -48,27 +49,45 @@ export default function DevoteeDashboard() {
             <div className="d-flex justify-content-center mb-4 flex-wrap gap-2">
                 {role === "admin" && (
                     <>
-                        <button onClick={() => setView("add")} className="btn btn-primary">
+                        <button
+                            onClick={() => setView("add")}
+                            className={`btn btn-primary${view === "add" ? " active" : ""}`}
+                        >
                             <i className="bi bi-pencil-square"></i> Add / Update
                         </button>
-                        <button onClick={() => setView("bulk")} className="btn btn-success">
+                        <button
+                            onClick={() => setView("bulk")}
+                            className={`btn btn-success${view === "bulk" ? " active" : ""}`}
+                        >
                             <i className="bi bi-upload"></i> Bulk Upload
                         </button>
-                        <button onClick={() => setView("register")} className="btn btn-warning">
+                        <button
+                            onClick={() => setView("register")}
+                            className={`btn btn-warning${view === "register" ? " active" : ""}`}
+                        >
                             <i className="bi bi-person-plus"></i> Create User
                         </button>
                     </>
                 )}
-                <button onClick={() => setView("view")} className="btn btn-secondary">
+                <button
+                    onClick={() => setView("view")}
+                    className={`btn btn-secondary${view === "view" ? " active" : ""}`}
+                >
                     <i className="bi bi-table"></i> View Devotees
                 </button>
 
                 {role === "user" && (
                     <>
-                        <button onClick={() => setView("entry")} className="btn btn-info">
+                        <button
+                            onClick={() => setView("entry")}
+                            className={`btn btn-info${view === "entry" ? " active" : ""}`}
+                        >
                             <i className="bi bi-journal-plus"></i> Enter Sadhana Card
                         </button>
-                        <button onClick={() => setView("download")} className="btn btn-dark">
+                        <button
+                            onClick={() => setView("download")}
+                            className={`btn btn-dark${view === "download" ? " active" : ""}`}
+                        >
                             <i className="bi bi-cloud-download"></i> View / Download Sadhana Card
                         </button>
                     </>
@@ -81,7 +100,7 @@ export default function DevoteeDashboard() {
             {view === "register" && role === "admin" && <Register />}
             {view === "view" && <ViewDevoteesTable />}
             {view === "entry" && role === "user" && <SadhanaEntryForm userId={localStorage.getItem("userId")} />}
-            {view === "download" && role === "user" && <SadhanaViewDownload  userId={localStorage.getItem("userId")} />}
+            {view === "download" && role === "user" && <SadhanaViewDownload userId={localStorage.getItem("userId")} />}
         </>
     );
 }
