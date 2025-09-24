@@ -6,15 +6,7 @@ const API_BASE = process.env.REACT_APP_API_BASE;
 export default function ViewDevoteesTable() {
     const [devotees, setDevotees] = useState([]);
     const [filter, setFilter] = useState("");
-    const [modalPhoto, setModalPhoto] = useState(null);
-    const [form] = useState({
-        first_name: "", middle_name: "", last_name: "", gender: "", dob: "",
-        ethnicity: "", citizenship: "", marital_status: "", education_qualification_code: "",
-        address1: "", address2: "", pin_code: "", email: "", mobile_no: "", whatsapp_no: "",
-        initiated_name: "", photo: "", spiritual_master_id: "", first_initiation_date: "",
-        iskcon_first_contact_date: "", second_initiated: "", second_initiation_date: "",
-        full_time_devotee: "", temple_name: "", status: ""
-    });
+    const [modalDevotee, setModalDevotee] = useState(null);
 
     useEffect(() => {
         fetchDevotees();
@@ -23,7 +15,7 @@ export default function ViewDevoteesTable() {
     const fetchDevotees = async () => {
         const token = localStorage.getItem("token");
         const res = await axios.get(`${API_BASE}/api/devotees`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
         });
         setDevotees(res.data);
     };
@@ -46,93 +38,103 @@ export default function ViewDevoteesTable() {
 
     return (
         <>
-            <h5>View Devotees</h5>
+            <h6>View Devotees</h6>
             <input
                 type="text"
                 placeholder="Search..."
                 value={filter}
                 onChange={handleFilterChange}
-                style={{ marginBottom: "10px", padding: "5px" }}
+                className="form-control mb-2"
             />
-            <div style={{ overflowX: "auto", maxWidth: "100%" }}>
-                <table className="table table-bordered table-striped">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        {Object.keys(form).map((key) => (
-                            <th key={key}>{key.replace(/_/g, " ")}</th>
-                        ))}
+            <table className="table table-bordered table-striped table-hover">
+                <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Initiated Name</th>
+                    <th>Mobile No</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {currentItems.map((d) => (
+                    <tr key={d.id}>
+                        <td>{d.first_name}</td>
+                        <td>{d.last_name}</td>
+                        <td>{d.initiated_name || "-"}</td>
+                        <td>{d.mobile_no}</td>
+                        <td>{d.email}</td>
+                        <td>
+                            <button
+                                className="btn btn-sm btn-info"
+                                onClick={() => setModalDevotee(d)}
+                            >
+                                View Details
+                            </button>
+                        </td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    {currentItems.map((d) => (
-                        <tr key={d.id}>
-                            <td>{d.id}</td>
-                            {Object.keys(form).map((key) => (
-                                <td key={key}>
-                                    {key === "photo" && d[key] ? (
-                                        <img
-                                            src={`${API_BASE}${d[key]}`}
-                                            alt="Profile"
-                                            style={{
-                                                width: "60px",
-                                                height: "60px",
-                                                objectFit: "cover",
-                                                borderRadius: "50%",
-                                                cursor: "pointer"
-                                            }}
-                                            onClick={() => setModalPhoto(d[key])}
-                                        />
-                                    ) : (
-                                        d[key]
-                                    )}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            </div>
-            <div style={{ marginTop: "10px" }}>
-                {pageNumbers.map((number) => (
-                    <button
-                        key={number}
-                        onClick={() => setCurrentPage(number)}
-                        className={`btn btn-sm mx-1 ${
-                            number === currentPage ? "btn-primary" : "btn-outline-primary"
-                        }`}
-                    >
-                        {number}
-                    </button>
                 ))}
-            </div>
+                </tbody>
+            </table>
 
-            {modalPhoto && (
+            {pageNumbers.map((number) => (
+                <button
+                    key={number}
+                    onClick={() => setCurrentPage(number)}
+                    className={`btn btn-sm mx-1 ${
+                        number === currentPage ? "btn-primary" : "btn-outline-primary"
+                    }`}
+                >
+                    {number}
+                </button>
+            ))}
+
+            {modalDevotee && (
                 <div
-                    className="modal show d-block"
+                    className="modal d-block"
                     tabIndex="-1"
-                    role="dialog"
-                    onClick={() => setModalPhoto(null)}
                     style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
                 >
-                    <div className="modal-dialog modal-dialog-centered" role="document">
+                    <div className="modal-dialog modal-lg">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Profile Picture</h5>
+                                <h5 className="modal-title">Full Profile</h5>
                                 <button
                                     type="button"
-                                    className="close"
-                                    onClick={() => setModalPhoto(null)}
-                                >
-                                    <span>&times;</span>
-                                </button>
+                                    className="btn-close"
+                                    onClick={() => setModalDevotee(null)}
+                                ></button>
                             </div>
-                            <div className="modal-body text-center">
-                                <img
-                                    src={`${API_BASE}${modalPhoto}`}
-                                    alt="Full Profile"
-                                    className="img-fluid"
-                                />
+                            <div className="modal-body">
+                                {modalDevotee.photo && (
+                                    <img
+                                        src={modalDevotee.photo}
+                                        alt="Profile"
+                                        className="img-fluid mb-3"
+                                        style={{ maxHeight: "200px" }}
+                                    />
+                                )}
+                                <table className="table table-bordered">
+                                    <tbody>
+                                    {Object.entries(modalDevotee)
+                                        .filter(([key]) => key !== "photo")
+                                        .map(([key, value]) => (
+                                            <tr key={key}>
+                                                <th>{key.replace(/_/g, " ")}</th>
+                                                <td>{value || "-"}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="modal-footer">
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => setModalDevotee(null)}
+                                >
+                                    Close
+                                </button>
                             </div>
                         </div>
                     </div>
