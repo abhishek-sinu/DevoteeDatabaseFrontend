@@ -117,11 +117,11 @@ export default function ViewDevoteesTable() {
                                 <table className="table table-bordered">
                                     <tbody>
                                     {Object.entries(modalDevotee)
-                                        .filter(([key]) => key !== "photo")
+                                        .filter(([key, value]) => key !== "photo" && value && value.toString().trim() !== "")
                                         .map(([key, value]) => (
                                             <tr key={key}>
                                                 <th>{key.replace(/_/g, " ")}</th>
-                                                <td>{value || "-"}</td>
+                                                <td>{value}</td>
                                             </tr>
                                         ))}
                                     </tbody>
