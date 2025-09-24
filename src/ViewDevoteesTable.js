@@ -38,7 +38,6 @@ export default function ViewDevoteesTable() {
 
     return (
         <>
-            <h6>View Devotees</h6>
             <input
                 type="text"
                 placeholder="Search..."
@@ -109,7 +108,7 @@ export default function ViewDevoteesTable() {
                             <div className="modal-body">
                                 {modalDevotee.photo && (
                                     <img
-                                        src={modalDevotee.photo}
+                                        src={API_BASE+modalDevotee.photo}
                                         alt="Profile"
                                         className="img-fluid mb-3"
                                         style={{ maxHeight: "200px" }}
