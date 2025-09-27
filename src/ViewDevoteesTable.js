@@ -106,18 +106,50 @@ export default function ViewDevoteesTable() {
                                 ></button>
                             </div>
                             <div className="modal-body">
-                                {modalDevotee.photo && (
-                                    <img
-                                        src={API_BASE+modalDevotee.photo}
-                                        alt="Profile"
-                                        className="img-fluid mb-3"
-                                        style={{ maxHeight: "200px" }}
-                                    />
-                                )}
+                                <div className="row align-items-center">
+                                    <div className="col-md-4 text-center mb-3 mb-md-0">
+                                        {modalDevotee.photo && (
+                                            <img
+                                                src={API_BASE + modalDevotee.photo}
+                                                alt="Profile"
+                                                className="img-fluid rounded-circle border"
+                                                style={{ maxHeight: "150px", width: "150px", objectFit: "cover" }}
+                                            />
+                                        )}
+                                    </div>
+                                    <div className="col-md-8">
+                                        <table className="table table-bordered mb-0">
+                                            <tbody>
+                                            <tr>
+                                                <th>Initiated Name</th>
+                                                <td>{modalDevotee.initiated_name || "-"}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Mobile No</th>
+                                                <td>{modalDevotee.mobile_no || "-"}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Temple Name</th>
+                                                <td>{modalDevotee.temple_name || "-"}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Whatsapp No</th>
+                                                <td>{modalDevotee.whatsapp_no || "-"}</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <hr />
                                 <table className="table table-bordered">
                                     <tbody>
                                     {Object.entries(modalDevotee)
-                                        .filter(([key, value]) => key !== "photo" && value && value.toString().trim() !== "")
+                                        .filter(
+                                            ([key, value]) =>
+                                                !["photo", "id", "temple_name", "whatsapp_no","mobile_no","created_at"].includes(key) &&
+                                                value &&
+                                                value.toString().trim() !== ""
+                                        )
                                         .map(([key, value]) => (
                                             <tr key={key}>
                                                 <th>{key.replace(/_/g, " ")}</th>
