@@ -6,12 +6,15 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./Login.css"; // Custom styles
 
 export default function Login() {
+    const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true); // Start loading
         try {
             const res = await axios.post(`${process.env.REACT_APP_API_BASE}/api/login`, {
                 email,
@@ -23,8 +26,11 @@ export default function Login() {
             navigate("/dashboard");
         } catch (err) {
             alert("Login failed: " + (err.response?.data?.message || err.message));
+        } finally {
+            setLoading(false); // Stop loading
         }
     };
+
 
     return (
         <div className="login-page d-flex align-items-center justify-content-center">
@@ -51,9 +57,25 @@ export default function Login() {
                             required
                         />
                     </div>
-                    <button type="submit" className="btn btn-primary w-100">
-                        Login
+                    <button
+                        type="submit"
+                        className="btn btn-primary w-100"
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <>
+      <span
+          className="spinner-border spinner-border-sm me-2"
+          role="status"
+          aria-hidden="true"
+      ></span>
+                                Logging in...
+                            </>
+                        ) : (
+                            "Login"
+                        )}
                     </button>
+
                 </form>
             </div>
         </div>
