@@ -29,7 +29,7 @@ export default function Login() {
     return (
         <div className="login-page d-flex align-items-center justify-content-center">
             <div className="login-form-container p-4 shadow-lg rounded">
-                <h2 className="text-center mb-4 text-light">Welcome, Devotee</h2>
+                <h2 className="text-center mb-4 text-light">Hare Kṛṣṇa, Devotee</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group mb-3">
                         <input

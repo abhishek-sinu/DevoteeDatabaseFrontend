@@ -7,6 +7,7 @@ import Register from "./createUser";
 import SadhanaEntryForm from "./SadhanaEntryForm"; // new
 import SadhanaViewDownload from "./DownloadViewSadhanaCard"; // new
 import './DevoteeApp.css';
+import CounsellorSadhanaReports from "./CounsellorSadhanaReports";
 
 const handleLogout = () => {
     localStorage.removeItem("token");
@@ -92,6 +93,17 @@ export default function DevoteeDashboard() {
                         </button>
                     </>
                 )}
+
+
+                {role === "counsellor" && (
+                    <button
+                        onClick={() => setView("reports")}
+                        className={`btn btn-outline-primary${view === "reports" ? " active" : ""}`}
+                    >
+                        Sadhana Reports
+                    </button>
+                )}
+
             </div>
 
             {/* Content Section */}
@@ -101,6 +113,7 @@ export default function DevoteeDashboard() {
             {view === "view" && <ViewDevoteesTable />}
             {view === "entry" && role === "user" && <SadhanaEntryForm userId={localStorage.getItem("userId")} />}
             {view === "download" && role === "user" && <SadhanaViewDownload userId={localStorage.getItem("userId")} />}
+            {view === "reports" && role === "counsellor" && <CounsellorSadhanaReports userId={localStorage.getItem("userId")}/>}
         </>
     );
 }

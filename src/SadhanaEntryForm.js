@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+
 const SadhanaEntryForm = () => {
     const [email, setEmail] = useState('');
     const [formData, setFormData] = useState({
@@ -8,11 +9,14 @@ const SadhanaEntryForm = () => {
         wakeUpTime: '',
         chantingRounds: '',
         readingTime: '',
+        readingTimeUnit: 'minutes',
         readingTopic: '',
         hearingTime: '',
+        hearingTimeUnit: 'minutes',
         hearingTopic: '',
         serviceName: '',
-        serviceTime: ''
+        serviceTime: '',
+        serviceTimeUnit: 'minutes'
     });
 
     useEffect(() => {
@@ -33,9 +37,26 @@ const SadhanaEntryForm = () => {
 
         const API_BASE = process.env.REACT_APP_API_BASE;
 
-        const cleanedData = Object.fromEntries(
-            Object.entries({ email, ...formData }).map(([k, v]) => [k, v === undefined ? null : v])
-        );
+        const convertToMinutes = (value, unit) => {
+            const num = parseInt(value);
+            if (isNaN(num)) return null;
+            return unit === 'hours' ? num * 60 : num;
+        };
+
+        const cleanedData = {
+            email,
+            entryDate: formData.entryDate,
+            wakeUpTime: formData.wakeUpTime,
+            chantingRounds: formData.chantingRounds,
+            readingTime: convertToMinutes(formData.readingTime, formData.readingTimeUnit),
+            readingTopic: formData.readingTopic,
+            hearingTime: convertToMinutes(formData.hearingTime, formData.hearingTimeUnit),
+            hearingTopic: formData.hearingTopic,
+            serviceName: formData.serviceName,
+            serviceTime: convertToMinutes(formData.serviceTime, formData.serviceTimeUnit)
+        };
+
+        console.log("Sending to backend:", cleanedData);
 
         try {
             await axios.post(`${API_BASE}/api/sadhana/add`, cleanedData);
@@ -45,11 +66,14 @@ const SadhanaEntryForm = () => {
                 wakeUpTime: '',
                 chantingRounds: '',
                 readingTime: '',
+                readingTimeUnit: 'minutes',
                 readingTopic: '',
                 hearingTime: '',
+                hearingTimeUnit: 'minutes',
                 hearingTopic: '',
                 serviceName: '',
-                serviceTime: ''
+                serviceTime: '',
+                serviceTimeUnit: 'minutes'
             });
         } catch (err) {
             alert('Error submitting entry');
@@ -78,20 +102,53 @@ const SadhanaEntryForm = () => {
                             <input type="number" name="chantingRounds" value={formData.chantingRounds} onChange={handleChange} className="form-control" />
                         </div>
                         <div className="col-md-6">
-                            <label className="form-label">Reading Time</label>
-                            <input type="text" name="readingTime" value={formData.readingTime} onChange={handleChange} className="form-control" />
-                        </div>
-                        <div className="col-md-6">
                             <label className="form-label">Reading Topic</label>
                             <input type="text" name="readingTopic" value={formData.readingTopic} onChange={handleChange} className="form-control" />
                         </div>
                         <div className="col-md-6">
-                            <label className="form-label">Hearing Time</label>
-                            <input type="text" name="hearingTime" value={formData.hearingTime} onChange={handleChange} className="form-control" />
+                            <label className="form-label">Reading Time</label>
+
+                            <input
+                                type="number"
+                                name="readingTime"
+                                id="readingTime"
+                                className="form-control"
+                                value={formData.readingTime}
+                                onChange={handleChange}
+                            />
+                            <select
+                                name="readingTimeUnit"
+                                className="form-control"
+                                value={formData.readingTimeUnit}
+                                onChange={handleChange}
+                            >
+                                <option value="minutes">Minutes</option>
+                                <option value="hours">Hours</option>
+                            </select>
                         </div>
                         <div className="col-md-6">
                             <label className="form-label">Hearing Topic</label>
                             <input type="text" name="hearingTopic" value={formData.hearingTopic} onChange={handleChange} className="form-control" />
+                        </div>
+                        <div className="col-md-6">
+                            <label className="form-label">Hearing Time</label>
+                            <input
+                                type="number"
+                                name="hearingTime"
+                                id="hearingTime"
+                                className="form-control"
+                                value={formData.hearingTime}
+                                onChange={handleChange}
+                            />
+                            <select
+                                name="hearingTimeUnit"
+                                className="form-control"
+                                value={formData.hearingTimeUnit}
+                                onChange={handleChange}
+                            >
+                                <option value="minutes">Minutes</option>
+                                <option value="hours">Hours</option>
+                            </select>
                         </div>
                         <div className="col-md-6">
                             <label className="form-label">Service Name</label>
@@ -99,7 +156,23 @@ const SadhanaEntryForm = () => {
                         </div>
                         <div className="col-md-6">
                             <label className="form-label">Service Time</label>
-                            <input type="text" name="serviceTime" value={formData.serviceTime} onChange={handleChange} className="form-control" />
+                            <input
+                                type="number"
+                                name="serviceTime"
+                                id="serviceTime"
+                                className="form-control"
+                                value={formData.serviceTime}
+                                onChange={handleChange}
+                            />
+                            <select
+                                name="serviceTimeUnit"
+                                className="form-control"
+                                value={formData.serviceTimeUnit}
+                                onChange={handleChange}
+                            >
+                                <option value="minutes">Minutes</option>
+                                <option value="hours">Hours</option>
+                            </select>
                         </div>
                         <div className="col-12 text-center">
                             <button type="submit" className="btn btn-success">

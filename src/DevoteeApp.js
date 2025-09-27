@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import ReactModal from "react-modal";
 import './DevoteeApp.css';
+import imageCompression from 'browser-image-compression';
 
 const API_BASE = process.env.REACT_APP_API_BASE;
 

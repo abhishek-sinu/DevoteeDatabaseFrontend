@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+
+const formatTime = (minutes) => {
+    if (!minutes && minutes !== 0) return '';
+    if (minutes >= 60 && minutes % 60 === 0) {
+        return `${minutes / 60} hr`;
+    }
+    return `${minutes} min`;
+};
+
+
 const DownloadViewSadhanaCard = () => {
     const [email, setEmail] = useState('');
     const [entries, setEntries] = useState([]);
@@ -31,12 +41,12 @@ const DownloadViewSadhanaCard = () => {
                 entry.entry_date,
                 entry.wake_up_time,
                 entry.chanting_rounds,
-                entry.reading_time,
+                formatTime(entry.reading_time),
                 entry.reading_topic,
                 entry.hearing_time,
-                entry.hearing_topic,
+                formatTime(entry.hearing_time),
                 entry.service_name,
-                entry.service_time
+                formatTime(entry.service_time)
             ])
         ].map(e => e.join(',')).join('\n');
 
@@ -74,12 +84,12 @@ const DownloadViewSadhanaCard = () => {
                             <td>{entry.entry_date ? entry.entry_date.split('T')[0] : ''}</td>
                             <td>{entry.wake_up_time}</td>
                             <td>{entry.chanting_rounds}</td>
-                            <td>{entry.reading_time}</td>
+                            <td>{formatTime(entry.reading_time)}</td>
                             <td>{entry.reading_topic}</td>
-                            <td>{entry.hearing_time}</td>
+                            <td>{formatTime(entry.hearing_time)}</td>
                             <td>{entry.hearing_topic}</td>
                             <td>{entry.service_name}</td>
-                            <td>{entry.service_time}</td>
+                            <td>{formatTime(entry.service_time)}</td>
                         </tr>
                     ))}
                     </tbody>
