@@ -73,7 +73,7 @@ export default function AssignUserRole() {
                                 >
                                     <option value="user">User</option>
                                     <option value="admin">Admin</option>
-                                    <option value="counsellor">Counsellor</option>
+                                    <option value="counsellor">counsellor</option>
                                 </select>
                             </div>
                             <div className="text-center">
