@@ -66,7 +66,7 @@ export default function DevoteeDashboard() {
                             onClick={() => setView("register")}
                             className={`btn btn-warning${view === "register" ? " active" : ""}`}
                         >
-                            <i className="bi bi-person-plus"></i> Create User
+                            <i className="bi bi-person-plus"></i> Assign Role
                         </button>
                     </>
                 )}
