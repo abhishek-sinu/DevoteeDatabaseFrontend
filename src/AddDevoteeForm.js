@@ -3,6 +3,9 @@ import React from "react";
 export default function AddDevoteeForm({ form, handleChange, handleSubmit, editingId }) {
     const excludedFields = ["id", "created_at"];
 
+    // ✅ Log form keys to console
+    console.log("Form keys:", Object.keys(form));
+
     return (
         <div>
             <h4>{editingId ? "Update" : "Add"} Devotee</h4>
@@ -21,6 +24,18 @@ export default function AddDevoteeForm({ form, handleChange, handleSubmit, editi
                                         onChange={handleChange}
                                         accept="image/*"
                                     />
+                                ) : key.trim().toLowerCase() === "gender" ? (
+                                    <select
+                                        name="gender"
+                                        className="form-control"
+                                        value={value}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
                                 ) : (
                                     <input
                                         type="text"
