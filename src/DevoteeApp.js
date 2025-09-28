@@ -20,6 +20,7 @@ export default function DevoteeApp() {
   });
 
   const excludedFields = ["id", "created_at"];
+  const [facilitator, setCounsellors] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const token = localStorage.getItem("token");
 
@@ -35,6 +36,7 @@ export default function DevoteeApp() {
 
   useEffect(() => {
     fetchDevotees();
+    fetchCounsellors();
   }, []);
 
   const fetchDevotees = async () => {
@@ -54,6 +56,17 @@ export default function DevoteeApp() {
       ...form,
       [name]: name === "photo" ? files[0] : value,
     });
+  };
+
+  const fetchCounsellors = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/facilitators`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCounsellors(res.data);
+    } catch (err) {
+      console.error("❌ Error fetching facilitators:", err);
+    }
   };
 
   const handleFilterChange = (e) => setFilter(e.target.value);
@@ -144,7 +157,7 @@ export default function DevoteeApp() {
               <form onSubmit={handleSubmit}>
                 <div className="row">
                   {Object.entries(form)
-                      .filter(([key]) => !excludedFields.includes(key))
+                      .filter(([key]) => !excludedFields.includes(key)&& key !== "counceller_id")
                       .map(([key, value]) => (
                           <div className="col-md-4 mb-3" key={key}>
                             <label className="form-label">{key.replace(/_/g, " ")}</label>
@@ -155,6 +168,88 @@ export default function DevoteeApp() {
                                     className="form-control"
                                     onChange={handleChange}
                                     accept="image/*"
+                                />
+                            ) : key === "marital_status" ? (
+                                <select
+                                    name="marital_status"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                >
+                                  <option value="">Select Marital Status</option>
+                                  <option value="Grihastha">Grihastha</option>
+                                  <option value="Bramhachari">Bramhachari</option>
+                                  <option value="Not Married">Not Married</option>
+                                </select>
+                            ) : key === "gender" ? (
+                                <select
+                                    name="gender"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                >
+                                  <option value="">Select Gender</option>
+                                  <option value="Male">Male</option>
+                                  <option value="Female">Female</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                            ) : key === "dob" ? (
+                              <input
+                                type="date"
+                                name="dob"
+                                className="form-control"
+                                value={value}
+                                onChange={handleChange}
+                                placeholder="Date of Birth"
+                              />
+                            ) : key === "first_initiation_date" ? (
+                              <input
+                                type="date"
+                                name="first_initiation_date"
+                                className="form-control"
+                                value={value}
+                                onChange={handleChange}
+                                placeholder="First Initiation Date"
+                              />
+                            ) : key === "iskcon_first_contact_date" ? (
+                              <input
+                                type="date"
+                                name="iskcon_first_contact_date"
+                                className="form-control"
+                                value={value}
+                                onChange={handleChange}
+                                placeholder="ISKCON First Contact Date"
+                              />
+                            ) : key === "second_initiation_date" ? (
+                              <input
+                                type="date"
+                                name="second_initiation_date"
+                                className="form-control"
+                                value={value}
+                                onChange={handleChange}
+                                placeholder="Second Initiation Date"
+                              />
+                            ) : key === "second_initiated" || key === "full_time_devotee" ? (
+                                <select
+                                    name={key}
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                >
+                                  <option value="">Select</option>
+                                  <option value="Yes">Yes</option>
+                                  <option value="No">No</option>
+                                </select>
+                            ) : key === "email" ? (
+                                <input
+                                    type="email"
+                                    name="email"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    pattern="^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$"
+                                    required
+                                    placeholder="Enter a valid email address"
                                 />
                             ) : (
                                 <input
@@ -167,6 +262,22 @@ export default function DevoteeApp() {
                             )}
                           </div>
                       ))}
+                  <div className="col-md-4 mb-3">
+                    <label className="form-label">Facilitator</label>
+                    <select
+                        name="facilitator_id"
+                        className="form-control"
+                        value={form.counceller_id || ""}
+                        onChange={handleChange}
+                    >
+                      <option value="">Select Facilitator</option>
+                      {facilitator.map(c => (
+                          <option key={c.user_id} value={c.user_id}>
+                            {c.initiated_name}
+                          </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <button className="btn btn-info" type="submit">
                   {editingId ? "Update" : "Add"} Devotee
@@ -207,6 +318,16 @@ export default function DevoteeApp() {
                                     style={{ cursor: "pointer" }}
                                     onDoubleClick={() => openModal(`${API_BASE}${d[key]}`)}
                                 />
+                            ) : key === "dob" && d[key] ? (
+                                (() => {
+                                  const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+                                  const date = new Date(d[key]);
+                                  if (isNaN(date)) return d[key];
+                                  const day = String(date.getDate()).padStart(2, '0');
+                                  const month = monthNames[date.getMonth()];
+                                  const year = date.getFullYear();
+                                  return `${day}-${month}-${year}`;
+                                })()
                             ) : (
                                 d[key]
                             )}

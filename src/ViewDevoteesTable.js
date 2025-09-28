@@ -7,6 +7,7 @@ export default function ViewDevoteesTable() {
     const [devotees, setDevotees] = useState([]);
     const [filter, setFilter] = useState("");
     const [modalDevotee, setModalDevotee] = useState(null);
+    const [facilitatorName, setFacilitatorName] = useState("");
 
     useEffect(() => {
         fetchDevotees();
@@ -35,6 +36,19 @@ export default function ViewDevoteesTable() {
     const currentItems = filteredDevotees.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(filteredDevotees.length / itemsPerPage);
     const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+    const fetchFacilitatorName = async (id) => {
+        if (!id) return;
+        const token = localStorage.getItem("token");
+        try {
+            const res = await axios.get(`${API_BASE}/api/devotees/${id}/initiated-name`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setFacilitatorName(res.data.initiated_name || "Not found");
+        } catch (err) {
+            setFacilitatorName("Not found");
+        }
+    };
 
     return (
         <>
@@ -153,7 +167,29 @@ export default function ViewDevoteesTable() {
                                         .map(([key, value]) => (
                                             <tr key={key}>
                                                 <th>{key.replace(/_/g, " ")}</th>
-                                                <td>{value}</td>
+                                                <td>
+                                                    {key === "facilitator_id" ? (
+                                                        <>
+                                                            {value}
+                                                            {" "}
+                                                            <a
+                                                                href="#"
+                                                                onClick={e => {
+                                                                    e.preventDefault();
+                                                                    fetchFacilitatorName(value);
+                                                                }}
+                                                                style={{ marginLeft: 8 }}
+                                                            >
+                                                                Name:
+                                                            </a>
+                                                            {facilitatorName && (
+                                                                <span style={{ marginLeft: 8, color: '#007bff' }}>{facilitatorName}</span>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        value
+                                                    )}
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
