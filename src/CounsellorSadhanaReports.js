@@ -3,7 +3,7 @@ import axios from "axios";
 
 export default function CounsellorSadhanaReports() {
   const [devotees, setDevotees] = useState([]);
-  const [selectedEmail, setSelectedEmail] = useState("");
+  const [selectedId, setSelectedId] = useState("");
   const [entries, setEntries] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -35,7 +35,7 @@ export default function CounsellorSadhanaReports() {
       if (!token || !userId) return;
       try {
         const res = await axios.get(
-            `${process.env.REACT_APP_API_BASE}/api/counsellor/devotees-sadhana`,
+            `${process.env.REACT_APP_API_BASE}/api/counsellor/devotees`,
             {
               headers: { Authorization: `Bearer ${token}` },
               params: { user_id: userId },
@@ -49,13 +49,13 @@ export default function CounsellorSadhanaReports() {
     fetchDevotees();
   }, [token, userId]);
 
-  const fetchEntries = async (email, month, year, page) => {
+  const fetchEntries = async (id, month, year, page) => {
     try {
       const res = await axios.get(
           `${process.env.REACT_APP_API_BASE}/api/sadhana/by-email`,
           {
             headers: { Authorization: `Bearer ${token}` },
-            params: { email, month, year, page },
+            params: { id, month, year, page },
           }
       );
       setEntries(res.data.entries);
@@ -68,7 +68,7 @@ export default function CounsellorSadhanaReports() {
 
   const handleDevoteeSelect = (e) => {
     const email = e.target.value;
-    setSelectedEmail(email);
+    setSelectedId(email);
     setSelectedMonth("");
     setSelectedYear("");
     setEntries([]);
@@ -77,8 +77,8 @@ export default function CounsellorSadhanaReports() {
   const handleMonthChange = (e) => {
     const month = e.target.value;
     setSelectedMonth(month);
-    if (selectedYear && selectedEmail) {
-      fetchEntries(selectedEmail, month, selectedYear, 1);
+    if (selectedYear && selectedId) {
+      fetchEntries(selectedId, month, selectedYear, 1);
       setCurrentPage(1);
     }
   };
@@ -86,15 +86,15 @@ export default function CounsellorSadhanaReports() {
   const handleYearChange = (e) => {
     const year = e.target.value;
     setSelectedYear(year);
-    if (selectedMonth && selectedEmail) {
-      fetchEntries(selectedEmail, selectedMonth, year, 1);
+    if (selectedMonth && selectedId) {
+      fetchEntries(selectedId, selectedMonth, year, 1);
       setCurrentPage(1);
     }
   };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    fetchEntries(selectedEmail, selectedMonth, selectedYear, page);
+    fetchEntries(selectedId, selectedMonth, selectedYear, page);
   };
 
   return (
@@ -103,17 +103,17 @@ export default function CounsellorSadhanaReports() {
 
         <div className="mb-3">
           <label>Select Devotee:</label>
-          <select className="form-select" value={selectedEmail} onChange={handleDevoteeSelect}>
+          <select className="form-select" value={selectedId} onChange={handleDevoteeSelect}>
             <option value="">-- Choose Devotee --</option>
             {devotees.map((d, idx) => (
-                <option key={idx} value={d.devotee.email}>
+                <option key={idx} value={d.devotee.id}>
                   {d.devotee.initiated_name} ({d.devotee.email})
                 </option>
             ))}
           </select>
         </div>
 
-        {selectedEmail && (
+        {selectedId && (
             <div className="row mb-3">
               <div className="col">
                 <label>Month:</label>

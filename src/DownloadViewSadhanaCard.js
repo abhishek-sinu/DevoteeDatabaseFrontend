@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 
 const formatTime = (minutes) => {
@@ -59,10 +61,35 @@ const DownloadViewSadhanaCard = () => {
         document.body.removeChild(link);
     };
 
+    const downloadPDF = () => {
+        const doc = new jsPDF();
+        doc.text("Your Sadhana Entries", 14, 15);
+        doc.autoTable({
+            startY: 20,
+            head: [[
+                "Date", "Wake-up Time", "Chanting Rounds", "Reading Time", "Reading Topic",
+                "Hearing Time", "Hearing Topic", "Service Name", "Service Time"
+            ]],
+            body: entries.map(entry => [
+                entry.entry_date ? entry.entry_date.split('T')[0] : '',
+                entry.wake_up_time,
+                entry.chanting_rounds,
+                formatTime(entry.reading_time),
+                entry.reading_topic,
+                formatTime(entry.hearing_time),
+                entry.hearing_topic,
+                entry.service_name,
+                formatTime(entry.service_time)
+            ]),
+        });
+        doc.save("sadhana_entries.pdf");
+    };
+
     return (
         <div className="container mt-4">
             <h4 className="text-center mb-3">Your Sadhana Entries</h4>
             <button className="btn btn-primary mb-3" onClick={downloadCSV}>Download CSV</button>
+            <button className="btn btn-secondary mb-3 ms-2" onClick={downloadPDF}>Download PDF</button>
             <div className="table-responsive">
                 <table className="table table-bordered table-striped">
                     <thead className="table-dark">

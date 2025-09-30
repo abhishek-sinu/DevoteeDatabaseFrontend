@@ -15,8 +15,10 @@ export default function ViewDevoteesTable() {
 
     const fetchDevotees = async () => {
         const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("userId");
         const res = await axios.get(`${API_BASE}/api/devotees`, {
             headers: { Authorization: `Bearer ${token}` },
+            params: { userId }
         });
         setDevotees(res.data);
     };

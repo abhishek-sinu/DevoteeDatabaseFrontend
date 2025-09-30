@@ -8,6 +8,8 @@ import SadhanaEntryForm from "./SadhanaEntryForm"; // new
 import SadhanaViewDownload from "./DownloadViewSadhanaCard"; // new
 import './DevoteeApp.css';
 import CounsellorSadhanaReports from "./CounsellorSadhanaReports";
+import MyProfile from "./MyProfile";
+import axios from "axios";
 
 const handleLogout = () => {
     localStorage.removeItem("token");
@@ -17,6 +19,7 @@ const handleLogout = () => {
 export default function DevoteeDashboard() {
     const [view, setView] = useState("view");
     const [role, setRole] = useState("user");
+    const [displayName, setDisplayName] = useState("");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -25,9 +28,34 @@ export default function DevoteeDashboard() {
             try {
                 const decoded = jwtDecode(token);
                 setRole(decoded.role || "user");
+                if (decoded.role === "counsellor" || decoded.role === "user") {
+                    setView("profile");
+                }
             } catch (error) {
                 console.error("Invalid token:", error);
             }
+        }
+        // Fetch devotee details
+        if (userId) {
+            const fetchDevotee = async () => {
+                try {
+                    const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/devotees`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                        params: { userId , type: "Name"}
+                    });
+                    console.log("data for name:",res.data);
+                    console.log("data for name:",res.data[0].initiated_name+" role:"+role);
+                    const { initiated_name, first_name, last_name } = res.data;
+                    if(res.data[0].initiated_name!=="") {
+                        setDisplayName(res.data[0].initiated_name);
+                    }else {
+                        setDisplayName(`${res.data[0].first_name} ${res.data[0].last_name}`);
+                    }
+                } catch {
+                    setDisplayName("");
+                }
+            };
+            fetchDevotee();
         }
     }, []);
 
@@ -40,7 +68,8 @@ export default function DevoteeDashboard() {
             </div>
 
             {/* Logout Button */}
-            <div className="text-end mb-3">
+            <div className="d-flex justify-content-end align-items-center mb-3">
+                <span className="me-3 fw-bold">{displayName}</span>
                 <button onClick={handleLogout} className="btn btn-danger">
                     <i className="bi bi-box-arrow-right"></i> Logout
                 </button>
@@ -48,6 +77,14 @@ export default function DevoteeDashboard() {
 
             {/* Action Buttons */}
             <div className="d-flex justify-content-center mb-4 flex-wrap gap-2">
+                {role === "admin" && (
+                    <button
+                        onClick={() => setView("view")}
+                        className={`btn btn-info${view === "view" ? " active" : ""}`}
+                    >
+                        <i className="bi bi-table"></i> View Devotees
+                    </button>
+                )}
                 {role === "admin" && (
                     <>
                         <button
@@ -70,49 +107,53 @@ export default function DevoteeDashboard() {
                         </button>
                     </>
                 )}
-                <button
-                    onClick={() => setView("view")}
-                    className={`btn btn-secondary${view === "view" ? " active" : ""}`}
-                >
-                    <i className="bi bi-table"></i> View Devotees
-                </button>
-
-                {role === "user" && (
+                {(role === "user" || role === "counsellor") && (
+                    <button onClick={() => setView("profile")} className={`btn btn-info${view === "profile" ? " active" : ""}`}>
+                        My Profile
+                    </button>
+                )}
+                {(role === "user" || role === "counsellor") && (
                     <>
                         <button
                             onClick={() => setView("entry")}
-                            className={`btn btn-info${view === "entry" ? " active" : ""}`}
+                            className={`btn btn-success${view === "entry" ? " active" : ""}`}
                         >
-                            <i className="bi bi-journal-plus"></i> Enter Sadhana Card
+                            <i className="bi bi-journal-plus"></i> Enter My Sadhana
                         </button>
                         <button
                             onClick={() => setView("download")}
-                            className={`btn btn-dark${view === "download" ? " active" : ""}`}
+                            className={`btn btn-info${view === "download" ? " active" : ""}`}
                         >
-                            <i className="bi bi-cloud-download"></i> View / Download Sadhana Card
+                            <i className="bi bi-cloud-download"></i> My Sadhana
                         </button>
                     </>
                 )}
-
-
+                {role === "counsellor" && (
+                    <button
+                        onClick={() => setView("view")}
+                        className={`btn btn-primary${view === "view" ? " active" : ""}`}
+                    >
+                        <i className="bi bi-table"></i> Assigned Devotees
+                    </button>
+                )}
                 {role === "counsellor" && (
                     <button
                         onClick={() => setView("reports")}
-                        className={`btn btn-outline-primary${view === "reports" ? " active" : ""}`}
+                        className={`btn btn-warning${view === "reports" ? " active" : ""}`}
                     >
                         Sadhana Reports
                     </button>
                 )}
-
             </div>
 
             {/* Content Section */}
             {view === "add" && role === "admin" && <DevoteeApp />}
+            {view === "profile" && (role === "user" || role === "counsellor") && <MyProfile />}
             {view === "bulk" && role === "admin" && <BulkUploadDevotees />}
             {view === "register" && role === "admin" && <Register />}
-            {view === "view" && <ViewDevoteesTable />}
-            {view === "entry" && role === "user" && <SadhanaEntryForm userId={localStorage.getItem("userId")} />}
-            {view === "download" && role === "user" && <SadhanaViewDownload userId={localStorage.getItem("userId")} />}
+            {view === "view" && (role === "admin" || role === "counsellor") &&  <ViewDevoteesTable userId={localStorage.getItem("userId")}/>}
+            {view === "entry" && (role === "user"||role === "counsellor") && <SadhanaEntryForm userId={localStorage.getItem("userId")} />}
+            {view === "download" && (role === "user"||role === "counsellor") && <SadhanaViewDownload userId={localStorage.getItem("userId")} />}
             {view === "reports" && role === "counsellor" && <CounsellorSadhanaReports userId={localStorage.getItem("userId")}/>}
         </>
     );

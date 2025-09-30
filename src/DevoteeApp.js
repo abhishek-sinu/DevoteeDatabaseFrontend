@@ -41,8 +41,10 @@ export default function DevoteeApp() {
 
   const fetchDevotees = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/devotees`, {
-        headers: { Authorization: `Bearer ${token}` }
+        const userId = "ALL";
+        const res = await axios.get(`${API_BASE}/api/devotees`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userId }
       });
       setDevotees(res.data);
     } catch (err) {
