@@ -313,13 +313,19 @@ export default function DevoteeApp() {
                       {Object.keys(form).map((key) => (
                           <td key={key}>
                             {key === "photo" && d[key] ? (
-                                <img
-                                    src={`${API_BASE}${d[key]}`}
-                                    alt="Devotee"
-                                    width="50"
-                                    style={{ cursor: "pointer" }}
-                                    onDoubleClick={() => openModal(`${API_BASE}${d[key]}`)}
-                                />
+                                (() => {
+                                  const imgPath = `${API_BASE}${d[key]}`;
+                                  console.log("Image path:", imgPath);
+                                  return (
+                                      <img
+                                          src={imgPath}
+                                          alt="Devotee"
+                                          width="50"
+                                          style={{ cursor: "pointer" }}
+                                          onClick={() => openModal(imgPath)}
+                                      />
+                                  );
+                                })()
                             ) : key === "dob" && d[key] ? (
                                 (() => {
                                   const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];

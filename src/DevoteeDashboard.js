@@ -27,6 +27,7 @@ export default function DevoteeDashboard() {
         if (token) {
             try {
                 const decoded = jwtDecode(token);
+                console.log("Decoded JWT role:", decoded.role);
                 setRole(decoded.role || "user");
                 if (decoded.role === "counsellor" || decoded.role === "user") {
                     setView("profile");
@@ -37,11 +38,13 @@ export default function DevoteeDashboard() {
         }
         // Fetch devotee details
         if (userId) {
+            console.log("Fetching details for userId:", userId);
             const fetchDevotee = async () => {
                 try {
-                    const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/devotees`, {
+                    console.log("current role of User:",role);
+                    const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/devotee`, {
                         headers: { Authorization: `Bearer ${token}` },
-                        params: { userId , type: "Name"}
+                        params: { userId}
                     });
                     console.log("data for name:",res.data);
                     console.log("data for name:",res.data[0].initiated_name+" role:"+role);
