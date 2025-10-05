@@ -11,6 +11,8 @@ ReactModal.setAppElement("#root");
 export default function DevoteeApp() {
   const [devotees, setDevotees] = useState([]);
   const [filter, setFilter] = useState("");
+  const [filterType, setFilterType] = useState("Common Filter");
+  const [filterValue, setFilterValue] = useState("");
   const [form, setForm] = useState({
     first_name: "", middle_name: "", last_name: "", gender: "", dob: "", ethnicity: "", citizenship: "",
     marital_status: "", education_qualification_code: "", address1: "", address2: "", pin_code: "",
@@ -23,6 +25,12 @@ export default function DevoteeApp() {
   const [facilitator, setCounsellors] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const token = localStorage.getItem("token");
+
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+
+
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalImage, setModalImage] = useState("");
@@ -41,14 +49,59 @@ export default function DevoteeApp() {
 
   const fetchDevotees = async () => {
     try {
-        const userId = "ALL";
-        const res = await axios.get(`${API_BASE}/api/devotees`, {
+      const userId = "ALL";
+      const res = await axios.get(`${API_BASE}/api/devotees`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { userId }
       });
       setDevotees(res.data);
     } catch (err) {
       console.error("❌ Error fetching devotees:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCountries();
+  }, []);
+
+  const fetchCountries = async () => {
+    try {
+      const res = await axios.get("https://api.countrystatecity.in/v1/countries", {
+        headers: { "X-CSCAPI-KEY": "M2JyaVR4b1E5aFR2ckJURGtmUUNMc0JaSldRamRaaDJDSFppWkp5aA==" }
+      });
+      setCountries(res.data);
+    } catch (err) {
+      console.error("Error fetching countries:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (form.citizenship) fetchStates(form.citizenship);
+  }, [form.citizenship]);
+
+  const fetchStates = async (countryCode) => {
+    try {
+      const res = await axios.get(`https://api.countrystatecity.in/v1/countries/${countryCode}/states`, {
+        headers: { "X-CSCAPI-KEY": "M2JyaVR4b1E5aFR2ckJURGtmUUNMc0JaSldRamRaaDJDSFppWkp5aA==" }
+      });
+      setStates(res.data);
+    } catch (err) {
+      console.error("Error fetching states:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (form.address1 && form.citizenship) fetchCities(form.citizenship, form.address1);
+  }, [form.address1]);
+
+  const fetchCities = async (countryCode, stateCode) => {
+    try {
+      const res = await axios.get(`https://api.countrystatecity.in/v1/countries/${countryCode}/states/${stateCode}/cities`, {
+        headers: { "X-CSCAPI-KEY": "M2JyaVR4b1E5aFR2ckJURGtmUUNMc0JaSldRamRaaDJDSFppWkp5aA==" }
+      });
+      setCities(res.data);
+    } catch (err) {
+      console.error("Error fetching cities:", err);
     }
   };
 
@@ -133,11 +186,45 @@ export default function DevoteeApp() {
     }
   };
 
-  const filteredDevotees = devotees.filter(d =>
-      Object.values(d).some(val =>
-          val && val.toString().toLowerCase().includes(filter.toLowerCase())
-      )
-  );
+  const filteredDevotees = devotees.filter(d => {
+    if (filterType === "Common Filter") {
+      return Object.values(d).some(val =>
+          val && val.toString().toLowerCase().includes(filterValue.toLowerCase())
+      );
+    }
+    if (filterType === "By Age ≥" && filterValue) {
+      if (!d.dob) return false;
+      const dob = new Date(d.dob);
+      if (isNaN(dob)) return false;
+      const age = Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+      return age >= parseInt(filterValue, 10);
+    }
+    if (filterType === "Gender" && filterValue) {
+      return d.gender && d.gender === filterValue;
+    }
+    if (filterType === "Marital Status" && filterValue) {
+      return d.marital_status && d.marital_status === filterValue;
+    }
+    if (filterType === "Education" && filterValue) {
+      return d.education_qualification_code && d.education_qualification_code === filterValue;
+    }
+    if (filterType === "City" && filterValue) {
+      return d.address2 && d.address2.toLowerCase().includes(filterValue.toLowerCase());
+    }
+    if (filterType === "State" && filterValue) {
+      return d.address1 && d.address1.toLowerCase().includes(filterValue.toLowerCase());
+    }
+    if (filterType === "First Initiated Date" && filterValue) {
+      return d.first_initiation_date && d.first_initiation_date === filterValue;
+    }
+    if (filterType === "Second Initiated Date" && filterValue) {
+      return d.second_initiation_date && d.second_initiation_date === filterValue;
+    }
+    if (filterType === "Full Time Devotees" && filterValue) {
+      return d.full_time_devotee && d.full_time_devotee === filterValue;
+    }
+    return true;
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2;
@@ -171,6 +258,27 @@ export default function DevoteeApp() {
                                     onChange={handleChange}
                                     accept="image/*"
                                 />
+                            ): key === "citizenship" ? (
+                                <select name="citizenship" className="form-control" value={value} onChange={handleChange}>
+                                  <option value="">Select Country</option>
+                                  {countries.map(c => (
+                                      <option key={c.name} value={c.name}>{c.name}</option>
+                                  ))}
+                                </select>
+                            ) : key === "address1" ? (
+                                <select name="address1" className="form-control" value={value} onChange={handleChange}>
+                                  <option value="">Select State</option>
+                                  {states.map(s => (
+                                      <option key={s.name} value={s.name}>{s.name}</option>
+                                  ))}
+                                </select>
+                            ) : key === "address2" ? (
+                                <select name="address2" className="form-control" value={value} onChange={handleChange}>
+                                  <option value="">Select City</option>
+                                  {cities.map(city => (
+                                      <option key={city.name} value={city.name}>{city.name}</option>
+                                  ))}
+                                </select>
                             ) : key === "marital_status" ? (
                                 <select
                                     name="marital_status"
@@ -196,41 +304,41 @@ export default function DevoteeApp() {
                                   <option value="Other">Other</option>
                                 </select>
                             ) : key === "dob" ? (
-                              <input
-                                type="date"
-                                name="dob"
-                                className="form-control"
-                                value={value}
-                                onChange={handleChange}
-                                placeholder="Date of Birth"
-                              />
+                                <input
+                                    type="date"
+                                    name="dob"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    placeholder="Date of Birth"
+                                />
                             ) : key === "first_initiation_date" ? (
-                              <input
-                                type="date"
-                                name="first_initiation_date"
-                                className="form-control"
-                                value={value}
-                                onChange={handleChange}
-                                placeholder="First Initiation Date"
-                              />
+                                <input
+                                    type="date"
+                                    name="first_initiation_date"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    placeholder="First Initiation Date"
+                                />
                             ) : key === "iskcon_first_contact_date" ? (
-                              <input
-                                type="date"
-                                name="iskcon_first_contact_date"
-                                className="form-control"
-                                value={value}
-                                onChange={handleChange}
-                                placeholder="ISKCON First Contact Date"
-                              />
+                                <input
+                                    type="date"
+                                    name="iskcon_first_contact_date"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    placeholder="ISKCON First Contact Date"
+                                />
                             ) : key === "second_initiation_date" ? (
-                              <input
-                                type="date"
-                                name="second_initiation_date"
-                                className="form-control"
-                                value={value}
-                                onChange={handleChange}
-                                placeholder="Second Initiation Date"
-                              />
+                                <input
+                                    type="date"
+                                    name="second_initiation_date"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    placeholder="Second Initiation Date"
+                                />
                             ) : key === "second_initiated" || key === "full_time_devotee" ? (
                                 <select
                                     name={key}
@@ -253,7 +361,24 @@ export default function DevoteeApp() {
                                     required
                                     placeholder="Enter a valid email address"
                                 />
-                            ) : (
+                            ) : key === "education_qualification_code" ? (
+                                        <div className="col-md-4 mb-3" key={key}>
+                                          <select
+                                              name="education_qualification_code"
+                                              className="form-control"
+                                              style={{ minWidth: 260, width: "100%" }}
+                                              value={value}
+                                              onChange={handleChange}
+                                          >
+                                            <option value="">Select Education Qualification</option>
+                                            <option value="10th">10th</option>
+                                            <option value="12th">12th</option>
+                                            <option value="Graduation">Graduation</option>
+                                            <option value="Post Graduation">Post Graduation</option>
+                                            <option value="PHD">PHD</option>
+                                          </select>
+                                        </div>
+                                    ) : (
                                 <input
                                     type="text"
                                     name={key}
@@ -286,14 +411,6 @@ export default function DevoteeApp() {
                 </button>
               </form>
             </div>
-
-            <input
-                type="text"
-                className="form-control mb-3"
-                placeholder="Search..."
-                value={filter}
-                onChange={handleFilterChange}
-            />
 
             <div className="table-responsive">
               <table className="table table-striped table-bordered">
