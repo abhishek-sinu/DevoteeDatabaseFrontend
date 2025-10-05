@@ -262,21 +262,21 @@ export default function DevoteeApp() {
                                 <select name="citizenship" className="form-control" value={value} onChange={handleChange}>
                                   <option value="">Select Country</option>
                                   {countries.map(c => (
-                                      <option key={c.name} value={c.name}>{c.name}</option>
+                                      <option key={c.iso2} value={c.name}>{c.name}</option>
                                   ))}
                                 </select>
                             ) : key === "address1" ? (
                                 <select name="address1" className="form-control" value={value} onChange={handleChange}>
                                   <option value="">Select State</option>
                                   {states.map(s => (
-                                      <option key={s.name} value={s.name}>{s.name}</option>
+                                      <option key={s.iso2} value={s.name}>{s.name}</option>
                                   ))}
                                 </select>
                             ) : key === "address2" ? (
                                 <select name="address2" className="form-control" value={value} onChange={handleChange}>
                                   <option value="">Select City</option>
                                   {cities.map(city => (
-                                      <option key={city.name} value={city.name}>{city.name}</option>
+                                      <option key={city.iso2} value={city.name}>{city.name}</option>
                                   ))}
                                 </select>
                             ) : key === "marital_status" ? (
