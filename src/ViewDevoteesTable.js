@@ -184,8 +184,6 @@ export default function ViewDevoteesTable() {
                         <option>Marital Status</option>
                         <option>Education</option>
                         <option>Country</option>
-                        <option>State</option>
-                        <option>City</option>
                         <option>First Initiated Date</option>
                         <option>Second Initiated Date</option>
                         <option>Full Time Devotees</option>
