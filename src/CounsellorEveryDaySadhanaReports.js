@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-export default function CounsellorSadhanaReports() {
+export default function CounsellorEveryDaySadhanaReports() {
   const [devotees, setDevotees] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [entries, setEntries] = useState([]);

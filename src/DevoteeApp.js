@@ -42,6 +42,11 @@ export default function DevoteeApp() {
 
   const closeModal = () => setModalIsOpen(false);
 
+  const [errorModal, setErrorModal] = useState({ show: false, error: '', details: '' });
+  const [successModal, setSuccessModal] = useState({ show: false, message: '' });
+  const [deleteModal, setDeleteModal] = useState({ show: false, id: null, confirmText: '' });
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     fetchDevotees();
     fetchCounsellors();
@@ -128,8 +133,8 @@ export default function DevoteeApp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const formData = new FormData();
-
     Object.entries(form).forEach(([key, value]) => {
       if (key === "photo") {
         if (value instanceof File) {
@@ -139,22 +144,20 @@ export default function DevoteeApp() {
         formData.append(key, value);
       }
     });
-
-
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
       },
     };
-
     try {
       if (editingId) {
         await axios.put(`${API_BASE}/api/devotees/${editingId}`, formData, config);
+        setSuccessModal({ show: true, message: 'Devotee updated successfully!' });
       } else {
         await axios.post(`${API_BASE}/api/devotees`, formData, config);
+        setSuccessModal({ show: true, message: 'Devotee added successfully!' });
       }
-
       setForm({
         first_name: "", middle_name: "", last_name: "", gender: "", dob: "", ethnicity: "", citizenship: "",
         marital_status: "", education_qualification_code: "", address1: "", address2: "", pin_code: "",
@@ -165,8 +168,21 @@ export default function DevoteeApp() {
       setEditingId(null);
       fetchDevotees();
     } catch (err) {
-      console.error("❌ Error submitting form:", err);
+      if (err.response && err.response.data && err.response.data.error) {
+        setErrorModal({
+          show: true,
+          error: err.response.data.error,
+          details: err.response.data.details || '',
+        });
+      } else {
+        setErrorModal({
+          show: true,
+          error: 'Unknown error',
+          details: err.message,
+        });
+      }
     }
+    setLoading(false);
   };
 
   const handleEdit = (d) => {
@@ -175,15 +191,22 @@ export default function DevoteeApp() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this devotee?")) return;
+    setDeleteModal({ show: true, id, confirmText: '' });
+  };
+
+  const confirmDelete = async () => {
+    if (deleteModal.confirmText.trim().toLowerCase() !== 'delete') return;
+    setLoading(true);
     try {
-      await axios.delete(`${API_BASE}/api/devotees/${id}`, {
+      await axios.delete(`${API_BASE}/api/devotees/${deleteModal.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchDevotees();
     } catch (err) {
       console.error("❌ Error deleting devotee:", err);
     }
+    setDeleteModal({ show: false, id: null, confirmText: '' });
+    setLoading(false);
   };
 
   const filteredDevotees = devotees.filter(d => {
@@ -236,6 +259,83 @@ export default function DevoteeApp() {
 
   return (
       <div className="container mt-4">
+        {/* Success Modal */}
+        {successModal.show && (
+          <div className="modal show fade" tabIndex="-1" style={{ display: 'block', background: 'rgba(0,0,0,0.3)' }}>
+            <div className="modal-dialog">
+              <div className="modal-content border-success">
+                <div className="modal-header bg-success text-white">
+                  <h5 className="modal-title">Success</h5>
+                  <button type="button" className="btn-close" onClick={() => setSuccessModal({ ...successModal, show: false })}></button>
+                </div>
+                <div className="modal-body">
+                  <p><strong>{successModal.message}</strong></p>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={() => setSuccessModal({ ...successModal, show: false })}>Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Error Modal */}
+        {errorModal.show && (
+          <div className="modal show fade" tabIndex="-1" style={{ display: 'block', background: 'rgba(0,0,0,0.3)' }}>
+            <div className="modal-dialog">
+              <div className="modal-content border-danger">
+                <div className="modal-header bg-danger text-white">
+                  <h5 className="modal-title">Error</h5>
+                  <button type="button" className="btn-close" onClick={() => setErrorModal({ ...errorModal, show: false })}></button>
+                </div>
+                <div className="modal-body">
+                  <p><strong>{errorModal.error}</strong></p>
+                  {errorModal.details && <div className="alert alert-warning mt-2">{errorModal.details}</div>}
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={() => setErrorModal({ ...errorModal, show: false })}>Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Delete Confirmation Modal */}
+        {deleteModal.show && (
+          <div className="modal show fade" tabIndex="-1" style={{ display: 'block', background: 'rgba(0,0,0,0.3)' }}>
+            <div className="modal-dialog">
+              <div className="modal-content border-warning">
+                <div className="modal-header bg-warning text-dark">
+                  <h5 className="modal-title">Confirm Delete</h5>
+                  <button type="button" className="btn-close" onClick={() => setDeleteModal({ show: false, id: null, confirmText: '' })}></button>
+                </div>
+                <div className="modal-body">
+                  <p>Do you really want to delete the data?</p>
+                  <p className="mb-2">Write <b>delete</b> in the text box to permanently delete the devotee details.</p>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={deleteModal.confirmText}
+                    onChange={e => setDeleteModal({ ...deleteModal, confirmText: e.target.value })}
+                    placeholder="Type 'delete' to confirm"
+                  />
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={() => setDeleteModal({ show: false, id: null, confirmText: '' })}>Cancel</button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    disabled={deleteModal.confirmText.trim().toLowerCase() !== 'delete' || loading}
+                    onClick={confirmDelete}
+                  >
+                    {loading ? (
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    ) : null}
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="card border-info shadow">
           <div className="card-header bg-info text-white text-center">
             <h3>Devotees Information</h3>
@@ -262,21 +362,21 @@ export default function DevoteeApp() {
                                 <select name="citizenship" className="form-control" value={value} onChange={handleChange}>
                                   <option value="">Select Country</option>
                                   {countries.map(c => (
-                                      <option key={c.iso2} value={c.name}>{c.name}</option>
+                                      <option key={c.iso2} value={c.iso2}>{c.name}</option>
                                   ))}
                                 </select>
                             ) : key === "address1" ? (
                                 <select name="address1" className="form-control" value={value} onChange={handleChange}>
                                   <option value="">Select State</option>
                                   {states.map(s => (
-                                      <option key={s.iso2} value={s.name}>{s.name}</option>
+                                      <option key={s.iso2} value={s.iso2}>{s.name}</option>
                                   ))}
                                 </select>
                             ) : key === "address2" ? (
                                 <select name="address2" className="form-control" value={value} onChange={handleChange}>
                                   <option value="">Select City</option>
                                   {cities.map(city => (
-                                      <option key={city.iso2} value={city.name}>{city.name}</option>
+                                      <option key={city.iso2} value={city.iso2}>{city.name}</option>
                                   ))}
                                 </select>
                             ) : key === "marital_status" ? (
@@ -406,7 +506,10 @@ export default function DevoteeApp() {
                     </select>
                   </div>
                 </div>
-                <button className="btn btn-info" type="submit">
+                <button className="btn btn-info" type="submit" disabled={loading}>
+                  {loading ? (
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  ) : null}
                   {editingId ? "Update" : "Add"} Devotee
                 </button>
               </form>
@@ -459,8 +562,8 @@ export default function DevoteeApp() {
                           </td>
                       ))}
                       <td>
-                        <button className="btn btn-success btn-sm me-2" onClick={() => handleEdit(d)}>Edit</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(d.id)}>Delete</button>
+                        <button className="btn btn-success btn-sm me-2" onClick={() => handleEdit(d)} disabled={loading}>Edit</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(d.id)} disabled={loading}>Delete</button>
                       </td>
                     </tr>
                 ))}

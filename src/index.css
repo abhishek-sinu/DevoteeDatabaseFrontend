@@ -1,3 +1,17 @@
-body { font-family: Arial, sans-serif; padding: 0; margin: 0; }
-input { padding: 8px; margin: 4px 0; }
-button { padding: 8px 12px; margin-right: 8px; }
+body {
+  font-family: Arial, sans-serif;
+  padding: 0;
+  margin: 0;
+  /* Even lighter cream Vedic style */
+  background: linear-gradient(135deg, #fdfaf3 0%, #f7f3e9 100%);
+}
+
+input {
+  padding: 8px;
+  margin: 4px 0;
+}
+
+button {
+  padding: 8px 12px;
+  margin-right: 8px;
+}
