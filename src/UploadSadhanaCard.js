@@ -48,38 +48,47 @@ const UploadSadhanaCard = ({ email }) => {
   };
 
   return (
-    <div className="container mt-4">
-      <h5>Upload Sadhana Card</h5>
-      <form onSubmit={handleSubmit} className="row g-3">
-        <div className="col-md-4">
-          <label className="form-label">Month</label>
-          <select className="form-select" value={month} onChange={e => setMonth(e.target.value)} required>
-            <option value="">Select Month</option>
-            {months.map(m => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
+    <div className="container mt-5" style={{ maxWidth: 600 }}>
+      <div className="card shadow border-0">
+        <div className="card-header bg-primary text-white text-center">
+          <h4 className="mb-0">Upload Sadhana Card</h4>
         </div>
-        <div className="col-md-4">
-          <label className="form-label">Year</label>
-          <select className="form-select" value={year} onChange={e => setYear(e.target.value)} required>
-            <option value="">Select Year</option>
-            {getYears().map(y => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+        <div className="card-body">
+          {message && (
+            <div className={`alert mb-4 text-center ${message.includes('success') ? 'alert-success' : 'alert-danger'}`}>{message}</div>
+          )}
+          <form onSubmit={handleSubmit} className="row g-4">
+            <div className="col-md-6">
+              <label className="form-label fw-bold">Year</label>
+              <select className="form-select" value={year} onChange={e => setYear(e.target.value)} required>
+                <option value="">Select Year</option>
+                {getYears().map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-6">
+              <label className="form-label fw-bold">Month</label>
+              <select className="form-select" value={month} onChange={e => setMonth(e.target.value)} required>
+                <option value="">Select Month</option>
+                {months.map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-12">
+              <label className="form-label fw-bold">File</label>
+              <input type="file" className="form-control" accept=".jpg,.jpeg,.png,.pdf,.xls,.xlsx" ref={fileInputRef} onChange={e => setFile(e.target.files[0])} required />
+            </div>
+            <div className="col-12 text-center">
+              <button type="submit" className="btn btn-success px-4" disabled={loading} style={{ minWidth: 120 }}>
+                {loading ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-cloud-upload"></i>}
+                {loading ? 'Uploading...' : 'Upload'}
+              </button>
+            </div>
+          </form>
         </div>
-        <div className="col-md-4">
-          <label className="form-label">File</label>
-          <input type="file" className="form-control" accept=".jpg,.jpeg,.png,.pdf,.xls,.xlsx" ref={fileInputRef} onChange={e => setFile(e.target.files[0])} required />
-        </div>
-        <div className="col-12">
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? <span className="spinner-border spinner-border-sm"></span> : "Upload"}
-          </button>
-        </div>
-        {message && <div className="alert alert-info mt-2">{message}</div>}
-      </form>
+      </div>
     </div>
   );
 };

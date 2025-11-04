@@ -62,100 +62,89 @@ export default function DevoteeDashboard() {
     }, []);
 
     return (
-        <div className="container mt-4">
+        <div className="container-fluid px-0">
             {/* Krishna Invocation */}
             <div className="text-center p-3 mb-4 bg-info text-white rounded shadow">
                 <h2>🙏 Śrī Guru Gaurāṅga Jayate 🙏</h2>
                 <h4>Welcome to the Devotee Dashboard</h4>
             </div>
 
-            {/* Logout Button */}
-            <div className="d-flex justify-content-end align-items-center mb-3">
-                <span className="me-3 fw-bold">{displayName}</span>
-                <button onClick={handleLogout} className="btn btn-danger">
-                    <i className="bi bi-box-arrow-right"></i> Logout
-                </button>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="d-flex justify-content-center mb-4 flex-wrap gap-2">
-                {role === "admin" && (
-                    <button
-                        onClick={() => setView("view")}
-                        className={`btn btn-info${view === "view" ? " active" : ""}`}
-                    >
-                        <i className="bi bi-table"></i> View Devotees
+            {/* Responsive Navbar */}
+            <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4 rounded">
+                <div className="container-fluid">
+                    {/* Logo or Brand */}
+                    <a className="navbar-brand fw-bold d-flex align-items-center" href="#">
+                        <img src={process.env.PUBLIC_URL + "/image/logo.png"} alt="ISKCON Logo" width="40" height="40" className="rounded-circle me-2 border border-primary" style={{objectFit: 'cover'}} />
+                        <span className="d-none d-sm-inline"></span>
+                    </a>
+                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                        <span className="navbar-toggler-icon"></span>
                     </button>
-                )}
-                {role === "admin" && (
-                    <>
-                        <button
-                            onClick={() => setView("add")}
-                            className={`btn btn-primary${view === "add" ? " active" : ""}`}
-                        >
-                            <i className="bi bi-pencil-square"></i> Add / Update
-                        </button>
-                        <button
-                            onClick={() => setView("bulk")}
-                            className={`btn btn-success${view === "bulk" ? " active" : ""}`}
-                        >
-                            <i className="bi bi-upload"></i> Bulk Upload
-                        </button>
-                        <button
-                            onClick={() => setView("register")}
-                            className={`btn btn-warning${view === "register" ? " active" : ""}`}
-                        >
-                            <i className="bi bi-person-plus"></i> Assign Role
-                        </button>
-                        <button
-                            onClick={() => setView("adminUploadedReports")}
-                            className={`btn btn-secondary${view === "adminUploadedReports" ? " active" : ""}`}
-                        >
-                            <i className="bi bi-file-earmark-text"></i> Reports
-                        </button>
-                    </>
-                )}
-                {(role === "user" || role === "counsellor") && (
-                    <button onClick={() => setView("profile")} className={`btn btn-info${view === "profile" ? " active" : ""}`}>
-                        My Profile
-                    </button>
-                )}
-                {(role === "user" || role === "counsellor") && (
-                    <div className="dropdown">
-                        <button className="btn btn-primary dropdown-toggle" type="button" id="sadhanaDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            Sadhana
-                        </button>
-                        <ul className="dropdown-menu" aria-labelledby="sadhanaDropdown">
-                            <li><button className="dropdown-item" onClick={() => setView("entry")}>Enter Everyday</button></li>
-                            <li><button className="dropdown-item" onClick={() => setView("download")}>View Sadhana(Everyday)</button></li>
-                            <li><button className="dropdown-item" onClick={() => setView("uploadSadhanaCard")}>Upload Sadhana Card</button></li>
-                            <li><button className="dropdown-item" onClick={() => setView("ViewUploadedSadhanaCard")}>View Uploaded Sadhana Card</button></li>
+                    <div className="collapse navbar-collapse" id="navbarNavDropdown">
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                            {role === "admin" && (
+                                <>
+                                    <li className="nav-item">
+                                        <button className={`nav-link btn btn-link${view === "view" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("view")}>View Devotees</button>
+                                    </li>
+                                    <li className="nav-item">
+                                        <button className={`nav-link btn btn-link${view === "add" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("add")}>Add / Update</button>
+                                    </li>
+                                    <li className="nav-item">
+                                        <button className={`nav-link btn btn-link${view === "bulk" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("bulk")}>Bulk Upload</button>
+                                    </li>
+                                    <li className="nav-item">
+                                        <button className={`nav-link btn btn-link${view === "register" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("register")}>Assign Role</button>
+                                    </li>
+                                    <li className="nav-item">
+                                        <button className={`nav-link btn btn-link${view === "adminUploadedReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("adminUploadedReports")}>Reports</button>
+                                    </li>
+                                </>
+                            )}
+                            {(role === "user" || role === "counsellor") && (
+                                <>
+                                    <li className="nav-item">
+                                        <button className={`nav-link btn btn-link${view === "profile" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("profile")}>My Profile</button>
+                                    </li>
+                                    <li className="nav-item dropdown">
+                                        <button className="nav-link dropdown-toggle btn btn-link" id="sadhanaDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Sadhana
+                                        </button>
+                                        <ul className="dropdown-menu" aria-labelledby="sadhanaDropdown">
+                                            <li><button className={`dropdown-item${view === "entry" ? " active" : ""}`} onClick={() => setView("entry")}>Enter Everyday</button></li>
+                                            <li><button className={`dropdown-item${view === "download" ? " active" : ""}`} onClick={() => setView("download")}>View Sadhana(Everyday)</button></li>
+                                            <li><button className={`dropdown-item${view === "uploadSadhanaCard" ? " active" : ""}`} onClick={() => setView("uploadSadhanaCard")}>Upload Sadhana Card</button></li>
+                                            <li><button className={`dropdown-item${view === "ViewUploadedSadhanaCard" ? " active" : ""}`} onClick={() => setView("ViewUploadedSadhanaCard")}>View Uploaded Sadhana Card</button></li>
+                                        </ul>
+                                    </li>
+                                </>
+                            )}
+                            {role === "counsellor" && (
+                                <>
+                                    <li className="nav-item">
+                                        <button className={`nav-link btn btn-link${view === "view" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("view")}>Assigned Devotees</button>
+                                    </li>
+                                    <li className="nav-item dropdown">
+                                        <button className="nav-link dropdown-toggle btn btn-link" id="devoteeReportsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Devotees Sadhana Reports
+                                        </button>
+                                        <ul className="dropdown-menu" aria-labelledby="devoteeReportsDropdown">
+                                            <li><button className={`dropdown-item${view === "reports" ? " active" : ""}`} onClick={() => setView("reports")}>View Everyday Entered</button></li>
+                                            <li><button className={`dropdown-item${view === "uploadedReports" ? " active" : ""}`} onClick={() => setView("uploadedReports")}>View Uploaded</button></li>
+                                        </ul>
+                                    </li>
+                                </>
+                            )}
                         </ul>
+                        <div className="d-flex align-items-center">
+                            <span className="me-3 fw-bold text-primary">{displayName}</span>
+                            <button onClick={handleLogout} className="btn btn-danger">
+                                <i className="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </div>
                     </div>
-                )}
-                {role === "counsellor" && (
-                    <button
-                        onClick={() => setView("view")}
-                        className={`btn btn-primary${view === "view" ? " active" : ""}`}
-                    >
-                        <i className="bi bi-table"></i> Assigned Devotees
-                    </button>
-                )}
-                {(role === "counsellor") && (
-                    <div className="dropdown">
-                        <button className="btn btn-primary dropdown-toggle" type="button" id="sadhanaDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            Devotees Sadhana Reports
-                        </button>
-                        <ul className="dropdown-menu" aria-labelledby="sadhanaDropdown">
-                            <li><button
-                                onClick={() => setView("reports")}
-                                className={`dropdown-item${view === "reports" ? " active" : ""}`}
-                            >View Everyday Entered</button></li>
-                            <li><button className="dropdown-item" onClick={() => setView("uploadedReports")}>View Uploaded</button></li>
-                        </ul>
-                    </div>
-                )}
-            </div>
+                </div>
+            </nav>
 
             {/* Content Section */}
             {view === "add" && role === "admin" && <DevoteeApp />}

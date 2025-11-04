@@ -54,49 +54,58 @@ export default function CounsellorUploadedSadhanaReports({ userId }) {
   };
 
   return (
-    <div className="card p-3">
-      <h5>View Uploaded Sadhana (Assigned Devotees)</h5>
-      <div className="row mb-3">
-        <div className="col-md-4">
-          <label>Devotee</label>
-          <select className="form-select" value={selectedDevotee} onChange={e => setSelectedDevotee(e.target.value)}>
-            <option value="">Select</option>
-            {devotees.map(d => (
-                <option key={d.email || d.id} value={d.email || ""}>
-                  {d.initiated_name?.trim()
-                      ? `${d.initiated_name.trim()} - ${d.email}`
-                      : `${[d.first_name, d.last_name].filter(Boolean).join(" ")} - ${d.email}`}
-                </option>
-            ))}
-          </select>
-        </div>
-        <div className="col-md-3">
-          <label>Month</label>
-          <select className="form-select" value={month} onChange={e => setMonth(e.target.value)}>
-            <option value="">Select</option>
-            {months.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
-        </div>
-        <div className="col-md-2">
-          <label>Year</label>
-          <select className="form-select" value={year} onChange={e => setYear(e.target.value)}>
-            <option value="">Select</option>
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-        <div className="col-md-2 d-flex align-items-end">
-          <button className="btn btn-primary w-100" onClick={handleView} disabled={loading || !selectedDevotee || !month || !year}>
-            {loading ? "Loading..." : "View"}
-          </button>
+      <div className="container mt-5" style={{ maxWidth: 700 }}>
+        <div className="card shadow border-0">
+          <div className="card-header bg-primary text-white text-center">
+            <h4 className="mb-0">View Uploaded Sadhana (Assigned Devotees)</h4>
+          </div>
+          <div className="card-body">
+            <form className="row g-4 align-items-end mb-3" onSubmit={e => { e.preventDefault(); handleView(); }}>
+              <div className="col-md-5">
+                <label className="form-label fw-bold">Devotee</label>
+                <select className="form-select" value={selectedDevotee} onChange={e => setSelectedDevotee(e.target.value)} required>
+                  <option value="">Select</option>
+                  {devotees.map(d => (
+                      <option key={d.email || d.id} value={d.email || ""}>
+                        {d.initiated_name?.trim()
+                            ? `${d.initiated_name.trim()} - ${d.email}`
+                            : `${[d.first_name, d.last_name].filter(Boolean).join(" ")} - ${d.email}`}
+                      </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-3">
+                <label className="form-label fw-bold">Year</label>
+                <select className="form-select" value={year} onChange={e => setYear(e.target.value)} required>
+                  <option value="">Select</option>
+                  {years.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+              <div className="col-md-2">
+                <label className="form-label fw-bold">Month</label>
+                <select className="form-select" value={month} onChange={e => setMonth(e.target.value)} required>
+                  <option value="">Select</option>
+                  {months.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="col-md-2 d-flex align-items-end">
+                <button className="btn btn-primary w-100" type="submit" disabled={loading || !selectedDevotee || !month || !year}>
+                  {loading ? <span className="spinner-border spinner-border-sm"></span> : "View"}
+                </button>
+              </div>
+            </form>
+            {error && <div className="alert alert-danger text-center">{error}</div>}
+            {fileInfo && (
+                <div className="mt-4 text-center">
+                  <a href={`${process.env.REACT_APP_API_BASE}${fileInfo.filePath}`} target="_blank" rel="noopener noreferrer" className="btn btn-success px-4">
+                    <i className="bi bi-download me-2"></i>View/Download File
+                  </a>
+                </div>
+            )}
+          </div>
         </div>
       </div>
-      {error && <div className="alert alert-danger">{error}</div>}
-      {fileInfo && (
-        <div className="mt-3">
-          <a href={`${process.env.REACT_APP_API_BASE}${fileInfo.filePath}`} target="_blank" rel="noopener noreferrer" className="btn btn-success">View/Download File</a>
-        </div>
-      )}
-    </div>
   );
+
 }
 

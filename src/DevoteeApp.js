@@ -46,6 +46,7 @@ export default function DevoteeApp() {
   const [successModal, setSuccessModal] = useState({ show: false, message: '' });
   const [deleteModal, setDeleteModal] = useState({ show: false, id: null, confirmText: '' });
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     fetchDevotees();
@@ -131,9 +132,63 @@ export default function DevoteeApp() {
 
   const handleFilterChange = (e) => setFilter(e.target.value);
 
+  // Add validation for required fields
+  const validateForm = () => {
+    const errors = {};
+    if (!form.first_name) {
+      errors.first_name = 'First name is required.';
+    }
+    if (!form.last_name) {
+      errors.last_name = 'Last name is required.';
+    }
+    if (!form.dob) {
+      errors.dob = 'Date of birth is required.';
+    }
+    if (!form.gender) {
+      errors.gender = 'Gender is required.';
+    }
+    if (!form.full_time_devotee) {
+      errors.full_time_devotee = 'Full time devotee selection is required.';
+    }
+    if (!form.email || !/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(form.email)) {
+      errors.email = 'Valid email is required.';
+    }
+    if (!form.mobile_no || !/^\d{10}$/.test(form.mobile_no)) {
+      errors.mobile_no = 'Valid 10-digit mobile number is required.';
+    }
+    if (!form.temple_name) {
+      errors.temple_name = 'Temple name is required.';
+    }
+    if (!form.status) {
+      errors.status = 'Status is required.';
+    }
+    if (!form.citizenship) {
+      errors.citizenship = 'Citizenship (country) is required.';
+    }
+    if (!form.address1) {
+      errors.address1 = 'State is required.';
+    }
+    if (!form.address2) {
+      errors.address2 = 'City is required.';
+    }
+    if (!form.pin_code || !/^\d{6}$/.test(form.pin_code)) {
+      errors.pin_code = 'Valid 6-digit pin code is required.';
+    }
+    if (!form.iskcon_first_contact_date) {
+      errors.iskcon_first_contact_date = 'ISKCON first contact date is required.';
+    }
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const errors = validateForm();
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setLoading(false);
+      return;
+    }
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => {
       if (key === "photo") {
@@ -358,27 +413,60 @@ export default function DevoteeApp() {
                                     onChange={handleChange}
                                     accept="image/*"
                                 />
-                            ): key === "citizenship" ? (
+                            ) : key === "first_name" ? (
+                                <>
+                                <input
+                                    type="text"
+                                    name="first_name"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    placeholder="Enter first name"
+                                />
+                                {formErrors.first_name && <div className="text-danger small">{formErrors.first_name}</div>}
+                                </>
+                            ) : key === "last_name" ? (
+                                <>
+                                <input
+                                    type="text"
+                                    name="last_name"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    placeholder="Enter last name"
+                                />
+                                {formErrors.last_name && <div className="text-danger small">{formErrors.last_name}</div>}
+                                </>
+                            ) : key === "citizenship" ? (
+                                <>
                                 <select name="citizenship" className="form-control" value={value} onChange={handleChange}>
                                   <option value="">Select Country</option>
                                   {countries.map(c => (
                                       <option key={c.iso2} value={c.iso2}>{c.name}</option>
                                   ))}
                                 </select>
+                                {formErrors.citizenship && <div className="text-danger small">{formErrors.citizenship}</div>}
+                                </>
                             ) : key === "address1" ? (
+                                <>
                                 <select name="address1" className="form-control" value={value} onChange={handleChange}>
                                   <option value="">Select State</option>
                                   {states.map(s => (
                                       <option key={s.iso2} value={s.iso2}>{s.name}</option>
                                   ))}
                                 </select>
+                                {formErrors.address1 && <div className="text-danger small">{formErrors.address1}</div>}
+                                </>
                             ) : key === "address2" ? (
+                                <>
                                 <select name="address2" className="form-control" value={value} onChange={handleChange}>
                                   <option value="">Select City</option>
                                   {cities.map(city => (
                                       <option key={city.iso2} value={city.iso2}>{city.name}</option>
                                   ))}
                                 </select>
+                                {formErrors.address2 && <div className="text-danger small">{formErrors.address2}</div>}
+                                </>
                             ) : key === "marital_status" ? (
                                 <select
                                     name="marital_status"
@@ -392,6 +480,7 @@ export default function DevoteeApp() {
                                   <option value="Not Married">Not Married</option>
                                 </select>
                             ) : key === "gender" ? (
+                                <>
                                 <select
                                     name="gender"
                                     className="form-control"
@@ -403,7 +492,10 @@ export default function DevoteeApp() {
                                   <option value="Female">Female</option>
                                   <option value="Other">Other</option>
                                 </select>
+                                {formErrors.gender && <div className="text-danger small">{formErrors.gender}</div>}
+                                </>
                             ) : key === "dob" ? (
+                                <>
                                 <input
                                     type="date"
                                     name="dob"
@@ -412,6 +504,8 @@ export default function DevoteeApp() {
                                     onChange={handleChange}
                                     placeholder="Date of Birth"
                                 />
+                                {formErrors.dob && <div className="text-danger small">{formErrors.dob}</div>}
+                                </>
                             ) : key === "first_initiation_date" ? (
                                 <input
                                     type="date"
@@ -422,6 +516,7 @@ export default function DevoteeApp() {
                                     placeholder="First Initiation Date"
                                 />
                             ) : key === "iskcon_first_contact_date" ? (
+                                <>
                                 <input
                                     type="date"
                                     name="iskcon_first_contact_date"
@@ -430,6 +525,8 @@ export default function DevoteeApp() {
                                     onChange={handleChange}
                                     placeholder="ISKCON First Contact Date"
                                 />
+                                {formErrors.iskcon_first_contact_date && <div className="text-danger small">{formErrors.iskcon_first_contact_date}</div>}
+                                </>
                             ) : key === "second_initiation_date" ? (
                                 <input
                                     type="date"
@@ -451,6 +548,7 @@ export default function DevoteeApp() {
                                   <option value="No">No</option>
                                 </select>
                             ) : key === "email" ? (
+                                <>
                                 <input
                                     type="email"
                                     name="email"
@@ -461,6 +559,58 @@ export default function DevoteeApp() {
                                     required
                                     placeholder="Enter a valid email address"
                                 />
+                                {formErrors.email && <div className="text-danger small">{formErrors.email}</div>}
+                                </>
+                            ) : key === "mobile_no" ? (
+                                <>
+                                <input
+                                    type="text"
+                                    name="mobile_no"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    maxLength={10}
+                                    placeholder="Enter 10-digit mobile number"
+                                />
+                                {formErrors.mobile_no && <div className="text-danger small">{formErrors.mobile_no}</div>}
+                                </>
+                            ) : key === "pin_code" ? (
+                                <>
+                                <input
+                                    type="text"
+                                    name="pin_code"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    maxLength={6}
+                                    placeholder="Enter 6-digit pin code"
+                                />
+                                {formErrors.pin_code && <div className="text-danger small">{formErrors.pin_code}</div>}
+                                </>
+                            ) : key === "temple_name" ? (
+                                <>
+                                <input
+                                    type="text"
+                                    name="temple_name"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    placeholder="Enter temple name"
+                                />
+                                {formErrors.temple_name && <div className="text-danger small">{formErrors.temple_name}</div>}
+                                </>
+                            ) : key === "status" ? (
+                                <>
+                                <input
+                                    type="text"
+                                    name="status"
+                                    className="form-control"
+                                    value={value}
+                                    onChange={handleChange}
+                                    placeholder="Enter status"
+                                />
+                                {formErrors.status && <div className="text-danger small">{formErrors.status}</div>}
+                                </>
                             ) : key === "education_qualification_code" ? (
                                         <div className="col-md-4 mb-3" key={key}>
                                           <select

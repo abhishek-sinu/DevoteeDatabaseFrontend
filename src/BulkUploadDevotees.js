@@ -31,9 +31,24 @@ export default function BulkUploadDevotees() {
             setUploadStatus("✅ Upload successful!");
         } catch (error) {
             console.error("Upload failed", error);
-            setUploadStatus("❌ Upload failed. Please check the file format.");
+            let msg = "❌ Upload failed. Please check the file format.";
+            if (error.response && error.response.data) {
+                if (
+                    error.response.data.details &&
+                    error.response.data.details.includes("Duplicate entry")
+                ) {
+                    // Extract the email from the error message if possible
+                    const match = error.response.data.details.match(/'([^']+)'/);
+                    const email = match ? match[1] : "This email";
+                    msg = `❌ ${email} is already registered. Please remove duplicates and try again.`;
+                } else if (error.response.data.error) {
+                    msg = `❌ ${error.response.data.error}`;
+                }
+            }
+            setUploadStatus(msg);
         }
     };
+
 
     return (
         <div className="container mt-5">
