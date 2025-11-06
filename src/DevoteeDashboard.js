@@ -64,17 +64,28 @@ export default function DevoteeDashboard() {
     return (
         <div className="container-fluid px-0">
             {/* Krishna Invocation */}
-            <div className="text-center p-3 mb-4 bg-info text-white rounded shadow">
-                <h2>🙏 Śrī Guru Gaurāṅga Jayate 🙏</h2>
-                <h4>Welcome to the Devotee Dashboard</h4>
+            <div
+                className="invocation-header p-3 mb-4 text-white rounded shadow"
+                style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/image/header-bg.jpg)` }}
+            >
+                <div className="invocation-content container-fluid d-flex align-items-center">
+                    <div style={{ width: 90 }} className="d-flex justify-content-start align-items-center">
+                        <img src={process.env.PUBLIC_URL + "/image/iskconlogo.jpg"} alt="ISKCON Logo" width="72" height="72" className="header-logo border border-primary" style={{ objectFit: 'cover' }} />
+                    </div>
+                    <div className="flex-grow-1 text-center">
+                        <h2 className="mb-1">🙏 Śrī Guru Śrī Gaurāṅga Jayataha 🙏</h2>
+                        <h4 className="mb-0">Welcome to the Devotee Dashboard</h4>
+                    </div>
+                    <div style={{ width: 90 }} className="d-flex justify-content-end align-items-center">
+                        <img src={process.env.PUBLIC_URL + "/image/logo.png"} alt="ISKCON Logo" width="72" height="72" className="header-logo border border-primary" style={{ objectFit: 'cover' }} />
+                    </div>
+                </div>
             </div>
-
-            {/* Responsive Navbar */}
+           {/* Responsive Navbar */}
             <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4 rounded">
                 <div className="container-fluid">
                     {/* Logo or Brand */}
                     <a className="navbar-brand fw-bold d-flex align-items-center" href="#">
-                        <img src={process.env.PUBLIC_URL + "/image/logo.png"} alt="ISKCON Logo" width="40" height="40" className="rounded-circle me-2 border border-primary" style={{objectFit: 'cover'}} />
                         <span className="d-none d-sm-inline"></span>
                     </a>
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">

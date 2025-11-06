@@ -104,3 +104,33 @@
     filter: brightness(0.92);
     border: 2px solid red;
 }
+
+/* Invocation header with background image and semi-opaque overlay */
+.invocation-header {
+    position: relative;
+    color: #fff;
+    background-color: #10b6d9; /* fallback */
+    /* background-image intentionally removed to let inline PUBLIC_URL-based style control the image */
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+}
+
+.invocation-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35); /* dark overlay to increase contrast */
+    z-index: 0;
+}
+
+.invocation-header .invocation-content {
+    position: relative;
+    z-index: 1; /* place above overlay */
+}
+
+/* Make sure the logo images inside header do not overflow on small screens */
+.invocation-header .header-logo {
+    max-width: 90px;
+    max-height: 90px;
+}
