@@ -276,7 +276,8 @@ export default function ViewDevoteesTable() {
                     </button>
                 </div>
             </div>
-            <table className="table table-bordered table-striped table-hover">
+            <div className="table-responsive">
+                <table className="table table-bordered table-striped table-hover">
                 <thead>
                 <tr>
                     <th>First Name</th>
@@ -306,7 +307,8 @@ export default function ViewDevoteesTable() {
                     </tr>
                 ))}
                 </tbody>
-            </table>
+                </table>
+            </div>
 
             {pageNumbers.map((number) => (
                 <button

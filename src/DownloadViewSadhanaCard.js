@@ -16,6 +16,10 @@ const formatTime = (minutes) => {
 const DownloadViewSadhanaCard = () => {
     const [email, setEmail] = useState('');
     const [entries, setEntries] = useState([]);
+    const [editingEntryId, setEditingEntryId] = useState(null);
+    const [editFormData, setEditFormData] = useState({});
+    const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(null);
 
     useEffect(() => {
         const storedEmail = localStorage.getItem('userId');
@@ -33,6 +37,72 @@ const DownloadViewSadhanaCard = () => {
             setEntries(response.data);
         } catch (error) {
             console.error('Error fetching sadhana entries:', error);
+        }
+    };
+
+    // Helper to get an entry id field (supports `id` or `_id`)
+    const getEntryId = (entry) => entry.id || entry._id || entry.entry_id;
+
+    const startEdit = (entry) => {
+        const id = getEntryId(entry);
+        setEditingEntryId(id);
+        // initialize form data with the editable fields
+        setEditFormData({
+            entry_date: entry.entry_date ? entry.entry_date.split('T')[0] : '',
+            wake_up_time: entry.wake_up_time || '',
+            chanting_rounds: entry.chanting_rounds || '',
+            reading_time: entry.reading_time || '',
+            reading_topic: entry.reading_topic || '',
+            hearing_time: entry.hearing_time || '',
+            hearing_topic: entry.hearing_topic || '',
+            service_name: entry.service_name || '',
+            service_time: entry.service_time || ''
+        });
+    };
+
+    const handleEditChange = (field, value) => {
+        setEditFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const saveEdit = async (entry) => {
+        const id = getEntryId(entry);
+        setIsSaving(true);
+        try {
+            // Assumption: update endpoint is a PUT to /api/sadhana/entries/:id
+            const payload = { ...editFormData };
+            const res = await axios.put(`${process.env.REACT_APP_API_BASE}/api/sadhana/entries/${id}`, payload);
+            // Replace the entry in local state with returned updated entry if provided
+            const updated = res.data || { ...entry, ...payload };
+            setEntries(prev => prev.map(e => (getEntryId(e) === id ? updated : e)));
+            setEditingEntryId(null);
+            setEditFormData({});
+        } catch (err) {
+            console.error('Error saving entry:', err);
+            alert('Failed to save entry. See console for details.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const cancelEdit = () => {
+        setEditingEntryId(null);
+        setEditFormData({});
+    };
+
+    const deleteEntry = async (entry) => {
+        const id = getEntryId(entry);
+        if (!window.confirm('Are you sure you want to delete this entry?')) return;
+        setIsDeleting(id);
+        try {
+            // Assumption: delete endpoint is DELETE to /api/sadhana/entries/:id
+            await axios.delete(`${process.env.REACT_APP_API_BASE}/api/sadhana/entries/${id}`);
+            setEntries(prev => prev.filter(e => getEntryId(e) !== id));
+            if (editingEntryId === id) cancelEdit();
+        } catch (err) {
+            console.error('Error deleting entry:', err);
+            alert('Failed to delete entry. See console for details.');
+        } finally {
+            setIsDeleting(null);
         }
     };
 
@@ -103,22 +173,98 @@ const DownloadViewSadhanaCard = () => {
                         <th>Hearing Topic</th>
                         <th>Service Name</th>
                         <th>Service Time</th>
+                        <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {entries.map((entry, index) => (
-                        <tr key={index}>
-                            <td>{entry.entry_date ? entry.entry_date.split('T')[0] : ''}</td>
-                            <td>{entry.wake_up_time}</td>
-                            <td>{entry.chanting_rounds}</td>
-                            <td>{formatTime(entry.reading_time)}</td>
-                            <td>{entry.reading_topic}</td>
-                            <td>{formatTime(entry.hearing_time)}</td>
-                            <td>{entry.hearing_topic}</td>
-                            <td>{entry.service_name}</td>
-                            <td>{formatTime(entry.service_time)}</td>
-                        </tr>
-                    ))}
+                    {entries.map((entry, index) => {
+                        const id = getEntryId(entry) || index;
+                        const isEditing = editingEntryId === id;
+                        return (
+                            <tr key={id}>
+                                <td>
+                                    {isEditing ? (
+                                        <input type="date" className="form-control" value={editFormData.entry_date || ''} onChange={e => handleEditChange('entry_date', e.target.value)} />
+                                    ) : (
+                                        entry.entry_date ? entry.entry_date.split('T')[0] : ''
+                                    )}
+                                </td>
+                                <td>
+                                    {isEditing ? (
+                                        <input type="text" className="form-control" value={editFormData.wake_up_time || ''} onChange={e => handleEditChange('wake_up_time', e.target.value)} />
+                                    ) : (
+                                        entry.wake_up_time
+                                    )}
+                                </td>
+                                <td>
+                                    {isEditing ? (
+                                        <input type="number" className="form-control" value={editFormData.chanting_rounds || ''} onChange={e => handleEditChange('chanting_rounds', e.target.value)} />
+                                    ) : (
+                                        entry.chanting_rounds
+                                    )}
+                                </td>
+                                <td>
+                                    {isEditing ? (
+                                        <input type="number" className="form-control" value={editFormData.reading_time || ''} onChange={e => handleEditChange('reading_time', e.target.value)} />
+                                    ) : (
+                                        formatTime(entry.reading_time)
+                                    )}
+                                </td>
+                                <td>
+                                    {isEditing ? (
+                                        <input type="text" className="form-control" value={editFormData.reading_topic || ''} onChange={e => handleEditChange('reading_topic', e.target.value)} />
+                                    ) : (
+                                        entry.reading_topic
+                                    )}
+                                </td>
+                                <td>
+                                    {isEditing ? (
+                                        <input type="number" className="form-control" value={editFormData.hearing_time || ''} onChange={e => handleEditChange('hearing_time', e.target.value)} />
+                                    ) : (
+                                        formatTime(entry.hearing_time)
+                                    )}
+                                </td>
+                                <td>
+                                    {isEditing ? (
+                                        <input type="text" className="form-control" value={editFormData.hearing_topic || ''} onChange={e => handleEditChange('hearing_topic', e.target.value)} />
+                                    ) : (
+                                        entry.hearing_topic
+                                    )}
+                                </td>
+                                <td>
+                                    {isEditing ? (
+                                        <input type="text" className="form-control" value={editFormData.service_name || ''} onChange={e => handleEditChange('service_name', e.target.value)} />
+                                    ) : (
+                                        entry.service_name
+                                    )}
+                                </td>
+                                <td>
+                                    {isEditing ? (
+                                        <input type="number" className="form-control" value={editFormData.service_time || ''} onChange={e => handleEditChange('service_time', e.target.value)} />
+                                    ) : (
+                                        formatTime(entry.service_time)
+                                    )}
+                                </td>
+                                <td>
+                                    {isEditing ? (
+                                        <>
+                                            <button className="btn btn-sm btn-success me-2" onClick={() => saveEdit(entry)} disabled={isSaving}>
+                                                {isSaving ? 'Saving...' : 'Save'}
+                                            </button>
+                                            <button className="btn btn-sm btn-secondary" onClick={cancelEdit} disabled={isSaving}>Cancel</button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button className="btn btn-sm btn-primary me-2" onClick={() => startEdit(entry)}>Edit</button>
+                                            <button className="btn btn-sm btn-danger" onClick={() => deleteEntry(entry)} disabled={isDeleting === id}>
+                                                {isDeleting === id ? 'Deleting...' : 'Delete'}
+                                            </button>
+                                        </>
+                                    )}
+                                </td>
+                            </tr>
+                        );
+                    })}
                     </tbody>
                 </table>
             </div>

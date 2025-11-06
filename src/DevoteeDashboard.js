@@ -136,12 +136,16 @@ export default function DevoteeDashboard() {
                                 </>
                             )}
                         </ul>
-                        <div className="d-flex align-items-center">
-                            <span className="me-3 fw-bold text-primary">{displayName}</span>
-                            <button onClick={handleLogout} className="btn btn-danger">
-                                <i className="bi bi-box-arrow-right"></i> Logout
-                            </button>
-                        </div>
+                        <ul className="navbar-nav ms-auto">
+                            <li className="nav-item">
+                                <span className="nav-link fw-bold text-primary">{displayName}</span>
+                            </li>
+                            <li className="nav-item">
+                                <button onClick={handleLogout} className="nav-link text-danger">
+                                    <i className="bi bi-box-arrow-right"></i> Logout
+                                </button>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </nav>
