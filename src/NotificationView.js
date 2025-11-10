@@ -1,24 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const NotificationView = () => {
-    const [notifications, setNotifications] = useState([
-        { id: 1, message: "Your facilitator has sent you a new message.", read: false },
-        { id: 2, message: "You submitted your Sadhana card.", read: true },
-        { id: 3, message: "Reminder: Submit your Sadhana card today.", read: false }
-    ]);
+const NotificationView = ({ email }) => {
+    const [notifications, setNotifications] = useState([]);
     const [activeTab, setActiveTab] = useState("recent");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const devoteeEmail = email || "";
 
-    const toggleRead = (id) => {
-        setNotifications(
-            notifications.map((note) =>
-                note.id === id ? { ...note, read: !note.read } : note
-            )
-        );
+    useEffect(() => {
+        if (!devoteeEmail) return;
+        setLoading(true);
+        setError("");
+        fetch(`${process.env.REACT_APP_API_BASE}/api/notifications/view?devotee_email=${encodeURIComponent(devoteeEmail)}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to fetch notifications");
+                return res.json();
+            })
+            .then(data => {
+                // Use status from backend: 'read' or 'unread'
+                setNotifications(data.map(n => ({ ...n, read: n.status === 'read' })));
+            })
+            .catch(err => setError(err.message))
+            .finally(() => setLoading(false));
+    }, [devoteeEmail]);
+
+    const toggleRead = async (id) => {
+        const note = notifications.find(n => n.id === id);
+        if (!note) return;
+        const newStatus = note.read ? 'unread' : 'read';
+        try {
+            await fetch(`${process.env.REACT_APP_API_BASE}/api/notifications/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                },
+                body: JSON.stringify({ id, status: newStatus })
+            });
+            setNotifications(
+                notifications.map((n) =>
+                    n.id === id ? { ...n, read: !n.read, status: newStatus } : n
+                )
+            );
+        } catch (err) {
+            setError('Failed to update notification status.' + err.message);
+        }
     };
 
-    const recentNotifications = notifications.filter(note => !note.read);
-    const readNotifications = notifications.filter(note => note.read);
+    // Sort by created_at descending (most recent first)
+    const sortedNotifications = [...notifications].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const recentNotifications = sortedNotifications.filter(note => note.status !== 'read');
+    const readNotifications = sortedNotifications.filter(note => note.status === 'read');
 
     return (
         <div className="container mt-4">
@@ -35,14 +70,18 @@ const NotificationView = () => {
                             <button className={`nav-link ${activeTab === "read" ? "active" : ""}`} onClick={() => setActiveTab("read")}>Read</button>
                         </li>
                     </ul>
-
+                    {loading && <div className="text-center text-secondary mb-3">Loading notifications...</div>}
+                    {error && <div className="alert alert-danger">{error}</div>}
                     <ul className="list-group">
                         {(activeTab === "recent" ? recentNotifications : readNotifications).map((note) => (
                             <li
                                 key={note.id}
                                 className={`list-group-item d-flex justify-content-between align-items-center ${note.read ? 'text-muted' : 'fw-bold'}`}
                             >
-                                {note.message}
+                                <div>
+                                    {note.message}
+                                    <div className="small text-secondary">{note.sent_by && <span>From: {note.sent_by} | </span>}{note.created_at && new Date(note.created_at).toLocaleString()}</div>
+                                </div>
                                 <div className="form-check">
                                     <input
                                         className="form-check-input"
@@ -57,7 +96,7 @@ const NotificationView = () => {
                                 </div>
                             </li>
                         ))}
-                        {(activeTab === "recent" ? recentNotifications : readNotifications).length === 0 && (
+                        {(activeTab === "recent" ? recentNotifications : readNotifications).length === 0 && !loading && (
                             <li className="list-group-item text-muted">No notifications to display.</li>
                         )}
                     </ul>

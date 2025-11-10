@@ -1,0 +1,48 @@
+/*
+  Notification Toast Styles
+*/
+.custom-toast {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translate(-50%, -20px);
+  min-width: 260px;
+  max-width: 350px;
+  background: #323232;
+  color: #fff;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  z-index: 3000;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.custom-toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+.custom-toast.success {
+  background: #17692a;
+}
+.custom-toast.error {
+  background: #dc3545;
+}
+.custom-toast .toast-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  margin-left: auto;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+.custom-toast .toast-close:hover {
+  opacity: 1;
+}

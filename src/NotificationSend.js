@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
+import "./CustomToast.css";
 
 const NotificationSend = ({ sentBy, senderName }) => {
     // Support both prop names for backward compatibility
@@ -10,6 +11,7 @@ const NotificationSend = ({ sentBy, senderName }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [selectedEmail, setSelectedEmail] = useState("");
     const [loading, setLoading] = useState(false);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
     const debounceRef = useRef(null);
 
     // Search devotees by name/email as the user types. Backend should provide /api/devotees/search
@@ -48,7 +50,7 @@ const NotificationSend = ({ sentBy, senderName }) => {
 
     const handleSend = async () => {
         if (!selectedEmail || !message.trim()) {
-            alert('Please select a recipient and enter a message.');
+            setToast({ show: true, message: 'Please select a recipient and enter a message.', type: 'error' });
             return;
         }
         setLoading(true);
@@ -59,20 +61,33 @@ const NotificationSend = ({ sentBy, senderName }) => {
             await axios.post(`${process.env.REACT_APP_API_BASE}/api/notifications/send`, payload, { headers: { Authorization: `Bearer ${token}` } });
 
             // Success feedback
-            alert(`Message sent to ${selectedEmail}`);
+            setToast({ show: true, message: `Message sent to ${selectedEmail}`, type: 'success' });
             setMessage("");
             setSearchUser("");
             setSelectedEmail("");
         } catch (err) {
             console.error('Send error:', err);
             const msg = err?.response?.data?.message || 'Failed to send notification.';
-            alert(msg);
+            setToast({ show: true, message: msg, type: 'error' });
         }
         setLoading(false);
     };
 
+    // Toast auto-hide
+    useEffect(() => {
+        if (toast.show) {
+            const timer = setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [toast.show]);
+
     return (
         <div className="container mt-4">
+            {/* Custom Toast */}
+            <div className={`custom-toast${toast.show ? ' show' : ''} ${toast.type}`} role="alert" style={{ pointerEvents: toast.show ? 'auto' : 'none' }}>
+                <span>{toast.message}</span>
+                <button className="toast-close" onClick={() => setToast(t => ({ ...t, show: false }))} aria-label="Close">&times;</button>
+            </div>
             <div className="card shadow-sm">
                 <div className="card-header bg-primary text-white">
                     <h4 className="mb-0">Send Notification</h4>

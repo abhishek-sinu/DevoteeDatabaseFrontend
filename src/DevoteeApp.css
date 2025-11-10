@@ -1,3 +1,10 @@
+/* Make notification checkboxes more visible */
+.form-check-input {
+    border: 2px solid #007bff !important;
+    box-shadow: 0 0 0 1.5px #0056b3;
+    width: 1.2em;
+    height: 1.2em;
+}
 .form-container {
     margin: 20px;
     padding: 20px;

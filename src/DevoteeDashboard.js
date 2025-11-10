@@ -196,7 +196,7 @@ export default function DevoteeDashboard() {
             {view === "ViewUploadedSadhanaCard" && (role === "user" || role === "counsellor") && <ViewUploadedSadhanaCard email={localStorage.getItem("userId")} />}
             {view === "uploadedReports" && (role === "counsellor") && <CounsellorUploadedSadhanaReports userId={localStorage.getItem("userId")} />}
             {view === "adminUploadedReports" && (role === "admin") && <AdminUploadedSadhanaReports />}
-            {view === "notificationView" && <NotificationView />}
+            {view === "notificationView" && <NotificationView email={localStorage.getItem("userId")} />}
             {view === "notificationSend" && <NotificationSend senderName={displayName}/>}
         </div>
     );
