@@ -15,6 +15,11 @@ import ViewUploadedSadhanaCard from "./ViewUploadedSadhanaCard";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CounsellorUploadedSadhanaReports from "./CounsellorUploadedSadhanaReports"; // new
 import AdminUploadedSadhanaReports from "./AdminUploadedSadhanaReports";
+import NotificationView from "./NotificationView";
+import NotificationSend from "./NotificationSend";
+
+
+
 
 const handleLogout = () => {
     localStorage.removeItem("token");
@@ -148,6 +153,23 @@ export default function DevoteeDashboard() {
                             )}
                         </ul>
                         <ul className="navbar-nav ms-auto">
+                            <li className="nav-item dropdown">
+                                <button className="nav-link dropdown-toggle btn btn-link" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img src={`${process.env.PUBLIC_URL}/image/bell-colorful.png`} alt="" width="24" height="24" />
+                                </button>
+                                <ul className="dropdown-menu" aria-labelledby="notificationDropdown">
+                                    <li>
+                                        <button className={`dropdown-item${view === "notificationView" ? " active" : ""}`} onClick={() => setView("notificationView")}>
+                                            View
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button className={`dropdown-item${view === "notificationSend" ? " active" : ""}`} onClick={() => setView("notificationSend")}>
+                                            Send
+                                        </button>
+                                    </li>
+                                </ul>
+                            </li>
                             <li className="nav-item">
                                 <span className="nav-link fw-bold text-primary">{displayName}</span>
                             </li>
@@ -174,6 +196,8 @@ export default function DevoteeDashboard() {
             {view === "ViewUploadedSadhanaCard" && (role === "user" || role === "counsellor") && <ViewUploadedSadhanaCard email={localStorage.getItem("userId")} />}
             {view === "uploadedReports" && (role === "counsellor") && <CounsellorUploadedSadhanaReports userId={localStorage.getItem("userId")} />}
             {view === "adminUploadedReports" && (role === "admin") && <AdminUploadedSadhanaReports />}
+            {view === "notificationView" && <NotificationView />}
+            {view === "notificationSend" && <NotificationSend senderName={displayName}/>}
         </div>
     );
 }
