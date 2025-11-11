@@ -17,6 +17,7 @@ import CounsellorUploadedSadhanaReports from "./CounsellorUploadedSadhanaReports
 import AdminUploadedSadhanaReports from "./AdminUploadedSadhanaReports";
 import NotificationView from "./NotificationView";
 import NotificationSend from "./NotificationSend";
+import SadhanaReports from "./SadhanaReports";
 
 
 
@@ -30,6 +31,7 @@ export default function DevoteeDashboard() {
     const [view, setView] = useState("view");
     const [role, setRole] = useState("user");
     const [displayName, setDisplayName] = useState("");
+    const [devoteeId, setDevoteeId] = useState("");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -53,13 +55,19 @@ export default function DevoteeDashboard() {
                         headers: { Authorization: `Bearer ${token}` },
                         params: { userId }
                     });
-                    if(res.data[0].initiated_name!=="") {
-                        setDisplayName(res.data[0].initiated_name);
-                    }else {
-                        setDisplayName(`${res.data[0].first_name} ${res.data[0].last_name}`);
+                    if (res.data[0]) {
+                        console.log("Fetched devoteeId:", res.data[0].id);
+                        setDevoteeId(res.data[0].id || "");
+                            console.log("Fetched devoteeId:", res.data[0].devotee_id);
+                        if(res.data[0].initiated_name!=="") {
+                            setDisplayName(res.data[0].initiated_name);
+                        }else {
+                            setDisplayName(`${res.data[0].first_name} ${res.data[0].last_name}`);
+                        }
                     }
                 } catch {
                     setDisplayName("");
+                    setDevoteeId("");
                 }
             };
             fetchDevotee();
@@ -115,6 +123,9 @@ export default function DevoteeDashboard() {
                                     <li className="nav-item">
                                         <button className={`nav-link btn btn-link${view === "adminUploadedReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("adminUploadedReports")}>Reports</button>
                                     </li>
+                                        <li className="nav-item">
+                                            <button className={`nav-link btn btn-link${view === "sadhanaReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("sadhanaReports")}>Sadhana Reports</button>
+                                        </li>
                                 </>
                             )}
                             {(role === "user" || role === "counsellor") && (
@@ -149,6 +160,9 @@ export default function DevoteeDashboard() {
                                             <li><button className={`dropdown-item${view === "uploadedReports" ? " active" : ""}`} onClick={() => setView("uploadedReports")}>View Uploaded</button></li>
                                         </ul>
                                     </li>
+                                        <li className="nav-item">
+                                            <button className={`nav-link btn btn-link${view === "sadhanaReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("sadhanaReports")}>Sadhana Chart Reports</button>
+                                        </li>
                                 </>
                             )}
                         </ul>
@@ -190,14 +204,15 @@ export default function DevoteeDashboard() {
             {view === "register" && role === "admin" && <Register />}
             {view === "view" && (role === "admin" || role === "counsellor") &&  <ViewDevoteesTable userId={localStorage.getItem("userId")}/>}
             {view === "entry" && (role === "user"||role === "counsellor") && <SadhanaEntryForm userId={localStorage.getItem("userId")} />}
-            {view === "download" && (role === "user"||role === "counsellor") && <SadhanaViewDownload userId={localStorage.getItem("userId")} />}
+            {view === "download" && (role === "user"||role === "counsellor") && <SadhanaViewDownload devoteeId={devoteeId} />}
+            {view === "sadhanaReports" && (role === "admin" || role === "counsellor") && <SadhanaReports devoteeId={devoteeId} userRole={role} />}
             {view === "reports" && role === "counsellor" && <CounsellorEveryDaySadhanaReports userId={localStorage.getItem("userId")}/>}
             {view === "uploadSadhanaCard" && (role === "user" || role === "counsellor") && <UploadSadhanaCard email={localStorage.getItem("userId")} />}
             {view === "ViewUploadedSadhanaCard" && (role === "user" || role === "counsellor") && <ViewUploadedSadhanaCard email={localStorage.getItem("userId")} />}
             {view === "uploadedReports" && (role === "counsellor") && <CounsellorUploadedSadhanaReports userId={localStorage.getItem("userId")} />}
             {view === "adminUploadedReports" && (role === "admin") && <AdminUploadedSadhanaReports />}
             {view === "notificationView" && <NotificationView email={localStorage.getItem("userId")} />}
-            {view === "notificationSend" && <NotificationSend senderName={displayName}/>}
+            {view === "notificationSend" && <NotificationSend senderName={displayName} userRole={role} devoteeId={devoteeId} email={localStorage.getItem("userId")}/>}
         </div>
     );
 }

@@ -11,265 +11,151 @@ const formatTime = (minutes) => {
     }
     return `${minutes} min`;
 };
+// --- Month/Year Dropdown Implementation ---
+
+const getMonthName = (monthNumber) => {
+    return new Date(2000, monthNumber - 1, 1).toLocaleString('default', { month: 'long' });
+};
+
+const getYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    return [currentYear, currentYear - 1];
+};
+
+const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
 
 
-const DownloadViewSadhanaCard = () => {
-    const [email, setEmail] = useState('');
+export default function DownloadViewSadhanaCard({ devoteeId }) {
     const [entries, setEntries] = useState([]);
-    const [editingEntryId, setEditingEntryId] = useState(null);
-    const [editFormData, setEditFormData] = useState({});
-    const [isSaving, setIsSaving] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(null);
+    const [year, setYear] = useState(new Date().getFullYear());
+    const [month, setMonth] = useState(new Date().getMonth() + 1);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        const storedEmail = localStorage.getItem('userId');
-        if (storedEmail) {
-            setEmail(storedEmail);
-            fetchEntries(storedEmail);
-        } else {
-            alert('User email not found in local storage.');
+        if (!devoteeId) return;
+        const fetchEntries = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/sadhana/entries-by-month`, {
+                    params: { user_id: devoteeId, month: String(month).padStart(2, '0'), year }
+                });
+                setEntries(res.data || []);
+            } catch (err) {
+                setError("Failed to fetch sadhana entries.");
+                setEntries([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchEntries();
+    }, [devoteeId, year, month]);
+
+    // Helper to format date
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString();
+    };
+    // Helper to format time in hours/minutes
+    const formatMinutes = (minutes) => {
+        if (!minutes && minutes !== 0) return '';
+        if (minutes >= 60 && minutes % 60 === 0) {
+            return `${minutes / 60} hr`;
         }
-    }, []);
-
-    const fetchEntries = async (email) => {
-        try {
-            const response = await axios.get(`${process.env.REACT_APP_API_BASE}/api/sadhana/entries/${email}`);
-            setEntries(response.data);
-        } catch (error) {
-            console.error('Error fetching sadhana entries:', error);
+        if (minutes > 60) {
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            return `${h} hr${h > 1 ? 's' : ''}${m ? ' ' + m + ' min' : ''}`;
         }
-    };
-
-    // Helper to get an entry id field (supports `id` or `_id`)
-    const getEntryId = (entry) => entry.id || entry._id || entry.entry_id;
-
-    const startEdit = (entry) => {
-        const id = getEntryId(entry);
-        setEditingEntryId(id);
-        // initialize form data with the editable fields
-        setEditFormData({
-            entry_date: entry.entry_date ? entry.entry_date.split('T')[0] : '',
-            wake_up_time: entry.wake_up_time || '',
-            chanting_rounds: entry.chanting_rounds || '',
-            reading_time: entry.reading_time || '',
-            reading_topic: entry.reading_topic || '',
-            hearing_time: entry.hearing_time || '',
-            hearing_topic: entry.hearing_topic || '',
-            service_name: entry.service_name || '',
-            service_time: entry.service_time || ''
-        });
-    };
-
-    const handleEditChange = (field, value) => {
-        setEditFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const saveEdit = async (entry) => {
-        const id = getEntryId(entry);
-        setIsSaving(true);
-        try {
-            // Assumption: update endpoint is a PUT to /api/sadhana/entries/:id
-            const payload = { ...editFormData };
-            const res = await axios.put(`${process.env.REACT_APP_API_BASE}/api/sadhana/entries/${id}`, payload);
-            // Replace the entry in local state with returned updated entry if provided
-            const updated = res.data || { ...entry, ...payload };
-            setEntries(prev => prev.map(e => (getEntryId(e) === id ? updated : e)));
-            setEditingEntryId(null);
-            setEditFormData({});
-        } catch (err) {
-            console.error('Error saving entry:', err);
-            alert('Failed to save entry. See console for details.');
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const cancelEdit = () => {
-        setEditingEntryId(null);
-        setEditFormData({});
-    };
-
-    const deleteEntry = async (entry) => {
-        const id = getEntryId(entry);
-        if (!window.confirm('Are you sure you want to delete this entry?')) return;
-        setIsDeleting(id);
-        try {
-            // Assumption: delete endpoint is DELETE to /api/sadhana/entries/:id
-            await axios.delete(`${process.env.REACT_APP_API_BASE}/api/sadhana/entries/${id}`);
-            setEntries(prev => prev.filter(e => getEntryId(e) !== id));
-            if (editingEntryId === id) cancelEdit();
-        } catch (err) {
-            console.error('Error deleting entry:', err);
-            alert('Failed to delete entry. See console for details.');
-        } finally {
-            setIsDeleting(null);
-        }
-    };
-
-    const downloadCSV = () => {
-        const csvContent = [
-            ['Date', 'Wake-up Time', 'Chanting Rounds', 'Reading Time', 'Reading Topic', 'Hearing Time', 'Hearing Topic', 'Service Name', 'Service Time'],
-            ...entries.map(entry => [
-                entry.entry_date,
-                entry.wake_up_time,
-                entry.chanting_rounds,
-                formatTime(entry.reading_time),
-                entry.reading_topic,
-                entry.hearing_time,
-                formatTime(entry.hearing_time),
-                entry.service_name,
-                formatTime(entry.service_time)
-            ])
-        ].map(e => e.join(',')).join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute('download', 'sadhana_entries.csv');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    const downloadPDF = () => {
-        const doc = new jsPDF();
-        doc.text("Your Sadhana Entries", 14, 15);
-        doc.autoTable({
-            startY: 20,
-            head: [[
-                "Date", "Wake-up Time", "Chanting Rounds", "Reading Time", "Reading Topic",
-                "Hearing Time", "Hearing Topic", "Service Name", "Service Time"
-            ]],
-            body: entries.map(entry => [
-                entry.entry_date ? entry.entry_date.split('T')[0] : '',
-                entry.wake_up_time,
-                entry.chanting_rounds,
-                formatTime(entry.reading_time),
-                entry.reading_topic,
-                formatTime(entry.hearing_time),
-                entry.hearing_topic,
-                entry.service_name,
-                formatTime(entry.service_time)
-            ]),
-        });
-        doc.save("sadhana_entries.pdf");
+        return `${minutes} min`;
     };
 
     return (
-        <div className="container mt-4">
-            <h4 className="text-center mb-3">Your Sadhana Entries</h4>
-            <button className="btn btn-primary mb-3" onClick={downloadCSV}>Download CSV</button>
-            <button className="btn btn-secondary mb-3 ms-2" onClick={downloadPDF}>Download PDF</button>
-            <div className="table-responsive">
-                <table className="table table-bordered table-striped">
-                    <thead className="table-dark">
-                    <tr>
-                        <th>Date</th>
-                        <th>Wake-up Time</th>
-                        <th>Chanting Rounds</th>
-                        <th>Reading Time</th>
-                        <th>Reading Topic</th>
-                        <th>Hearing Time</th>
-                        <th>Hearing Topic</th>
-                        <th>Service Name</th>
-                        <th>Service Time</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {entries.map((entry, index) => {
-                        const id = getEntryId(entry) || index;
-                        const isEditing = editingEntryId === id;
-                        return (
-                            <tr key={id}>
-                                <td>
-                                    {isEditing ? (
-                                        <input type="date" className="form-control" value={editFormData.entry_date || ''} onChange={e => handleEditChange('entry_date', e.target.value)} />
-                                    ) : (
-                                        entry.entry_date ? entry.entry_date.split('T')[0] : ''
-                                    )}
-                                </td>
-                                <td>
-                                    {isEditing ? (
-                                        <input type="text" className="form-control" value={editFormData.wake_up_time || ''} onChange={e => handleEditChange('wake_up_time', e.target.value)} />
-                                    ) : (
-                                        entry.wake_up_time
-                                    )}
-                                </td>
-                                <td>
-                                    {isEditing ? (
-                                        <input type="number" className="form-control" value={editFormData.chanting_rounds || ''} onChange={e => handleEditChange('chanting_rounds', e.target.value)} />
-                                    ) : (
-                                        entry.chanting_rounds
-                                    )}
-                                </td>
-                                <td>
-                                    {isEditing ? (
-                                        <input type="number" className="form-control" value={editFormData.reading_time || ''} onChange={e => handleEditChange('reading_time', e.target.value)} />
-                                    ) : (
-                                        formatTime(entry.reading_time)
-                                    )}
-                                </td>
-                                <td>
-                                    {isEditing ? (
-                                        <input type="text" className="form-control" value={editFormData.reading_topic || ''} onChange={e => handleEditChange('reading_topic', e.target.value)} />
-                                    ) : (
-                                        entry.reading_topic
-                                    )}
-                                </td>
-                                <td>
-                                    {isEditing ? (
-                                        <input type="number" className="form-control" value={editFormData.hearing_time || ''} onChange={e => handleEditChange('hearing_time', e.target.value)} />
-                                    ) : (
-                                        formatTime(entry.hearing_time)
-                                    )}
-                                </td>
-                                <td>
-                                    {isEditing ? (
-                                        <input type="text" className="form-control" value={editFormData.hearing_topic || ''} onChange={e => handleEditChange('hearing_topic', e.target.value)} />
-                                    ) : (
-                                        entry.hearing_topic
-                                    )}
-                                </td>
-                                <td>
-                                    {isEditing ? (
-                                        <input type="text" className="form-control" value={editFormData.service_name || ''} onChange={e => handleEditChange('service_name', e.target.value)} />
-                                    ) : (
-                                        entry.service_name
-                                    )}
-                                </td>
-                                <td>
-                                    {isEditing ? (
-                                        <input type="number" className="form-control" value={editFormData.service_time || ''} onChange={e => handleEditChange('service_time', e.target.value)} />
-                                    ) : (
-                                        formatTime(entry.service_time)
-                                    )}
-                                </td>
-                                <td>
-                                    {isEditing ? (
-                                        <>
-                                            <button className="btn btn-sm btn-success me-2" onClick={() => saveEdit(entry)} disabled={isSaving}>
-                                                {isSaving ? 'Saving...' : 'Save'}
-                                            </button>
-                                            <button className="btn btn-sm btn-secondary" onClick={cancelEdit} disabled={isSaving}>Cancel</button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button className="btn btn-sm btn-primary me-2" onClick={() => startEdit(entry)}>Edit</button>
-                                            <button className="btn btn-sm btn-danger" onClick={() => deleteEntry(entry)} disabled={isDeleting === id}>
-                                                {isDeleting === id ? 'Deleting...' : 'Delete'}
-                                            </button>
-                                        </>
-                                    )}
-                                </td>
-                            </tr>
-                        );
-                    })}
-                    </tbody>
-                </table>
+        <div className="container py-4">
+            <div className="row justify-content-center">
+                <div className="col-lg-10">
+                    <div className="card shadow-lg border-0 rounded-4">
+                        <div className="card-header bg-primary text-white rounded-top-4 d-flex align-items-center justify-content-between">
+                            <h4 className="mb-0">📅 View Sadhana Entries by Month</h4>
+                            <div className="d-flex gap-3">
+                                <div>
+                                    <label htmlFor="yearSelect" className="form-label mb-0 me-2">Year</label>
+                                    <select
+                                        id="yearSelect"
+                                        className="form-select d-inline-block w-auto"
+                                        value={year}
+                                        onChange={e => setYear(Number(e.target.value))}
+                                    >
+                                        {getYearOptions().map(y => (
+                                            <option key={y} value={y}>{y}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor="monthSelect" className="form-label mb-0 me-2">Month</label>
+                                    <select
+                                        id="monthSelect"
+                                        className="form-select d-inline-block w-auto"
+                                        value={month}
+                                        onChange={e => setMonth(Number(e.target.value))}
+                                    >
+                                        {monthOptions.map(m => (
+                                            <option key={m} value={m}>{getMonthName(m)}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="card-body bg-light rounded-bottom-4">
+                            {loading ? (
+                                <div className="text-center py-5">
+                                    <div className="spinner-border text-primary mb-2" role="status" />
+                                    <div>Loading...</div>
+                                </div>
+                            ) : error ? (
+                                <div className="alert alert-danger text-center">{error}</div>
+                            ) : entries.length === 0 ? (
+                                <div className="alert alert-warning text-center">No data</div>
+                            ) : (
+                                <div style={{ overflowX: 'auto', maxHeight: 400, overflowY: 'auto' }}>
+                                    <table className="table table-hover align-middle table-bordered border-primary rounded-3 overflow-hidden mb-0">
+                                        <thead className="table-primary">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Wake Up Time</th>
+                                                <th>Chanting Rounds</th>
+                                                <th>Reading Time</th>
+                                                <th>Reading Topic</th>
+                                                <th>Hearing Time</th>
+                                                <th>Hearing Topic</th>
+                                                <th>Service Name</th>
+                                                <th>Service Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {entries.map(entry => (
+                                                <tr key={entry.id || entry.entry_date}>
+                                                    <td>{formatDate(entry.entry_date)}</td>
+                                                    <td>{entry.wake_up_time}</td>
+                                                    <td>{entry.chanting_rounds}</td>
+                                                    <td>{formatMinutes(entry.reading_time)}</td>
+                                                    <td>{entry.reading_topic}</td>
+                                                    <td>{formatMinutes(entry.hearing_time)}</td>
+                                                    <td>{entry.hearing_topic}</td>
+                                                    <td>{entry.service_name}</td>
+                                                    <td>{formatMinutes(entry.service_time)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
-};
-
-export default DownloadViewSadhanaCard;
+}
