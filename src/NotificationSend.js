@@ -13,6 +13,7 @@ const NotificationSend = ({ sentBy, senderName, userRole, devoteeId, email }) =>
     const [message, setMessage] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const [selectedEmail, setSelectedEmail] = useState("");
+    const [sendAll, setSendAll] = useState(false);
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
     const [facilitator, setFacilitator] = useState(null);
@@ -109,22 +110,28 @@ const NotificationSend = ({ sentBy, senderName, userRole, devoteeId, email }) =>
     };
 
     const handleSend = async () => {
-        if (!selectedEmail || !message.trim()) {
-            setToast({ show: true, message: 'Please select a recipient and enter a message.', type: 'error' });
+        if ((!selectedEmail && !sendAll) || !message.trim()) {
+            setToast({ show: true, message: 'Please select a recipient or choose Send All, and enter a message.', type: 'error' });
             return;
         }
         setLoading(true);
         try {
-            // POST to notifications API with who sent it
             const token = localStorage.getItem('token');
-            const payload = { to: selectedEmail, message, sent_by: sender };
+            let payload;
+            if (sendAll) {
+                payload = { to: 'ALL', message, sent_by: sender, role: userRole };
+                if (userRole === 'counsellor') {
+                    payload.facilitator_id = devoteeId;
+                }
+            } else {
+                payload = { to: selectedEmail, message, sent_by: sender };
+            }
             await axios.post(`${process.env.REACT_APP_API_BASE}/api/notifications/send`, payload, { headers: { Authorization: `Bearer ${token}` } });
-
-            // Success feedback
-            setToast({ show: true, message: `Message sent to ${selectedEmail}`, type: 'success' });
+            setToast({ show: true, message: sendAll ? 'Message sent to all recipients.' : `Message sent to ${selectedEmail}`, type: 'success' });
             setMessage("");
             setSearchUser("");
             setSelectedEmail("");
+            setSendAll(false);
         } catch (err) {
             console.error('Send error:', err);
             const msg = err?.response?.data?.message || 'Failed to send notification.';
@@ -170,24 +177,44 @@ const NotificationSend = ({ sentBy, senderName, userRole, devoteeId, email }) =>
                             </select>
                         </div>
                     )}
-                    {/* Search User for counsellor and admin only */}
+                    {/* Search User for counsellor and admin only, with Send All option */}
                     {(userRole === "counsellor" || userRole === "admin") && (
                         <div className="mb-3 position-relative" style={{ maxWidth: 600 }}>
                             <label htmlFor="searchUser" className="form-label">Search Devotee</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                id="searchUser"
-                                placeholder="Type name or email (min 2 chars)"
-                                value={searchUser}
-                                onChange={(e) => { setSearchUser(e.target.value); setSelectedEmail(""); }}
-                                autoComplete="off"
-                                disabled={userRole === "counsellor" && devotees.length === 0}
-                            />
+                            <div className="input-group">
+                                <select
+                                    className="form-select"
+                                    value={sendAll ? 'ALL' : selectedEmail}
+                                    onChange={e => {
+                                        if (e.target.value === 'ALL') {
+                                            setSendAll(true);
+                                            setSelectedEmail("");
+                                            setSearchUser("");
+                                        } else {
+                                            setSendAll(false);
+                                            setSelectedEmail("");
+                                        }
+                                    }}
+                                    style={{ maxWidth: 180 }}
+                                >
+                                    <option value="">-- Select Recipient --</option>
+                                    <option value="ALL">Send All</option>
+                                </select>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    id="searchUser"
+                                    placeholder="Type name or email (min 2 chars)"
+                                    value={searchUser}
+                                    onChange={e => { setSearchUser(e.target.value); setSelectedEmail(""); setSendAll(false); }}
+                                    autoComplete="off"
+                                    disabled={userRole === "counsellor" && devotees.length === 0 || sendAll}
+                                />
+                            </div>
                             {userRole === "counsellor" && devotees.length === 0 && (
                                 <div className="text-danger mt-2">No devotees assigned to you.</div>
                             )}
-                            {suggestions.length > 0 && (
+                            {suggestions.length > 0 && !sendAll && (
                                 <ul className="list-group position-absolute" style={{ zIndex: 2000, width: '100%' }}>
                                     {suggestions.map(s => (
                                         <li key={s.email || s.id} className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }} onClick={() => handleSelectSuggestion(s)}>
@@ -198,7 +225,11 @@ const NotificationSend = ({ sentBy, senderName, userRole, devoteeId, email }) =>
                             )}
                         </div>
                     )}
-                    {selectedEmail && <small className="form-text text-muted">Recipient: {selectedEmail}</small>}
+                    {sendAll ? (
+                        <small className="form-text text-muted">Recipient: <b>All {userRole === 'admin' ? 'Users' : 'Assigned Devotees'}</b></small>
+                    ) : (
+                        selectedEmail && <small className="form-text text-muted">Recipient: {selectedEmail}</small>
+                    )}
                     {/* Show who is sending the notification (coming from parent prop) */}
                     {sender ? (
                         <div><small className="form-text text-muted">Sending as: <strong>{sender}</strong></small></div>
@@ -216,7 +247,7 @@ const NotificationSend = ({ sentBy, senderName, userRole, devoteeId, email }) =>
                             onChange={(e) => setMessage(e.target.value)}
                         ></textarea>
                     </div>
-                    <button className="btn btn-success" onClick={handleSend} disabled={loading || !selectedEmail || !message.trim() || !sender}>{loading ? 'Sending...' : 'Send'}</button>
+                    <button className="btn btn-success" onClick={handleSend} disabled={loading || (!sendAll && !selectedEmail) || !message.trim() || !sender}>{loading ? 'Sending...' : 'Send'}</button>
                  </div>
              </div>
          </div>

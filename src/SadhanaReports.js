@@ -1,3 +1,35 @@
+// Responsive Sadhana requirements card
+function SadhanaRequirementsCard() {
+  return (
+    <div
+      style={{
+        background: "#f8fafc",
+        border: "1px solid #e0e7ef",
+        borderRadius: 14,
+        padding: "16px 20px",
+        margin: "16px auto 24px auto",
+        maxWidth: 480,
+        width: "100%",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+        fontSize: 17,
+        color: "#2d3a4a",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center"
+      }}
+    >
+      <strong style={{ fontSize: 18, color: "#1a237e" }}>Good Sadhana Minimum (per Month):</strong>
+      <div style={{ marginTop: 8 }}>
+        <span style={{ fontWeight: 500 }}>16 rounds</span>,
+        <span style={{ margin: "0 8px" }}>|</span>
+        <span style={{ fontWeight: 500 }}>30m reading</span>,
+        <span style={{ margin: "0 8px" }}>|</span>
+        <span style={{ fontWeight: 500 }}>30m hearing</span>
+      </div>
+    </div>
+  );
+}
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
@@ -75,11 +107,17 @@ export default function SadhanaReports({ devoteeId, userRole }) {
   };
 
   const generateReport = async () => {
-    if (!pendingDevoteeId) {
-      setError('Please select a devotee first.');
-      return;
+    let reportDevoteeId = pendingDevoteeId;
+    if (userRole === 'user') {
+      reportDevoteeId = devoteeId;
+      setSelectedDevoteeId(devoteeId);
+    } else {
+      if (!pendingDevoteeId) {
+        setError('Please select a devotee first.');
+        return;
+      }
+      setSelectedDevoteeId(pendingDevoteeId);
     }
-    setSelectedDevoteeId(pendingDevoteeId);
     setYear(pendingYear);
     setMonth(pendingMonth);
     setMode(pendingMode);
@@ -90,7 +128,7 @@ export default function SadhanaReports({ devoteeId, userRole }) {
     try {
       if (pendingMode === 'single') {
         const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/sadhana/entries-by-month`, {
-          params: { user_id: pendingDevoteeId, month: String(pendingMonth).padStart(2,'0'), year: pendingYear }
+          params: { user_id: reportDevoteeId, month: String(pendingMonth).padStart(2,'0'), year: pendingYear }
         });
         setEntries(res.data || []);
         setRangeData([]);
@@ -105,7 +143,7 @@ export default function SadhanaReports({ devoteeId, userRole }) {
           if (cMonth === 0) { cMonth = 12; cYear -= 1; }
         }
         const promises = list.map(item => axios.get(`${process.env.REACT_APP_API_BASE}/api/sadhana/entries-by-month`, {
-          params: { user_id: pendingDevoteeId, month: String(item.month).padStart(2,'0'), year: item.year }
+          params: { user_id: reportDevoteeId, month: String(item.month).padStart(2,'0'), year: item.year }
         }).then(r => ({ ...item, entries: r.data || [] })).catch(() => ({ ...item, entries: [] })));
         const results = await Promise.all(promises);
         setRangeData(results);
@@ -206,6 +244,7 @@ export default function SadhanaReports({ devoteeId, userRole }) {
 
   return (
     <div className="container py-4">
+      <SadhanaRequirementsCard />
       <div className="card shadow-lg border-0 rounded-4">
         <div className="card-header bg-primary text-white rounded-top-4">
           <h4 className="mb-0">📊 Sadhana Reports Chart</h4>
@@ -214,37 +253,45 @@ export default function SadhanaReports({ devoteeId, userRole }) {
           <div className="row g-3 align-items-end mb-3">
             {/* Devotee selector */}
             <div className="col-md-4">
-              <label className="form-label fw-semibold">Devotee</label>
-              {userRole === 'counsellor' ? (
-                <select className="form-select" value={pendingDevoteeId} onChange={e => setPendingDevoteeId(e.target.value)}>
-                  <option value="">-- Select Assigned Devotee --</option>
-                  {assignedDevotees.map(d => (
-                    <option key={d.devotee_id || d.id} value={d.devotee_id || d.id}>
-                      {d.initiated_name || `${d.first_name} ${d.last_name}`}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <div className="position-relative">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Search devotee by name/email"
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                  />
-                  {searchResults.length > 0 && (
-                    <div className="list-group position-absolute w-100 shadow" style={{ maxHeight: 200, overflowY: 'auto', zIndex: 5 }}>
-                      {searchResults.map(r => (
-                        <button key={r.devotee_id || r.id} type="button" className="list-group-item list-group-item-action" onClick={() => handleSelectDevotee(r.devotee_id || r.id)}>
-                          {(r.initiated_name || `${r.first_name} ${r.last_name}`)}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              {userRole === 'counsellor' && (
+                <>
+                  <label className="form-label fw-semibold">Devotee</label>
+                  <select className="form-select" value={pendingDevoteeId} onChange={e => setPendingDevoteeId(e.target.value)}>
+                    <option value="">-- Select Assigned Devotee --</option>
+                    {assignedDevotees.map(d => (
+                      <option key={d.devotee_id || d.id} value={d.devotee_id || d.id}>
+                        {d.initiated_name || `${d.first_name} ${d.last_name}`}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedDevoteeId && <small className="text-muted">Selected ID: {selectedDevoteeId}</small>}
+                </>
               )}
-              {selectedDevoteeId && <small className="text-muted">Selected ID: {selectedDevoteeId}</small>}
+              {userRole === 'admin' && (
+                <>
+                  <label className="form-label fw-semibold">Devotee</label>
+                  <div className="position-relative">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Search devotee by name/email"
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                    />
+                    {searchResults.length > 0 && (
+                      <div className="list-group position-absolute w-100 shadow" style={{ maxHeight: 200, overflowY: 'auto', zIndex: 5 }}>
+                        {searchResults.map(r => (
+                          <button key={r.devotee_id || r.id} type="button" className="list-group-item list-group-item-action" onClick={() => handleSelectDevotee(r.devotee_id || r.id)}>
+                            {(r.initiated_name || `${r.first_name} ${r.last_name}`)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {selectedDevoteeId && <small className="text-muted">Selected ID: {selectedDevoteeId}</small>}
+                </>
+              )}
+              {/* For users, no devotee selector is shown */}
             </div>
             <div className="col-md-8">
               <div className="row g-3">
@@ -305,78 +352,110 @@ export default function SadhanaReports({ devoteeId, userRole }) {
             <div className="alert alert-warning py-2">No entries for selected month.</div>
           )}
           {generated && !loading && (
-            <div className="mb-2 text-muted small d-flex align-items-center">
+            <div className="mb-2 text-muted small d-flex align-items-center flex-wrap">
               {mode === 'range' && rangeData.length > 0 && chartData && (
                 <span>Showing aggregated data for previous {periodLength} months including current.</span>
               )}
-              <span className="badge bg-success ms-3" style={{fontSize: '0.95em', fontWeight: 500}}>
-                Min/Month: 16 rounds, 30m reading, 30m hearing for good Sadhana
-              </span>
             </div>
           )}
           {chartData && !loading && (
             <>
-              <div className="p-3 bg-white rounded-3 shadow-sm">
-                <Bar 
-                  data={chartData} 
-                  options={{
-                    responsive: true,
-                    plugins: {
-                      legend: { position: 'bottom' },
-                      title: { display: false },
-                      tooltip: {
-                        callbacks: {
-                          label: function(context) {
-                            const label = context.dataset.label || '';
-                            const value = context.parsed.y;
-                            return `${label}: ${value}`;
-                          }
-                        }
-                      }
-                    },
-                    scales: {
-                      y: { beginAtZero: true },
-                      x: {
-                        ticks: {
-                          callback: function(value, index, ticks) {
-                            const label = this.getLabelForValue ? this.getLabelForValue(value) : value;
-                            if (typeof label === 'string' && label.includes('(Good Sadhana)')) {
-                              return label.replace('(Good Sadhana)', '\u2714 (Good Sadhana)');
-                            }
-                            return label;
-                          },
-                          color: function(context) {
-                            const label = context.tick && context.tick.label;
-                            if (typeof label === 'string' && label.includes('(Good Sadhana)')) {
-                              return '#137333'; // dark green
-                            }
-                            return undefined;
-                          },
-                          font: function(context) {
-                            const label = context.tick && context.tick.label;
-                            if (typeof label === 'string' && label.includes('(Good Sadhana)')) {
-                              return { weight: 'bold' };
-                            }
-                            return {};
-                          }
-                        }
-                      }
-                    }
+              <div className="p-3 bg-white rounded-3 shadow-sm" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div 
+                  style={{
+                    minWidth: 340,
+                    width: '100%',
+                    maxWidth: 1200,
+                    margin: '0 auto',
+                    height: window.innerWidth < 600 ? 320 : 420
                   }}
-                />
+                >
+                  <Bar 
+                    data={chartData} 
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: false },
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              const label = context.dataset.label || '';
+                              const value = context.parsed.y;
+                              return `${label}: ${value}`;
+                            }
+                          }
+                        }
+                      },
+                      scales: {
+                        y: { beginAtZero: true },
+                        x: {
+                          ticks: {
+                            callback: function(value, index, ticks) {
+                              const label = this.getLabelForValue ? this.getLabelForValue(value) : value;
+                              if (typeof label === 'string' && label.includes('(Good Sadhana)')) {
+                                return label.replace('(Good Sadhana)', '\u2714 (Good Sadhana)');
+                              }
+                              return label;
+                            },
+                            color: function(context) {
+                              const label = context.tick && context.tick.label;
+                              if (typeof label === 'string' && label.includes('(Good Sadhana)')) {
+                                return '#137333'; // dark green
+                              }
+                              return undefined;
+                            },
+                            font: function(context) {
+                              const label = context.tick && context.tick.label;
+                              if (typeof label === 'string' && label.includes('(Good Sadhana)')) {
+                                return { weight: 'bold' };
+                              }
+                              return {};
+                            }
+                          }
+                        }
+                      }
+                    }}
+                    height={window.innerWidth < 600 ? 320 : 420}
+                  />
+                </div>
               </div>
               {/* Boxed list of Good Sadhana months in period mode */}
               {mode === 'range' && chartData.labels && chartData.labels.length > 0 && (
                 <div className="alert alert-success mt-3" style={{maxWidth: 600}}>
-                  <b>Good Sadhana Months:</b>
+                  <b>Good Sadhana Achievements by Month:</b>
                   <ul className="mb-0 mt-2">
-                    {chartData.labels.filter(lab => lab.includes('Good Sadhana')).length === 0 ? (
+                    {rangeData.length === 0 ? (
                       <li>None in this period</li>
                     ) : (
-                      chartData.labels.map((lab, idx) => (
-                        lab.includes('Good Sadhana') && <li key={idx}>{lab.replace(' (Good Sadhana)','')}</li>
-                      ))
+                      rangeData.slice().reverse().map((r, idx) => {
+                        const c = r.entries.reduce((acc,e) => acc + Number(e.chanting_rounds||0),0);
+                        const rd = r.entries.reduce((acc,e) => acc + Number(e.reading_time||0),0);
+                        const h = r.entries.reduce((acc,e) => acc + Number(e.hearing_time||0),0);
+                        const s = r.entries.reduce((acc,e) => acc + Number(e.service_time||0),0);
+                        const days = new Date(r.year, r.month, 0).getDate();
+                        const achievements = [];
+                        if (c >= 16 * days) achievements.push('Chanting');
+                        if (rd >= 30 * days) achievements.push('Reading');
+                        if (h >= 30 * days) achievements.push('Hearing');
+                        if (s > 0) achievements.push('Service');
+                        if (achievements.length === 0) return null;
+                        return (
+                          <li key={idx}>
+                            <b>{monthNames[r.month-1]} {r.year}:</b> Good in {achievements.join(', ')}
+                          </li>
+                        );
+                      })
                     )}
+                    {rangeData.slice().reverse().every(r => {
+                      const c = r.entries.reduce((acc,e) => acc + Number(e.chanting_rounds||0),0);
+                      const rd = r.entries.reduce((acc,e) => acc + Number(e.reading_time||0),0);
+                      const h = r.entries.reduce((acc,e) => acc + Number(e.hearing_time||0),0);
+                      const s = r.entries.reduce((acc,e) => acc + Number(e.service_time||0),0);
+                      const days = new Date(r.year, r.month, 0).getDate();
+                      return c < 16 * days && rd < 30 * days && h < 30 * days && s === 0;
+                    }) && <li>None in this period</li>}
                   </ul>
                 </div>
               )}

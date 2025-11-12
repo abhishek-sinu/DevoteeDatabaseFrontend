@@ -86,7 +86,7 @@ export default function DevoteeDashboard() {
                         <img src={process.env.PUBLIC_URL + "/image/iskconlogo.jpg"} alt="ISKCON Logo" width="72" height="72" className="header-logo border border-primary" style={{ objectFit: 'cover' }} />
                     </div>
                     <div className="flex-grow-1 text-center">
-                        <h2 className="mb-1">🙏 Śrī Guru Śrī Gaurāṅga Jayataha 🙏</h2>
+                        <h2 className="mb-1">Śrī Guru Śrī Gaurāṅga Jayataha</h2>
                         <h4 className="mb-0">Welcome to the Devotee Dashboard</h4>
                     </div>
                     <div style={{ width: 90 }} className="d-flex justify-content-end align-items-center">
@@ -142,6 +142,7 @@ export default function DevoteeDashboard() {
                                             <li><button className={`dropdown-item${view === "download" ? " active" : ""}`} onClick={() => setView("download")}>View Sadhana(Everyday)</button></li>
                                             <li><button className={`dropdown-item${view === "uploadSadhanaCard" ? " active" : ""}`} onClick={() => setView("uploadSadhanaCard")}>Upload Sadhana Card</button></li>
                                             <li><button className={`dropdown-item${view === "ViewUploadedSadhanaCard" ? " active" : ""}`} onClick={() => setView("ViewUploadedSadhanaCard")}>View Uploaded Sadhana Card</button></li>
+                                            <li><button className={`dropdown-item${view === "sadhanaReports" ? " active" : ""}`} onClick={() => setView("sadhanaReports")}>Sadhana Chart Reports</button></li>
                                         </ul>
                                     </li>
                                 </>
@@ -205,7 +206,7 @@ export default function DevoteeDashboard() {
             {view === "view" && (role === "admin" || role === "counsellor") &&  <ViewDevoteesTable userId={localStorage.getItem("userId")}/>}
             {view === "entry" && (role === "user"||role === "counsellor") && <SadhanaEntryForm userId={localStorage.getItem("userId")} />}
             {view === "download" && (role === "user"||role === "counsellor") && <SadhanaViewDownload devoteeId={devoteeId} />}
-            {view === "sadhanaReports" && (role === "admin" || role === "counsellor") && <SadhanaReports devoteeId={devoteeId} userRole={role} />}
+            {view === "sadhanaReports" && (role === "admin" || role === "counsellor" || role === "user") && <SadhanaReports devoteeId={devoteeId} userRole={role} />}
             {view === "reports" && role === "counsellor" && <CounsellorEveryDaySadhanaReports userId={localStorage.getItem("userId")}/>}
             {view === "uploadSadhanaCard" && (role === "user" || role === "counsellor") && <UploadSadhanaCard email={localStorage.getItem("userId")} />}
             {view === "ViewUploadedSadhanaCard" && (role === "user" || role === "counsellor") && <ViewUploadedSadhanaCard email={localStorage.getItem("userId")} />}
