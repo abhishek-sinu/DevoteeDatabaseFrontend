@@ -19,18 +19,20 @@ function SadhanaRequirementsCard() {
         textAlign: "center"
       }}
     >
-      <strong style={{ fontSize: 18, color: "#1a237e" }}>Good Sadhana Minimum (per Month):</strong>
+      <strong style={{ fontSize: 18, color: "#1a237e" }}>Good Sadhana Criteria (per Month):</strong>
       <div style={{ marginTop: 8 }}>
-        <span style={{ fontWeight: 500 }}>16 rounds</span>,
+        <span style={{ fontWeight: 500 }}>16 rounds/Day</span>,
         <span style={{ margin: "0 8px" }}>|</span>
-        <span style={{ fontWeight: 500 }}>30m reading</span>,
+        <span style={{ fontWeight: 500 }}>900m/Month reading</span>,
         <span style={{ margin: "0 8px" }}>|</span>
-        <span style={{ fontWeight: 500 }}>30m hearing</span>
+        <span style={{ fontWeight: 500 }}>900m/Month hearing</span>
+        <span style={{ margin: "0 8px" }}>|</span>
+        <span style={{ fontWeight: 500 }}>480m/Month service</span>
       </div>
     </div>
   );
 }
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -59,8 +61,11 @@ export default function SadhanaReports({ devoteeId, userRole }) {
   // selection state
   const [selectedDevoteeId, setSelectedDevoteeId] = useState(devoteeId || '');
   const [assignedDevotees, setAssignedDevotees] = useState([]); // for counsellor
-  const [searchTerm, setSearchTerm] = useState(''); // for admin search
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(''); // admin search input value
+  const [suggestions, setSuggestions] = useState([]); // admin search suggestions
+  const [searchLoading, setSearchLoading] = useState(false); // admin search loading state
+  const [searchError, setSearchError] = useState(''); // admin search error
+  const debounceRef = useRef(null);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth()+1);
   const [entries, setEntries] = useState([]); // single-month entries
@@ -84,26 +89,40 @@ export default function SadhanaReports({ devoteeId, userRole }) {
     }
   }, [userRole, devoteeId]);
 
-  // Admin search debounce
+  // Debounced admin search suggestions (like AdminUploadedSadhanaReports)
   useEffect(() => {
-    const controller = new AbortController();
-    if (userRole === 'admin' && searchTerm.trim().length >= 2) {
-      const t = setTimeout(() => {
-        axios.get(`${process.env.REACT_APP_API_BASE}/api/devotees/search`, {
-          params: { term: searchTerm.trim() }, signal: controller.signal
-        }).then(res => setSearchResults(res.data || []))
-          .catch(() => setSearchResults([]));
-      }, 400);
-      return () => { controller.abort(); clearTimeout(t); };
-    } else if (userRole === 'admin') {
-      setSearchResults([]);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (searchTerm.trim().length < 2) {
+      setSuggestions([]);
+      setSearchError('');
+      return;
     }
-  }, [searchTerm, userRole]);
+    setSearchLoading(true);
+    debounceRef.current = setTimeout(async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/devotees/search`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { query: searchTerm.trim() }
+        });
+        setSuggestions(res.data || []);
+        setSearchError((res.data || []).length === 0 ? 'No devotees found' : '');
+      } catch (err) {
+        setSuggestions([]);
+        setSearchError('Search failed');
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [searchTerm]);
 
-  const handleSelectDevotee = (id) => {
+  const handleSelectDevotee = (id, displayName) => {
     setSelectedDevoteeId(id);
-    setSearchTerm('');
-    setSearchResults([]);
+    setPendingDevoteeId(id); // Ensure report uses the selected ID
+    setSearchTerm(displayName);
+    setSuggestions([]);
+    setSearchError('');
   };
 
   const generateReport = async () => {
@@ -159,32 +178,63 @@ export default function SadhanaReports({ devoteeId, userRole }) {
     }
   };
 
-  // Aggregate entries for bar chart with 'good sadhana' indicator
+  // Helper: did user do minimum rounds every day?
+  function didChantingEveryDay(entries, minRounds, daysInMonth) {
+    // Map day -> rounds
+    //console.log("entries", entries);
+    const dayRounds = {};
+    entries.forEach(e => {
+      // Try to get day from e.day or e.entry_date
+      let day = e.day;
+      if (!day && e.entry_date) {
+        try { day = new Date(e.entry_date).getDate(); } catch {}
+      }
+      //console.log('Entry:', e, 'Resolved day:', day);
+      if (!day) {
+        // eslint-disable-next-line no-console
+        //console.warn('Entry missing valid day or entry_date:', e);
+      }
+      if (day) dayRounds[Number(day)] = Number(e.chanting_rounds || 0);
+    });
+    let missingOrLow = [];
+    //console.log("dayRounds", dayRounds);
+    for (let d = 1; d <= daysInMonth; d++) {
+      if (!dayRounds[d] || dayRounds[d] < minRounds) {
+        missingOrLow.push({ day: d, rounds: dayRounds[d] || 0 });
+      }
+    }
+    if (missingOrLow.length > 0) {
+      // eslint-disable-next-line no-console
+      //console.log('Chanting not sufficient for days:', missingOrLow);
+      return false;
+    }
+    return true;
+  }
+
   const chartData = useMemo(() => {
     if (!generated) return null;
-    // Helper to get days in a month
-    function getDaysInMonth(y, m) {
-      return new Date(y, m, 0).getDate();
-    }
-    // Standard per day
+    function getDaysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
     const CHANTING_PER_DAY = 16;
-    const READING_PER_DAY = 30;
-    const HEARING_PER_DAY = 30;
+    const READING_PER_MONTH = 900;
+    const HEARING_PER_MONTH = 900;
+    const SERVICE_PER_MONTH = 480;
     if (mode === 'single') {
       if (entries.length === 0) return null;
-      let chanting = 0, reading = 0, hearing = 0, service = 0;
+      let reading = 0, hearing = 0, service = 0;
       entries.forEach(e => {
-        chanting += Number(e.chanting_rounds || 0);
         reading += Number(e.reading_time || 0);
         hearing += Number(e.hearing_time || 0);
         service += Number(e.service_time || 0);
       });
       const days = getDaysInMonth(year, month);
-      const goodSadhana = (
-        chanting >= CHANTING_PER_DAY * days &&
-        reading >= READING_PER_DAY * days &&
-        hearing >= HEARING_PER_DAY * days
-      );
+      const goodChanting = didChantingEveryDay(entries, CHANTING_PER_DAY, days);
+      const goodReading = reading >= READING_PER_MONTH;
+      const goodHearing = hearing >= HEARING_PER_MONTH;
+      const goodService = service >= SERVICE_PER_MONTH;
+      const goodSadhana = goodChanting && goodReading && goodHearing && goodService;
+      // Calculate total chanting for chart
+      let chanting = 0;
+      entries.forEach(e => { chanting += Number(e.chanting_rounds || 0); });
       return {
         labels: ['Chanting Rounds','Reading (min)','Hearing (min)','Service (min)'],
         datasets: [
@@ -202,28 +252,27 @@ export default function SadhanaReports({ devoteeId, userRole }) {
       };
     } else {
       if (rangeData.length === 0) return null;
-      // labels are months
       const reversed = rangeData.slice().reverse();
-      const labels = reversed.map(r => `${monthNames[r.month-1]} ${r.year}`); // chronological
-      // Calculate for each month
+      const labels = reversed.map(r => `${monthNames[r.month-1]} ${r.year}`);
       const chanting = [], reading = [], hearing = [], service = [], goodSadhanaArr = [];
       reversed.forEach(r => {
-        const c = r.entries.reduce((acc,e) => acc + Number(e.chanting_rounds||0),0);
-        const rd = r.entries.reduce((acc,e) => acc + Number(e.reading_time||0),0);
-        const h = r.entries.reduce((acc,e) => acc + Number(e.hearing_time||0),0);
-        const s = r.entries.reduce((acc,e) => acc + Number(e.service_time||0),0);
-        chanting.push(c);
-        reading.push(rd);
-        hearing.push(h);
-        service.push(s);
         const days = getDaysInMonth(r.year, r.month);
+        const goodChanting = didChantingEveryDay(r.entries, CHANTING_PER_DAY, days);
+        const readingSum = r.entries.reduce((acc,e) => acc + Number(e.reading_time||0),0);
+        const hearingSum = r.entries.reduce((acc,e) => acc + Number(e.hearing_time||0),0);
+        const serviceSum = r.entries.reduce((acc,e) => acc + Number(e.service_time||0),0);
+        const chantingSum = r.entries.reduce((acc,e) => acc + Number(e.chanting_rounds||0),0);
+        chanting.push(chantingSum);
+        reading.push(readingSum);
+        hearing.push(hearingSum);
+        service.push(serviceSum);
         goodSadhanaArr.push(
-          c >= CHANTING_PER_DAY * days &&
-          rd >= READING_PER_DAY * days &&
-          h >= HEARING_PER_DAY * days
+          goodChanting &&
+          readingSum >= READING_PER_MONTH &&
+          hearingSum >= HEARING_PER_MONTH &&
+          serviceSum >= SERVICE_PER_MONTH
         );
       });
-      // Only mark Good Sadhana in label, not color
       const labelArr = reversed.map((r, idx) => {
         return `${monthNames[r.month-1]} ${r.year}` + (goodSadhanaArr[idx] ? ' (Good Sadhana)' : '');
       });
@@ -255,39 +304,78 @@ export default function SadhanaReports({ devoteeId, userRole }) {
             <div className="col-md-4">
               {userRole === 'counsellor' && (
                 <>
-                  <label className="form-label fw-semibold">Devotee</label>
-                  <select className="form-select" value={pendingDevoteeId} onChange={e => setPendingDevoteeId(e.target.value)}>
-                    <option value="">-- Select Assigned Devotee --</option>
-                    {assignedDevotees.map(d => (
-                      <option key={d.devotee_id || d.id} value={d.devotee_id || d.id}>
-                        {d.initiated_name || `${d.first_name} ${d.last_name}`}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="form-label fw-semibold">Search Assigned Devotee</label>
+                  <div className="position-relative mb-2">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Type name or email..."
+                      value={searchTerm}
+                      onChange={e => {
+                        setSearchTerm(e.target.value);
+                        setSelectedDevoteeId("");
+                        setPendingDevoteeId("");
+                      }}
+                    />
+                    {searchTerm.trim().length > 0 && (
+                      <ul className="list-group position-absolute w-100 shadow" style={{ zIndex: 2000, maxHeight: 200, overflowY: 'auto' }}>
+                        {assignedDevotees.filter(d => {
+                          const q = searchTerm.trim().toLowerCase();
+                          return (
+                            (d.initiated_name && d.initiated_name.toLowerCase().includes(q)) ||
+                            (`${d.first_name} ${d.last_name}`.toLowerCase().includes(q)) ||
+                            (d.email && d.email.toLowerCase().includes(q))
+                          );
+                        }).map(d => (
+                          <li
+                            key={d.devotee_id || d.id}
+                            className={`list-group-item list-group-item-action${selectedDevoteeId === (d.devotee_id || d.id) ? ' active' : ''}`}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => {
+                              setSelectedDevoteeId(d.devotee_id || d.id);
+                              setPendingDevoteeId(d.devotee_id || d.id);
+                              setSearchTerm(d.initiated_name?.trim() || `${d.first_name} ${d.last_name}`);
+                            }}
+                          >
+                            {d.initiated_name?.trim() ? `${d.initiated_name.trim()} - ${d.email}` : `${d.first_name} ${d.last_name} - ${d.email}`}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                   {selectedDevoteeId && <small className="text-muted">Selected ID: {selectedDevoteeId}</small>}
                 </>
               )}
               {userRole === 'admin' && (
                 <>
-                  <label className="form-label fw-semibold">Devotee</label>
-                  <div className="position-relative">
+                  <label className="form-label fw-semibold">Search Devotee</label>
+                  <div className="position-relative mb-2">
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="Search devotee by name/email"
+                      placeholder="Type name or email..."
                       value={searchTerm}
-                      onChange={e => setSearchTerm(e.target.value)}
+                      onChange={e => {
+                        setSearchTerm(e.target.value);
+                        setSelectedDevoteeId("");
+                      }}
                     />
-                    {searchResults.length > 0 && (
-                      <div className="list-group position-absolute w-100 shadow" style={{ maxHeight: 200, overflowY: 'auto', zIndex: 5 }}>
-                        {searchResults.map(r => (
-                          <button key={r.devotee_id || r.id} type="button" className="list-group-item list-group-item-action" onClick={() => handleSelectDevotee(r.devotee_id || r.id)}>
-                            {(r.initiated_name || `${r.first_name} ${r.last_name}`)}
-                          </button>
+                    {suggestions.length > 0 && (
+                      <ul className="list-group position-absolute w-100 shadow" style={{ zIndex: 2000, maxHeight: 200, overflowY: 'auto' }}>
+                        {suggestions.map(s => (
+                          <li
+                            key={s.devotee_id || s.id || s.email}
+                            className={`list-group-item list-group-item-action${selectedDevoteeId === (s.devotee_id || s.id) ? ' active' : ''}`}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => handleSelectDevotee(s.devotee_id || s.id, s.initiated_name?.trim() || `${[s.first_name, s.last_name].filter(Boolean).join(' ')}`)}
+                          >
+                            {s.initiated_name?.trim() ? `${s.initiated_name.trim()} - ${s.email}` : `${[s.first_name, s.last_name].filter(Boolean).join(' ')} - ${s.email}`}
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     )}
                   </div>
+                  {searchError && <div className="small text-danger mb-1">{searchError}</div>}
                   {selectedDevoteeId && <small className="text-muted">Selected ID: {selectedDevoteeId}</small>}
                 </>
               )}
@@ -430,16 +518,19 @@ export default function SadhanaReports({ devoteeId, userRole }) {
                       <li>None in this period</li>
                     ) : (
                       rangeData.slice().reverse().map((r, idx) => {
-                        const c = r.entries.reduce((acc,e) => acc + Number(e.chanting_rounds||0),0);
-                        const rd = r.entries.reduce((acc,e) => acc + Number(e.reading_time||0),0);
-                        const h = r.entries.reduce((acc,e) => acc + Number(e.hearing_time||0),0);
-                        const s = r.entries.reduce((acc,e) => acc + Number(e.service_time||0),0);
                         const days = new Date(r.year, r.month, 0).getDate();
+                        const goodChanting = didChantingEveryDay(r.entries, 16, days);
+                        const reading = r.entries.reduce((acc,e) => acc + Number(e.reading_time||0),0);
+                        const hearing = r.entries.reduce((acc,e) => acc + Number(e.hearing_time||0),0);
+                        const service = r.entries.reduce((acc,e) => acc + Number(e.service_time||0),0);
+                        const goodReading = reading >= 900;
+                        const goodHearing = hearing >= 900;
+                        const goodService = service >= 480;
                         const achievements = [];
-                        if (c >= 16 * days) achievements.push('Chanting');
-                        if (rd >= 30 * days) achievements.push('Reading');
-                        if (h >= 30 * days) achievements.push('Hearing');
-                        if (s > 0) achievements.push('Service');
+                        if (goodChanting) achievements.push('Chanting');
+                        if (goodReading) achievements.push('Reading');
+                        if (goodHearing) achievements.push('Hearing');
+                        if (goodService) achievements.push('Service');
                         if (achievements.length === 0) return null;
                         return (
                           <li key={idx}>
@@ -448,14 +539,6 @@ export default function SadhanaReports({ devoteeId, userRole }) {
                         );
                       })
                     )}
-                    {rangeData.slice().reverse().every(r => {
-                      const c = r.entries.reduce((acc,e) => acc + Number(e.chanting_rounds||0),0);
-                      const rd = r.entries.reduce((acc,e) => acc + Number(e.reading_time||0),0);
-                      const h = r.entries.reduce((acc,e) => acc + Number(e.hearing_time||0),0);
-                      const s = r.entries.reduce((acc,e) => acc + Number(e.service_time||0),0);
-                      const days = new Date(r.year, r.month, 0).getDate();
-                      return c < 16 * days && rd < 30 * days && h < 30 * days && s === 0;
-                    }) && <li>None in this period</li>}
                   </ul>
                 </div>
               )}

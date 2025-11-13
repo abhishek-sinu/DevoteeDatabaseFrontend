@@ -28,8 +28,10 @@ const handleLogout = () => {
     window.location.href = "/login";
 };
 
+
 export default function DevoteeDashboard() {
-    const [view, setView] = useState("view");
+    // Default view is notificationView for all roles
+    const [view, setView] = useState("notificationView");
     const [role, setRole] = useState("user");
     const [displayName, setDisplayName] = useState("");
     const [devoteeId, setDevoteeId] = useState("");
@@ -41,9 +43,8 @@ export default function DevoteeDashboard() {
             try {
                 const decoded = jwtDecode(token);
                 setRole(decoded.role || "user");
-                if (decoded.role === "counsellor" || decoded.role === "user") {
-                    setView("profile");
-                }
+                // Always show notificationView as first page for all roles
+                setView("notificationView");
             } catch (error) {
                 console.error("Invalid token:", error);
             }
@@ -172,22 +173,11 @@ export default function DevoteeDashboard() {
                             )}
                         </ul>
                         <ul className="navbar-nav ms-auto">
-                            <li className="nav-item dropdown">
-                                <button className="nav-link dropdown-toggle btn btn-link" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src={`${process.env.PUBLIC_URL}/image/bell-colorful.png`} alt="" width="24" height="24" />
-                                </button>
-                                <ul className="dropdown-menu" aria-labelledby="notificationDropdown">
-                                    <li>
-                                        <button className={`dropdown-item${view === "notificationView" ? " active" : ""}`} onClick={() => setView("notificationView")}>
-                                            View
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button className={`dropdown-item${view === "notificationSend" ? " active" : ""}`} onClick={() => setView("notificationSend")}>
-                                            Send
-                                        </button>
-                                    </li>
-                                </ul>
+                            <li className="nav-item">
+                                <button className={`nav-link btn btn-link${view === "notificationView" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationView")}>View Messages</button>
+                            </li>
+                            <li className="nav-item">
+                                <button className={`nav-link btn btn-link${view === "notificationSend" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationSend")}>Send Message</button>
                             </li>
                             <li className="nav-item">
                                 <span className="nav-link fw-bold text-primary">{displayName}</span>
