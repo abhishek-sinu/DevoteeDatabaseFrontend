@@ -15,6 +15,7 @@ import ViewUploadedSadhanaCard from "./ViewUploadedSadhanaCard";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CounsellorUploadedSadhanaReports from "./CounsellorUploadedSadhanaReports"; // new
 import AdminUploadedSadhanaReports from "./AdminUploadedSadhanaReports";
+import AdminDownloadDevotees from "./AdminDownloadDevotees";
 import NotificationView from "./NotificationView";
 import NotificationSend from "./NotificationSend";
 import SadhanaReports from "./SadhanaReports";
@@ -123,6 +124,9 @@ export default function DevoteeDashboard() {
                                     <li className="nav-item">
                                         <button className={`nav-link btn btn-link${view === "adminUploadedReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("adminUploadedReports")}>Reports</button>
                                     </li>
+                                    <li className="nav-item">
+                                        <button className={`nav-link btn btn-link${view === "adminDownloadDevotees" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("adminDownloadDevotees")}>Download Devotees XLSX</button>
+                                    </li>
                                         <li className="nav-item">
                                             <button className={`nav-link btn btn-link${view === "sadhanaReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("sadhanaReports")}>Sadhana Reports</button>
                                         </li>
@@ -212,6 +216,7 @@ export default function DevoteeDashboard() {
             {view === "ViewUploadedSadhanaCard" && (role === "user" || role === "counsellor") && <ViewUploadedSadhanaCard email={localStorage.getItem("userId")} />}
             {view === "uploadedReports" && (role === "counsellor") && <CounsellorUploadedSadhanaReports userId={localStorage.getItem("userId")} />}
             {view === "adminUploadedReports" && (role === "admin") && <AdminUploadedSadhanaReports />}
+            {view === "adminDownloadDevotees" && (role === "admin") && <AdminDownloadDevotees />}
             {view === "notificationView" && <NotificationView email={localStorage.getItem("userId")} />}
             {view === "notificationSend" && <NotificationSend senderName={displayName} userRole={role} devoteeId={devoteeId} email={localStorage.getItem("userId")}/>}
         </div>
