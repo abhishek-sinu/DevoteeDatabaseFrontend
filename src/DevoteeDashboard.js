@@ -19,6 +19,7 @@ import AdminDownloadDevotees from "./AdminDownloadDevotees";
 import NotificationView from "./NotificationView";
 import NotificationSend from "./NotificationSend";
 import SadhanaReports from "./SadhanaReports";
+import SadhanaTemplate from "./SadhanaTemplate";
 
 
 
@@ -35,6 +36,17 @@ export default function DevoteeDashboard() {
     const [role, setRole] = useState("user");
     const [displayName, setDisplayName] = useState("");
     const [devoteeId, setDevoteeId] = useState("");
+
+    const handleDropdownSelect = (nextView, dropdownId) => {
+        setView(nextView);
+        const toggleButton = document.getElementById(dropdownId);
+        const dropdownWrapper = toggleButton?.closest('.dropdown');
+        const dropdownMenu = dropdownWrapper?.querySelector('.dropdown-menu');
+
+        dropdownWrapper?.classList.remove('show');
+        dropdownMenu?.classList.remove('show');
+        toggleButton?.setAttribute('aria-expanded', 'false');
+    };
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -97,7 +109,7 @@ export default function DevoteeDashboard() {
                 </div>
             </div>
            {/* Responsive Navbar */}
-            <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4 rounded">
+            <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4 rounded dashboard-navbar">
                 <div className="container-fluid">
                     {/* Logo or Brand */}
                     <a className="navbar-brand fw-bold d-flex align-items-center" href="#">
@@ -107,7 +119,7 @@ export default function DevoteeDashboard() {
                         <span className="navbar-toggler-icon"></span>
                     </button>
                     <div className="collapse navbar-collapse" id="navbarNavDropdown">
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0 dashboard-nav-main">
                             {role === "admin" && (
                                 <>
                                     <li className="nav-item">
@@ -122,15 +134,46 @@ export default function DevoteeDashboard() {
                                     <li className="nav-item">
                                         <button className={`nav-link btn btn-link${view === "register" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("register")}>Assign Role</button>
                                     </li>
-                                    <li className="nav-item">
-                                        <button className={`nav-link btn btn-link${view === "adminUploadedReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("adminUploadedReports")}>Reports</button>
+                                    <li className="nav-item dropdown">
+                                        <button
+                                            className={`nav-link dropdown-toggle btn btn-link${
+                                                view === "adminUploadedReports" || view === "adminDownloadDevotees" || view === "sadhanaReports"
+                                                    ? " active fw-bold text-primary"
+                                                    : ""
+                                            }`}
+                                            id="adminReportDropdown"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false"
+                                        >
+                                            Report
+                                        </button>
+                                        <ul className="dropdown-menu" aria-labelledby="adminReportDropdown">
+                                            <li>
+                                                <button
+                                                    className={`dropdown-item${view === "adminUploadedReports" ? " active" : ""}`}
+                                                    onClick={() => handleDropdownSelect("adminUploadedReports", "adminReportDropdown")}
+                                                >
+                                                    Devotee Reports
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    className={`dropdown-item${view === "adminDownloadDevotees" ? " active" : ""}`}
+                                                    onClick={() => handleDropdownSelect("adminDownloadDevotees", "adminReportDropdown")}
+                                                >
+                                                    Download Devotees XLSX
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    className={`dropdown-item${view === "sadhanaReports" ? " active" : ""}`}
+                                                    onClick={() => handleDropdownSelect("sadhanaReports", "adminReportDropdown")}
+                                                >
+                                                    Sadhana Reports
+                                                </button>
+                                            </li>
+                                        </ul>
                                     </li>
-                                    <li className="nav-item">
-                                        <button className={`nav-link btn btn-link${view === "adminDownloadDevotees" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("adminDownloadDevotees")}>Download Devotees XLSX</button>
-                                    </li>
-                                        <li className="nav-item">
-                                            <button className={`nav-link btn btn-link${view === "sadhanaReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("sadhanaReports")}>Sadhana Reports</button>
-                                        </li>
                                 </>
                             )}
                             {(role === "user" || role === "counsellor") && (
@@ -143,11 +186,12 @@ export default function DevoteeDashboard() {
                                             Sadhana
                                         </button>
                                         <ul className="dropdown-menu" aria-labelledby="sadhanaDropdown">
-                                            <li><button className={`dropdown-item${view === "entry" ? " active" : ""}`} onClick={() => setView("entry")}>Enter Everyday</button></li>
-                                            <li><button className={`dropdown-item${view === "download" ? " active" : ""}`} onClick={() => setView("download")}>View Sadhana(Everyday)</button></li>
-                                            <li><button className={`dropdown-item${view === "uploadSadhanaCard" ? " active" : ""}`} onClick={() => setView("uploadSadhanaCard")}>Upload Sadhana Card</button></li>
-                                            <li><button className={`dropdown-item${view === "ViewUploadedSadhanaCard" ? " active" : ""}`} onClick={() => setView("ViewUploadedSadhanaCard")}>View Uploaded Sadhana Card</button></li>
-                                            <li><button className={`dropdown-item${view === "sadhanaReports" ? " active" : ""}`} onClick={() => setView("sadhanaReports")}>Sadhana Chart Reports</button></li>
+                                            <li><button className={`dropdown-item${view === "entry" ? " active" : ""}`} onClick={() => handleDropdownSelect("entry", "sadhanaDropdown")}>New Entry</button></li>
+                                            <li><button className={`dropdown-item${view === "download" ? " active" : ""}`} onClick={() => handleDropdownSelect("download", "sadhanaDropdown")}>View Entries</button></li>
+                                            {/* <li><button className={`dropdown-item${view === "uploadSadhanaCard" ? " active" : ""}`} onClick={() => handleDropdownSelect("uploadSadhanaCard", "sadhanaDropdown")}>Upload Sadhana Card</button></li> */}
+                                            {/* <li><button className={`dropdown-item${view === "ViewUploadedSadhanaCard" ? " active" : ""}`} onClick={() => handleDropdownSelect("ViewUploadedSadhanaCard", "sadhanaDropdown")}>View Uploaded Sadhana Card</button></li> */}
+                                            <li><button className={`dropdown-item${view === "sadhanaTemplate" ? " active" : ""}`} onClick={() => handleDropdownSelect("sadhanaTemplate", "sadhanaDropdown")}>Sadhana Template</button></li>
+                                            <li><button className={`dropdown-item${view === "sadhanaReports" ? " active" : ""}`} onClick={() => handleDropdownSelect("sadhanaReports", "sadhanaDropdown")}>Sadhana Chart Reports</button></li>
                                         </ul>
                                     </li>
                                 </>
@@ -162,8 +206,8 @@ export default function DevoteeDashboard() {
                                             Devotees Sadhana Reports
                                         </button>
                                         <ul className="dropdown-menu" aria-labelledby="devoteeReportsDropdown">
-                                            <li><button className={`dropdown-item${view === "reports" ? " active" : ""}`} onClick={() => setView("reports")}>View Everyday Entered</button></li>
-                                            <li><button className={`dropdown-item${view === "uploadedReports" ? " active" : ""}`} onClick={() => setView("uploadedReports")}>View Uploaded</button></li>
+                                            <li><button className={`dropdown-item${view === "reports" ? " active" : ""}`} onClick={() => handleDropdownSelect("reports", "devoteeReportsDropdown")}>View Everyday Entered</button></li>
+                                            <li><button className={`dropdown-item${view === "uploadedReports" ? " active" : ""}`} onClick={() => handleDropdownSelect("uploadedReports", "devoteeReportsDropdown")}>View Uploaded</button></li>
                                         </ul>
                                     </li>
                                         <li className="nav-item">
@@ -172,7 +216,7 @@ export default function DevoteeDashboard() {
                                 </>
                             )}
                         </ul>
-                        <ul className="navbar-nav ms-auto">
+                        <ul className="navbar-nav ms-auto dashboard-nav-right">
                             <li className="nav-item">
                                 <button className={`nav-link btn btn-link${view === "notificationView" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationView")}>View Messages</button>
                             </li>
@@ -200,6 +244,7 @@ export default function DevoteeDashboard() {
             {view === "view" && (role === "admin" || role === "counsellor") &&  <ViewDevoteesTable userId={localStorage.getItem("userId")}/>}
             {view === "entry" && (role === "user"||role === "counsellor") && <SadhanaEntryForm userId={localStorage.getItem("userId")} />}
             {view === "download" && (role === "user"||role === "counsellor") && <SadhanaViewDownload devoteeId={devoteeId} />}
+            {view === "sadhanaTemplate" && (role === "user"||role === "counsellor") && <SadhanaTemplate devoteeId={devoteeId} email={localStorage.getItem("userId")} />}
             {view === "sadhanaReports" && (role === "admin" || role === "counsellor" || role === "user") && <SadhanaReports devoteeId={devoteeId} userRole={role} />}
             {view === "reports" && role === "counsellor" && <CounsellorEveryDaySadhanaReports userId={localStorage.getItem("userId")}/>}
             {view === "uploadSadhanaCard" && (role === "user" || role === "counsellor") && <UploadSadhanaCard email={localStorage.getItem("userId")} />}

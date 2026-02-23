@@ -4,7 +4,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Login.css"; // Custom styles
-import quotes from "./quotes";
 
 export default function Login() {
 
@@ -13,9 +12,6 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-
-    // Pick a random quote on each render
-    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -67,58 +63,7 @@ export default function Login() {
                     }}
                     dangerouslySetInnerHTML={{ __html: toast.message }}
                 />
-                {/* Left: Image Half with Quote Card */}
-                {/* Desktop: Quote on left, Mobile: Quote above login */}
-                <div className="login-bg-half d-none d-md-flex flex-column justify-content-center align-items-center position-relative" style={{ minHeight: '100vh' }}>
-                    <div className="quote-card shadow-lg px-5 py-3 d-flex flex-column justify-content-center align-items-center"
-                        style={{
-                            background: 'rgba(255,255,255,0.88)',
-                            borderRadius: 18,
-                            maxWidth: 700,
-                            minWidth: 420,
-                            minHeight: 90,
-                            margin: '32px',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-                            position: 'absolute',
-                            top: -30,
-                            right: -400,
-                            left: 'auto',
-                            transform: 'none',
-                            textAlign: 'left',
-                            fontFamily: 'serif',
-                            zIndex: 10,
-                            display: 'flex',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <div style={{ fontSize: 22, fontWeight: 500, color: '#2d3a4a', marginBottom: 10, fontStyle: 'italic', lineHeight: 1.4, maxWidth: 600 }}>
-                            {`"${randomQuote.text}"`}
-                        </div>
-                        <div style={{ fontSize: 16, color: '#4b5e6b', fontWeight: 500, marginTop: 4, textAlign: 'right', width: '100%' }}>
-                            — {randomQuote.author}
-                        </div>
-                    </div>
-                </div>
-                {/* Mobile: Show quote above login form */}
-                <div className="d-flex d-md-none flex-column align-items-end w-100" style={{padding: '16px 0 0 0'}}>
-                    <div className="quote-card shadow-lg px-4 py-3 w-100" style={{
-                        background: 'rgba(255,255,255,0.95)',
-                        borderRadius: 14,
-                        margin: '0 12px 18px 12px',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.13)',
-                        textAlign: 'left',
-                        fontFamily: 'serif',
-                        zIndex: 10,
-                        maxWidth: '100%',
-                    }}>
-                        <div style={{ fontSize: 17, fontWeight: 500, color: '#2d3a4a', marginBottom: 7, fontStyle: 'italic', lineHeight: 1.4 }}>
-                            {`"${randomQuote.text}"`}
-                        </div>
-                        <div style={{ fontSize: 14, color: '#4b5e6b', fontWeight: 500, marginTop: 2, textAlign: 'right', width: '100%' }}>
-                            — {randomQuote.author}
-                        </div>
-                    </div>
-                </div>
+                <div className="login-bg-half d-none d-md-block" />
                 {/* Right: Login Form with background image */}
                 <div 
                     className="d-flex flex-column justify-content-center align-items-center" 
