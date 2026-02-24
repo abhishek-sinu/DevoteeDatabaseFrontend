@@ -3,6 +3,8 @@ import axios from 'axios';
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import './CustomToast.css';
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 
 
 const formatTime = (minutes) => {
@@ -26,10 +28,265 @@ const getYearOptions = () => {
 const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
 
 
-export default function DownloadViewSadhanaCard({ devoteeId }) {
+export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) {
     const [entries, setEntries] = useState([]);
     const [year, setYear] = useState(new Date().getFullYear());
     const [month, setMonth] = useState(new Date().getMonth() + 1);
+
+    const [userInfo, setUserInfo] = useState(null);
+
+    // Remove useEffect for userInfo fetch; fetch on demand in download
+
+        // Download table as PDF
+    const handleDownloadPDF = async () => {
+        if (!entries || entries.length === 0) return;
+        const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
+        // Always fetch user info before export
+        let userInfoData = userInfo;
+        if (!userInfoData && devoteeId) {
+            try {
+                const token = localStorage.getItem("token");
+                const API_BASE = process.env.REACT_APP_API_BASE;
+                const res = await axios.get(`${API_BASE}/api/devotees`, {
+                    params: { userId: email, type: 'Name' },
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                userInfoData = res.data && res.data.length > 0 ? res.data[0] : null;
+                setUserInfo(userInfoData);
+            } catch (err) {
+                userInfoData = null;
+            }
+        }
+
+        // Get table headers and rows
+        let headers = Array.from(document.querySelectorAll("table thead th")).map(th => th.innerText.trim());
+        let rows = Array.from(document.querySelectorAll("table tbody tr")).map(tr => Array.from(tr.querySelectorAll("td")).map(td => td.innerText.trim()));
+        // Remove Actions column (last column)
+        if (headers.length > 0 && headers[headers.length - 1] === "Actions") {
+            headers = headers.slice(0, -1);
+            rows = rows.map(row => row.slice(0, -1));
+        }
+
+        // Calculate page width based on columns
+        const margin = 40;
+        // Dynamically calculate column widths based on header text length
+        const fontSize = 12;
+        const pageHeight = 1000;
+        const pdfDoc = await PDFDocument.create();
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const colWidths = headers.map(header => {
+            // Estimate width: 7px per character + padding
+            return Math.max(90, header.length * 7 + 20);
+        });
+        const tableWidth = colWidths.reduce((sum, w) => sum + w, 0);
+        const pageWidth = Math.max(800, tableWidth + margin * 2);
+
+        // Add devotee info and image to first page
+        let y = pageHeight - 50;
+        let infoBlockHeight = 90;
+        let infoBlockWidth = 350;
+        let imageWidth = 120;
+        let imageHeight = 90;
+        let page = pdfDoc.addPage([pageWidth, pageHeight]);
+        page.drawRectangle({ x: margin, y: y - infoBlockHeight, width: infoBlockWidth, height: infoBlockHeight, borderColor: rgb(0.27,0.27,0.27), borderWidth: 1 });
+        if (userInfoData) {
+            const name = userInfoData.initiated_name && userInfoData.initiated_name.trim() ? userInfoData.initiated_name : `${userInfoData.first_name || ''} ${userInfoData.middle_name || ''} ${userInfoData.last_name || ''}`.replace(/ +/g, ' ').trim();
+            const temple = userInfoData.temple_name || '';
+            const period = `${getMonthName(month)} ${year}`;
+            page.drawText(`Name: ${name}`, { x: margin + 15, y: y - 30, size: 16, font });
+            page.drawText(`Temple: ${temple}`, { x: margin + 15, y: y - 55, size: 14, font });
+            page.drawText(`Period: ${period}`, { x: margin + 15, y: y - 75, size: 14, font });
+            if (userInfoData.photo) {
+                try {
+                    const baseUrl = process.env.REACT_APP_API_BASE || '';
+                    const imageUrl = baseUrl.replace(/\/$/, '') + userInfoData.photo;
+                    const imgRes = await fetch(imageUrl);
+                    const imgBuffer = await imgRes.arrayBuffer();
+                    const imgBytes = new Uint8Array(imgBuffer);
+                    const img = await pdfDoc.embedJpg(imgBytes);
+                    page.drawImage(img, {
+                        x: margin + infoBlockWidth + 20,
+                        y: y - imageHeight,
+                        width: imageWidth,
+                        height: imageHeight
+                    });
+                    page.drawRectangle({ x: margin + infoBlockWidth + 20, y: y - imageHeight, width: imageWidth, height: imageHeight, borderColor: rgb(0.27,0.27,0.27), borderWidth: 1 });
+                } catch (err) {
+                    // If image fails, skip
+                }
+            }
+        }
+
+        // Draw table, split across pages if needed
+        let tableY = y - infoBlockHeight - 40;
+        let rowY = tableY;
+        let rowsPerPage = Math.floor((pageHeight - 120 - infoBlockHeight) / 25);
+        let rowIndex = 0;
+        while (rowIndex < rows.length) {
+            // Draw header
+            let colX = margin;
+            headers.forEach((header, i) => {
+                page.drawRectangle({ x: colX, y: rowY, width: colWidths[i], height: 25, borderColor: rgb(0.27,0.27,0.27), borderWidth: 1 });
+                page.drawText(header, { x: colX + 5, y: rowY + 7, size: fontSize, font });
+                colX += colWidths[i];
+            });
+            rowY -= 25;
+            // Draw rows for this page
+            for (let r = 0; r < rowsPerPage && rowIndex < rows.length; r++, rowIndex++) {
+                colX = margin;
+                rows[rowIndex].forEach((cell, i) => {
+                    page.drawRectangle({ x: colX, y: rowY, width: colWidths[i], height: 25, borderColor: rgb(0.27,0.27,0.27), borderWidth: 1 });
+                    page.drawText(cell, { x: colX + 5, y: rowY + 7, size: 11, font });
+                    colX += colWidths[i];
+                });
+                rowY -= 25;
+            }
+            // If more rows, add new page
+            if (rowIndex < rows.length) {
+                page = pdfDoc.addPage([pageWidth, pageHeight]);
+                rowY = pageHeight - margin - 25;
+            } else {
+                // After last table row, add footer just below table
+                page.drawText("Generated by https://www.vaidhisadhanabhakti.cloud", {
+                    x: margin,
+                    y: rowY - 30,
+                    size: 12,
+                    font,
+                    color: rgb(0.2,0.2,0.2)
+                });
+            }
+        }
+
+        // Footer
+        page.drawText("Generated by https://www.vaidhisadhanabhakti.cloud", { x: margin, y: 30, size: 12, font, color: rgb(0.2,0.2,0.2) });
+
+        // Save PDF
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        saveAs(blob, `Sadhana_${year}_${String(month).padStart(2, '0')}.pdf`);
+    };
+
+    // Download table as XLS
+    const handleDownloadXLS = async () => {
+        if (!entries || entries.length === 0) return;
+        const table = document.querySelector("table");
+        if (!table) return;
+        let headers = Array.from(table.querySelectorAll("thead th")).map(th => th.innerText.trim());
+        let rows = Array.from(table.querySelectorAll("tbody tr")).map(tr =>
+            Array.from(tr.querySelectorAll("td")).map(td => td.innerText.trim())
+        );
+        // Remove Actions column (last column)
+        if (headers.length > 0 && headers[headers.length - 1] === "Actions") {
+            headers = headers.slice(0, -1);
+            rows = rows.map(row => row.slice(0, -1));
+        }
+
+        // Always fetch user info before export
+        let userInfoData = userInfo;
+        if (!userInfoData && devoteeId) {
+            try {
+                const token = localStorage.getItem("token");
+                const API_BASE = process.env.REACT_APP_API_BASE;
+                const res = await axios.get(`${API_BASE}/api/devotees`, {
+                    params: { userId: email, type: 'Name' },
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                userInfoData = res.data && res.data.length > 0 ? res.data[0] : null;
+                setUserInfo(userInfoData);
+            } catch (err) {
+                userInfoData = null;
+            }
+        }
+
+        // Create workbook and worksheet
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Sadhana");
+
+        // Add user info rows
+        let infoRowCount = 0;
+        if (userInfoData) {
+            const name = userInfoData.initiated_name && userInfoData.initiated_name.trim() ? userInfoData.initiated_name : `${userInfoData.first_name || ''} ${userInfoData.middle_name || ''} ${userInfoData.last_name || ''}`.replace(/ +/g, ' ').trim();
+            const temple = userInfoData.temple_name || '';
+            const period = `${getMonthName(month)} ${year}`;
+            const infoRows = [];
+            infoRows.push(worksheet.addRow(["Name", name])); infoRowCount++;
+            if (temple) { infoRows.push(worksheet.addRow(["Temple", temple])); infoRowCount++; }
+            infoRows.push(worksheet.addRow(["Period", period])); infoRowCount++;
+            // Apply thin border to user info cells
+            infoRows.forEach(row => {
+                row.eachCell(cell => {
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF444444' } },
+                        left: { style: 'thin', color: { argb: 'FF444444' } },
+                        bottom: { style: 'thin', color: { argb: 'FF444444' } },
+                        right: { style: 'thin', color: { argb: 'FF444444' } }
+                    };
+                });
+            });
+            // Render image to the right of info block
+            if (userInfoData.photo) {
+                try {
+                    const baseUrl = process.env.REACT_APP_API_BASE || '';
+                    const imageUrl = baseUrl.replace(/\/$/, '') + userInfoData.photo;
+                    const imgRes = await fetch(imageUrl);
+                    const imgBuffer = await imgRes.arrayBuffer();
+                    const imageId = workbook.addImage({
+                        buffer: imgBuffer,
+                        extension: 'jpeg'
+                    });
+                    // Place image in column D, spanning info block height
+                    worksheet.addImage(imageId, {
+                        tl: { col: 3, row: 0 },
+                        ext: { width: 80, height: infoRowCount * 22 }
+                    });
+                } catch (err) {
+                    // If image fails, do nothing (no Profile Image row)
+                }
+            }
+        }
+        if (infoRowCount > 0) worksheet.addRow([]);
+
+        // Add table headers and rows
+        const headerRow = worksheet.addRow(headers);
+        rows.forEach(row => worksheet.addRow(row));
+
+        // Style table borders: slightly bolder and darker
+        // Header row
+        headerRow.eachCell(cell => {
+            cell.border = {
+                top: { style: 'medium', color: { argb: 'FF444444' } },
+                left: { style: 'medium', color: { argb: 'FF444444' } },
+                bottom: { style: 'medium', color: { argb: 'FF444444' } },
+                right: { style: 'medium', color: { argb: 'FF444444' } }
+            };
+        });
+        // Data rows
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber > headerRow.number) {
+                row.eachCell(cell => {
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF444444' } },
+                        left: { style: 'thin', color: { argb: 'FF444444' } },
+                        bottom: { style: 'thin', color: { argb: 'FF444444' } },
+                        right: { style: 'thin', color: { argb: 'FF444444' } }
+                    };
+                });
+            }
+        });
+
+        // Auto-size columns
+        worksheet.columns.forEach((col, i) => {
+            let maxLen = 10;
+            col.eachCell({ includeEmpty: true }, cell => {
+                maxLen = Math.max(maxLen, (cell.value ? cell.value.toString().length : 0));
+            });
+            col.width = Math.max(10, Math.ceil(maxLen * 1.2));
+        });
+
+        // Export file
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer]), `Sadhana_${year}_${String(month).padStart(2, '0')}.xlsx`);
+    };
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -52,6 +309,21 @@ export default function DownloadViewSadhanaCard({ devoteeId }) {
         serviceTime: '',
         serviceTimeUnit: 'minutes'
     });
+    const [templateFields, setTemplateFields] = useState(null);
+
+    useEffect(() => {
+        if (!devoteeId) return;
+        const fetchTemplate = async () => {
+            try {
+                const API_BASE = process.env.REACT_APP_API_BASE;
+                const res = await axios.get(`${API_BASE}/api/sadhana/template/${encodeURIComponent(devoteeId)}`);
+                setTemplateFields(res.data);
+            } catch (err) {
+                setTemplateFields(null);
+            }
+        };
+        fetchTemplate();
+    }, [devoteeId]);
 
     // Toast auto-hide
     useEffect(() => {
@@ -227,13 +499,13 @@ export default function DownloadViewSadhanaCard({ devoteeId }) {
                 <div className="col-lg-10">
                     <div className="card shadow-lg border-0 rounded-4">
                         <div className="card-header bg-primary text-white rounded-top-4 d-flex align-items-center justify-content-between">
-                            <h4 className="mb-0">📅 View Sadhana Entries by Month</h4>
-                            <div className="d-flex gap-3">
-                                <div>
+                            <h4 className="mb-0">📅 Month Wise</h4>
+                            <div className="d-flex gap-2 align-items-end flex-wrap">
+                                <div className="d-flex align-items-center">
                                     <label htmlFor="yearSelect" className="form-label mb-0 me-2">Year</label>
                                     <select
                                         id="yearSelect"
-                                        className="form-select d-inline-block w-auto"
+                                        className="form-select d-inline-block w-auto me-3"
                                         value={year}
                                         onChange={e => setYear(Number(e.target.value))}
                                     >
@@ -242,11 +514,11 @@ export default function DownloadViewSadhanaCard({ devoteeId }) {
                                         ))}
                                     </select>
                                 </div>
-                                <div>
+                                <div className="d-flex align-items-center">
                                     <label htmlFor="monthSelect" className="form-label mb-0 me-2">Month</label>
                                     <select
                                         id="monthSelect"
-                                        className="form-select d-inline-block w-auto"
+                                        className="form-select d-inline-block w-auto me-3"
                                         value={month}
                                         onChange={e => setMonth(Number(e.target.value))}
                                     >
@@ -255,6 +527,24 @@ export default function DownloadViewSadhanaCard({ devoteeId }) {
                                         ))}
                                     </select>
                                 </div>
+                                    <button
+                                        className="btn btn-success align-middle px-3 d-flex align-items-center gap-2"
+                                        type="button"
+                                        style={{ fontWeight: 500 }}
+                                        onClick={handleDownloadXLS}
+                                    >
+                                        <i className="bi bi-download" style={{ fontSize: '1.2em' }}></i>
+                                        XLS
+                                    </button>
+                                    <button
+                                        className="btn btn-warning align-middle px-3 d-flex align-items-center gap-2"
+                                        type="button"
+                                        style={{ fontWeight: 500 }}
+                                        onClick={handleDownloadPDF}
+                                    >
+                                        <i className="bi bi-file-earmark-pdf" style={{ fontSize: '1.2em' }}></i>
+                                        PDF
+                                    </button>
                             </div>
                         </div>
                         <div className="card-body bg-light rounded-bottom-4">
@@ -272,30 +562,48 @@ export default function DownloadViewSadhanaCard({ devoteeId }) {
                                     <table className="table table-hover align-middle table-bordered border-primary rounded-3 overflow-hidden mb-0">
                                         <thead className="table-primary">
                                             <tr>
-                                                <th>Date</th>
-                                                <th>Wake Up Time</th>
-                                                <th>Chanting Rounds</th>
-                                                <th>Reading Time</th>
-                                                <th>Reading Topic</th>
-                                                <th>Hearing Time</th>
-                                                <th>Hearing Topic</th>
-                                                <th>Service Name</th>
-                                                <th>Service Time</th>
+                                                {templateFields && templateFields.entry_date && <th>Date</th>}
+                                                {templateFields && templateFields.wake_up_time && <th>Wake Up Time</th>}
+                                                {templateFields && templateFields.chanting_rounds && <th>Chanting Rounds</th>}
+                                                {templateFields && templateFields.reading_time && <th>Reading Time</th>}
+                                                {templateFields && templateFields.reading_topic && <th>Reading Topic</th>}
+                                                {templateFields && templateFields.hearing_time && <th>Hearing Time</th>}
+                                                {templateFields && templateFields.hearing_topic && <th>Hearing Topic</th>}
+                                                {templateFields && templateFields.service_name && <th>Service Name</th>}
+                                                {templateFields && templateFields.service_time && <th>Service Time</th>}
+                                                {templateFields && templateFields.sleeping_time && <th>Sleeping Time</th>}
+                                                {templateFields && templateFields.chanting_before_700 && <th>Chanting Before 7:00 AM</th>}
+                                                {templateFields && templateFields.chanting_before_730 && <th>Chanting Before 7:30 AM</th>}
+                                                {templateFields && templateFields.attended_mangal_arati && <th>Attended Mangal Arati</th>}
+                                                {templateFields && templateFields.attended_bhagavatam_class && <th>Attended Bhagavatam Class</th>}
+                                                {templateFields && templateFields.book_distribution && <th>Book Distribution</th>}
+                                                {templateFields && templateFields.prasadam_honored && <th>Prasadam Honored</th>}
+                                                {templateFields && templateFields.ekadashi_followed && <th>Ekadashi Followed</th>}
+                                                {templateFields && templateFields.japa_quality && <th>Japa Quality</th>}
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {entries.map(entry => (
                                                 <tr key={entry.id || entry.entry_date}>
-                                                    <td>{formatDate(entry.entry_date)}</td>
-                                                    <td>{entry.wake_up_time}</td>
-                                                    <td>{entry.chanting_rounds}</td>
-                                                    <td>{formatMinutes(entry.reading_time)}</td>
-                                                    <td>{entry.reading_topic}</td>
-                                                    <td>{formatMinutes(entry.hearing_time)}</td>
-                                                    <td>{entry.hearing_topic}</td>
-                                                    <td>{entry.service_name}</td>
-                                                    <td>{formatMinutes(entry.service_time)}</td>
+                                                    {templateFields && templateFields.entry_date && <td>{formatDate(entry.entry_date)}</td>}
+                                                    {templateFields && templateFields.wake_up_time && <td>{entry.wake_up_time}</td>}
+                                                    {templateFields && templateFields.chanting_rounds && <td>{entry.chanting_rounds}</td>}
+                                                    {templateFields && templateFields.reading_time && <td>{formatMinutes(entry.reading_time)}</td>}
+                                                    {templateFields && templateFields.reading_topic && <td>{entry.reading_topic}</td>}
+                                                    {templateFields && templateFields.hearing_time && <td>{formatMinutes(entry.hearing_time)}</td>}
+                                                    {templateFields && templateFields.hearing_topic && <td>{entry.hearing_topic}</td>}
+                                                    {templateFields && templateFields.service_name && <td>{entry.service_name}</td>}
+                                                    {templateFields && templateFields.service_time && <td>{formatMinutes(entry.service_time)}</td>}
+                                                    {templateFields && templateFields.sleeping_time && <td>{entry.sleeping_time === 0 ? '-' : entry.sleeping_time}</td>}
+                                                    {templateFields && templateFields.chanting_before_700 && <td>{entry.chanting_before_700 === 0 ? '-' : entry.chanting_before_700}</td>}
+                                                    {templateFields && templateFields.chanting_before_730 && <td>{entry.chanting_before_730 === 0 ? '-' : entry.chanting_before_730}</td>}
+                                                    {templateFields && templateFields.attended_mangal_arati && <td>{entry.attended_mangal_arati === 0 ? '-' : entry.attended_mangal_arati}</td>}
+                                                    {templateFields && templateFields.attended_bhagavatam_class && <td>{entry.attended_bhagavatam_class === 0 ? '-' : entry.attended_bhagavatam_class}</td>}
+                                                    {templateFields && templateFields.book_distribution && <td>{entry.book_distribution === 0 ? '-' : entry.book_distribution}</td>}
+                                                    {templateFields && templateFields.prasadam_honored && <td>{entry.prasadam_honored === 0 ? '-' : entry.prasadam_honored}</td>}
+                                                    {templateFields && templateFields.ekadashi_followed && <td>{entry.ekadashi_followed === 0 ? '-' : entry.ekadashi_followed}</td>}
+                                                    {templateFields && templateFields.japa_quality && <td>{entry.japa_quality === 0 ? '-' : entry.japa_quality}</td>}
                                                     <td style={{ whiteSpace: 'nowrap' }}>
                                                         <div className="d-flex gap-1">
                                                             <button 

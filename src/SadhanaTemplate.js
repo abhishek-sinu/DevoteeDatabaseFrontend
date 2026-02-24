@@ -1,8 +1,75 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './CustomToast.css';
 
+// Helper to convert snake_case to camelCase (explicit mapping for known fields)
+const snakeToCamel = str => {
+    if (str === 'chanting_before_700') return 'chantingBefore700';
+    if (str === 'chanting_before_730') return 'chantingBefore730';
+    if (str === 'attended_mangal_arati') return 'attendedMangalArati';
+    if (str === 'attended_bhagavatam_class') return 'attendedBhagavatamClass';
+    if (str === 'book_distribution') return 'bookDistribution';
+    if (str === 'prasadam_honored') return 'prasadamHonored';
+    if (str === 'ekadashi_followed') return 'ekadashiFollowed';
+    if (str === 'japa_quality') return 'japaQuality';
+    if (str === 'sleeping_time') return 'sleepingTime';
+    if (str === 'service_name') return 'serviceName';
+    if (str === 'service_time') return 'serviceTime';
+    if (str === 'hearing_topic') return 'hearingTopic';
+    if (str === 'hearing_time') return 'hearingTime';
+    if (str === 'reading_topic') return 'readingTopic';
+    if (str === 'reading_time') return 'readingTime';
+    if (str === 'chanting_rounds') return 'chantingRounds';
+    if (str === 'wake_up_time') return 'wakeUpTime';
+    if (str === 'entry_date') return 'entryDate';
+    return str.replace(/([-_][a-z])/g, group =>
+        group.toUpperCase().replace('-', '').replace('_', '')
+    );
+};
+
+const PREDEFINED_TEMPLATES = [
+    'ISKCON HYDERABAD',
+    'ISKCON BBSR'
+];
+
 export default function SadhanaTemplate({ devoteeId, email }) {
+    // Handler for predefined template buttons
+    const applyPredefinedTemplate = async (templateName) => {
+        try {
+            const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/sadhana/predefined-templates`, {
+                params: { sadhana_template: templateName }
+            });
+            // If API returns an array, use the first object
+            const templateObj = Array.isArray(res.data) ? res.data[0] : res.data;
+            if (templateObj) {
+                setTemplateFields(prev => {
+                    // Deep clone and update all fields, setting missing ones to false
+                    const updated = {};
+                    Object.keys(prev).forEach(field => {
+                        updated[field] = { ...prev[field] };
+                    });
+                    // Set all fields (core and optional) based on API response, fallback to false for missing optionals
+                    Object.keys(updated).forEach(field => {
+                        // Find the snake_case key for this field
+                        const camelToSnake = str => {
+                            return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+                        };
+                        const snakeKey = camelToSnake(field);
+                        // If present in API response, use its value, else:
+                        if (templateObj.hasOwnProperty(snakeKey)) {
+                            updated[field].enabled = !!templateObj[snakeKey];
+                        } else if (!updated[field].locked) {
+                            updated[field].enabled = false;
+                        }
+                    });
+                    return updated;
+                });
+            }
+        } catch (err) {
+            setToast({ show: true, message: 'Failed to load predefined template.', type: 'error' });
+        }
+    };
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
     const [templateFields, setTemplateFields] = useState({
         // Core fields (always enabled, cannot be disabled)
@@ -46,8 +113,9 @@ export default function SadhanaTemplate({ devoteeId, email }) {
                     setTemplateFields(prev => {
                         const updated = { ...prev };
                         Object.keys(res.data).forEach(key => {
-                            if (updated[key]) {
-                                updated[key].enabled = res.data[key];
+                            const camelKey = snakeToCamel(key);
+                            if (updated[camelKey]) {
+                                updated[camelKey].enabled = res.data[key];
                             }
                         });
                         return updated;
@@ -110,6 +178,8 @@ export default function SadhanaTemplate({ devoteeId, email }) {
                 <button className="toast-close" onClick={() => setToast(t => ({ ...t, show: false }))} aria-label="Close">&times;</button>
             </div>
 
+            {/* ...existing code... */}
+
             <div className="row justify-content-center">
                 <div className="col-lg-10">
                     <div className="card shadow-lg border-0 rounded-4">
@@ -119,7 +189,22 @@ export default function SadhanaTemplate({ devoteeId, email }) {
                                 Customize Your Sadhana Template
                             </h4>
                         </div>
+
                         <div className="card-body bg-light rounded-bottom-4">
+                            {/* Predefined Template Buttons (moved inside card, above core fields) */}
+                            <div className="mb-4 text-center">
+                                <span className="me-2 fw-semibold">Predefined Templates:</span>
+                                {PREDEFINED_TEMPLATES.map(name => (
+                                    <button
+                                        key={name}
+                                        className="btn btn-outline-primary btn-sm mx-1"
+                                        type="button"
+                                        onClick={() => applyPredefinedTemplate(name)}
+                                    >
+                                        {name}
+                                    </button>
+                                ))}
+                            </div>
                             <p className="text-muted mb-4">
                                 <i className="bi bi-info-circle me-2"></i>
                                 Choose which fields you want to track in your daily sadhana entries. Core fields are required and cannot be disabled.

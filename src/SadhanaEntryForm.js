@@ -22,9 +22,9 @@ const SadhanaEntryForm = () => {
         serviceTimeUnit: 'minutes',
         // Optional fields
         sleepingTime: '',
-        chantingBefore700: false,
-        chantingBefore730: false,
-        attendedMangalArati: false,
+        chantingBefore700Time: '',
+        chantingBefore730Time: '',
+        attendedMangalAratiTime: '',
         attendedBhagavatamClass: false,
         bookDistribution: '',
         prasadamHonored: false,
@@ -111,9 +111,9 @@ const SadhanaEntryForm = () => {
             serviceTime: convertToMinutes(formData.serviceTime, formData.serviceTimeUnit),
             // Optional fields - only include if enabled in template
             sleepingTime: templateFields?.sleeping_time ? (formData.sleepingTime || null) : null,
-            chantingBefore700: templateFields?.chanting_before_700 ? formData.chantingBefore700 : null,
-            chantingBefore730: templateFields?.chanting_before_730 ? formData.chantingBefore730 : null,
-            attendedMangalArati: templateFields?.attended_mangal_arati ? formData.attendedMangalArati : null,
+            chantingBefore700Time: templateFields?.chanting_before_700 ? (formData.chantingBefore700Time || null) : null,
+            chantingBefore730Time: templateFields?.chanting_before_730 ? (formData.chantingBefore730Time || null) : null,
+            attendedMangalAratiTime: templateFields?.attended_mangal_arati ? (formData.attendedMangalAratiTime || null) : null,
             attendedBhagavatamClass: templateFields?.attended_bhagavatam_class ? formData.attendedBhagavatamClass : null,
             bookDistribution: templateFields?.book_distribution ? (formData.bookDistribution ? parseInt(formData.bookDistribution) : null) : null,
             prasadamHonored: templateFields?.prasadam_honored ? formData.prasadamHonored : null,
@@ -140,9 +140,9 @@ const SadhanaEntryForm = () => {
                 serviceTime: '',
                 serviceTimeUnit: 'minutes',
                 sleepingTime: '',
-                chantingBefore700: false,
-                chantingBefore730: false,
-                attendedMangalArati: false,
+                chantingBefore700Time: '',
+                chantingBefore730Time: '',
+                attendedMangalAratiTime: '',
                 attendedBhagavatamClass: false,
                 bookDistribution: '',
                 prasadamHonored: false,
@@ -192,14 +192,6 @@ const SadhanaEntryForm = () => {
                                 </div>
                             )}
                             
-                            {/* Sleeping Time - Optional */}
-                            {templateFields.sleeping_time && (
-                                <div className="col-md-4">
-                                    <label className="form-label">Sleeping Time</label>
-                                    <input type="time" name="sleepingTime" value={formData.sleepingTime} onChange={handleChange} className="form-control" />
-                                </div>
-                            )}
-                            
                             {/* Chanting Rounds */}
                             {templateFields.chanting_rounds && (
                                 <div className="col-md-4">
@@ -208,67 +200,169 @@ const SadhanaEntryForm = () => {
                                 </div>
                             )}
                             
-                            {/* Chanting Before 7:00 AM - Optional */}
+                            {/* Chanting Before 7:00 AM - Optional (text input) */}
                             {templateFields.chanting_before_700 && (
                                 <div className="col-md-4">
-                                    <label className="form-label d-block">Chanting Status</label>
-                                    <div className="form-check">
-                                        <input 
-                                            type="checkbox" 
-                                            name="chantingBefore700" 
-                                            checked={formData.chantingBefore700} 
-                                            onChange={(e) => setFormData({ ...formData, chantingBefore700: e.target.checked })} 
-                                            className="form-check-input" 
-                                            id="chantingBefore700"
-                                        />
-                                        <label className="form-check-label" htmlFor="chantingBefore700">
-                                            Chanting Before 7:00 AM
-                                        </label>
-                                    </div>
+                                    <label className="form-label">Chanting Before 7:00 AM</label>
+                                    <input
+                                        type="text"
+                                        name="chantingBefore700Time"
+                                        value={formData.chantingBefore700Time || ''}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                        placeholder="Enter time or note"
+                                    />
                                 </div>
                             )}
                             
-                            {/* Chanting Before 7:30 AM - Optional */}
+                            {/* Chanting Before 7:30 AM - Optional (text input) */}
                             {templateFields.chanting_before_730 && (
                                 <div className="col-md-4">
-                                    <label className="form-label d-block">Chanting Status</label>
-                                    <div className="form-check">
-                                        <input 
-                                            type="checkbox" 
-                                            name="chantingBefore730" 
-                                            checked={formData.chantingBefore730} 
-                                            onChange={(e) => setFormData({ ...formData, chantingBefore730: e.target.checked })} 
-                                            className="form-check-input" 
-                                            id="chantingBefore730"
+                                    <label className="form-label">Chanting Before 7:30 AM</label>
+                                    <input
+                                        type="text"
+                                        name="chantingBefore730Time"
+                                        value={formData.chantingBefore730Time || ''}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                        placeholder="Enter time or note"
+                                    />
+                                </div>
+                            )}
+                            
+                            
+                            {/* Reading Topic */}
+                            {templateFields.reading_topic && (
+                                <div className="col-md-6">
+                                    <label className="form-label">Reading Topic</label>
+                                    <input type="text" name="readingTopic" value={formData.readingTopic} onChange={handleChange} className="form-control" />
+                                </div>
+                            )}
+                            
+                            {/* Reading Time */}
+                            {templateFields.reading_time && (
+                                <div className="col-md-6">
+                                    <label className="form-label">Reading Time</label>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <input
+                                            type="number"
+                                            name="readingTime"
+                                            id="readingTime"
+                                            className="form-control"
+                                            style={{ maxWidth: '110px', minWidth: '80px', display: 'inline-block' }}
+                                            value={formData.readingTime}
+                                            onChange={handleChange}
                                         />
-                                        <label className="form-check-label" htmlFor="chantingBefore730">
-                                            Chanting Before 7:30 AM
-                                        </label>
+                                        <select
+                                            name="readingTimeUnit"
+                                            className="form-select"
+                                            style={{ maxWidth: '110px', minWidth: '80px', display: 'inline-block' }}
+                                            value={formData.readingTimeUnit}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="minutes">Minutes</option>
+                                            <option value="hours">Hours</option>
+                                        </select>
                                     </div>
                                 </div>
                             )}
                             
-                            {/* Attended Mangal Arati - Optional */}
+                            {/* Hearing Topic */}
+                            {templateFields.hearing_topic && (
+                                <div className="col-md-6">
+                                    <label className="form-label">Hearing Topic</label>
+                                    <input type="text" name="hearingTopic" value={formData.hearingTopic} onChange={handleChange} className="form-control" />
+                                </div>
+                            )}
+                            
+                            {/* Hearing Time */}
+                            {templateFields.hearing_time && (
+                                <div className="col-md-6">
+                                    <label className="form-label">Hearing Time</label>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <input
+                                            type="number"
+                                            name="hearingTime"
+                                            id="hearingTime"
+                                            className="form-control"
+                                            style={{ maxWidth: '110px', minWidth: '80px', display: 'inline-block' }}
+                                            value={formData.hearingTime}
+                                            onChange={handleChange}
+                                        />
+                                        <select
+                                            name="hearingTimeUnit"
+                                            className="form-select"
+                                            style={{ maxWidth: '110px', minWidth: '80px', display: 'inline-block' }}
+                                            value={formData.hearingTimeUnit}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="minutes">Minutes</option>
+                                            <option value="hours">Hours</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* Service Name */}
+                            {templateFields.service_name && (
+                                <div className="col-md-6">
+                                    <label className="form-label">Service Name</label>
+                                    <input type="text" name="serviceName" value={formData.serviceName} onChange={handleChange} className="form-control" />
+                                </div>
+                            )}
+                            
+                            {/* Service Time */}
+                            {templateFields.service_time && (
+                                <div className="col-md-6">
+                                    <label className="form-label">Service Time</label>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <input
+                                            type="number"
+                                            name="serviceTime"
+                                            id="serviceTime"
+                                            className="form-control"
+                                            style={{ maxWidth: '110px', minWidth: '80px', display: 'inline-block' }}
+                                            value={formData.serviceTime}
+                                            onChange={handleChange}
+                                        />
+                                        <select
+                                            name="serviceTimeUnit"
+                                            className="form-select"
+                                            style={{ maxWidth: '110px', minWidth: '80px', display: 'inline-block' }}
+                                            value={formData.serviceTimeUnit}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="minutes">Minutes</option>
+                                            <option value="hours">Hours</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* Sleeping Time - Optional */}
+                            {templateFields.sleeping_time && (
+                                <div className="col-md-4">
+                                    <label className="form-label">Sleeping Time</label>
+                                    <input type="time" name="sleepingTime" value={formData.sleepingTime} onChange={handleChange} className="form-control" />
+                                </div>
+                            )}
+
+                             {/* Attended Mangal Arati - Optional (text input) */}
                             {templateFields.attended_mangal_arati && (
                                 <div className="col-md-4">
-                                    <label className="form-label d-block">Program Attendance</label>
-                                    <div className="form-check">
-                                        <input 
-                                            type="checkbox" 
-                                            name="attendedMangalArati" 
-                                            checked={formData.attendedMangalArati} 
-                                            onChange={(e) => setFormData({ ...formData, attendedMangalArati: e.target.checked })} 
-                                            className="form-check-input" 
-                                            id="attendedMangalArati"
-                                        />
-                                        <label className="form-check-label" htmlFor="attendedMangalArati">
-                                            Attended Mangal Arati
-                                        </label>
-                                    </div>
+                                    <label className="form-label">Attended Mangal Arati</label>
+                                    <input
+                                        type="text"
+                                        name="attendedMangalAratiTime"
+                                        value={formData.attendedMangalAratiTime || ''}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                        placeholder="Enter time or note"
+                                    />
                                 </div>
                             )}
-                            
-                            {/* Attended Bhagavatam Class - Optional */}
+
+                             {/* Attended Bhagavatam Class - Optional */}
                             {templateFields.attended_bhagavatam_class && (
                                 <div className="col-md-4">
                                     <label className="form-label d-block">Program Attendance</label>
@@ -287,103 +381,7 @@ const SadhanaEntryForm = () => {
                                     </div>
                                 </div>
                             )}
-                            
-                            {/* Reading Topic */}
-                            {templateFields.reading_topic && (
-                                <div className="col-md-6">
-                                    <label className="form-label">Reading Topic</label>
-                                    <input type="text" name="readingTopic" value={formData.readingTopic} onChange={handleChange} className="form-control" />
-                                </div>
-                            )}
-                            
-                            {/* Reading Time */}
-                            {templateFields.reading_time && (
-                                <div className="col-md-6">
-                                    <label className="form-label">Reading Time</label>
-                                    <input
-                                        type="number"
-                                        name="readingTime"
-                                        id="readingTime"
-                                        className="form-control"
-                                        value={formData.readingTime}
-                                        onChange={handleChange}
-                                    />
-                                    <select
-                                        name="readingTimeUnit"
-                                        className="form-control"
-                                        value={formData.readingTimeUnit}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="minutes">Minutes</option>
-                                        <option value="hours">Hours</option>
-                                    </select>
-                                </div>
-                            )}
-                            
-                            {/* Hearing Topic */}
-                            {templateFields.hearing_topic && (
-                                <div className="col-md-6">
-                                    <label className="form-label">Hearing Topic</label>
-                                    <input type="text" name="hearingTopic" value={formData.hearingTopic} onChange={handleChange} className="form-control" />
-                                </div>
-                            )}
-                            
-                            {/* Hearing Time */}
-                            {templateFields.hearing_time && (
-                                <div className="col-md-6">
-                                    <label className="form-label">Hearing Time</label>
-                                    <input
-                                        type="number"
-                                        name="hearingTime"
-                                        id="hearingTime"
-                                        className="form-control"
-                                        value={formData.hearingTime}
-                                        onChange={handleChange}
-                                    />
-                                    <select
-                                        name="hearingTimeUnit"
-                                        className="form-control"
-                                        value={formData.hearingTimeUnit}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="minutes">Minutes</option>
-                                        <option value="hours">Hours</option>
-                                    </select>
-                                </div>
-                            )}
-                            
-                            {/* Service Name */}
-                            {templateFields.service_name && (
-                                <div className="col-md-6">
-                                    <label className="form-label">Service Name</label>
-                                    <input type="text" name="serviceName" value={formData.serviceName} onChange={handleChange} className="form-control" />
-                                </div>
-                            )}
-                            
-                            {/* Service Time */}
-                            {templateFields.service_time && (
-                                <div className="col-md-6">
-                                    <label className="form-label">Service Time</label>
-                                    <input
-                                        type="number"
-                                        name="serviceTime"
-                                        id="serviceTime"
-                                        className="form-control"
-                                        value={formData.serviceTime}
-                                        onChange={handleChange}
-                                    />
-                                    <select
-                                        name="serviceTimeUnit"
-                                        className="form-control"
-                                        value={formData.serviceTimeUnit}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="minutes">Minutes</option>
-                                        <option value="hours">Hours</option>
-                                    </select>
-                                </div>
-                            )}
-                            
+
                             {/* Book Distribution - Optional */}
                             {templateFields.book_distribution && (
                                 <div className="col-md-4">

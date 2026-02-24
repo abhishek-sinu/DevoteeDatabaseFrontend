@@ -221,7 +221,7 @@ export default function DevoteeDashboard() {
                                 <button className={`nav-link btn btn-link${view === "notificationView" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationView")}>View Messages</button>
                             </li>
                             <li className="nav-item">
-                                <button className={`nav-link btn btn-link${view === "notificationSend" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationSend")}>Send Message</button>
+                                <button className={`nav-link btn btn-link${view === "notificationSend" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationSend")}>Contact Us</button>
                             </li>
                             <li className="nav-item">
                                 <span className="nav-link fw-bold text-primary">{displayName}</span>
@@ -243,7 +243,7 @@ export default function DevoteeDashboard() {
             {view === "register" && role === "admin" && <Register />}
             {view === "view" && (role === "admin" || role === "counsellor") &&  <ViewDevoteesTable userId={localStorage.getItem("userId")}/>}
             {view === "entry" && (role === "user"||role === "counsellor") && <SadhanaEntryForm userId={localStorage.getItem("userId")} />}
-            {view === "download" && (role === "user"||role === "counsellor") && <SadhanaViewDownload devoteeId={devoteeId} />}
+            {view === "download" && (role === "user"||role === "counsellor") && <SadhanaViewDownload userRole={role} devoteeId={devoteeId} email={localStorage.getItem("userId")} />}
             {view === "sadhanaTemplate" && (role === "user"||role === "counsellor") && <SadhanaTemplate devoteeId={devoteeId} email={localStorage.getItem("userId")} />}
             {view === "sadhanaReports" && (role === "admin" || role === "counsellor" || role === "user") && <SadhanaReports devoteeId={devoteeId} userRole={role} />}
             {view === "reports" && role === "counsellor" && <CounsellorEveryDaySadhanaReports userId={localStorage.getItem("userId")}/>}
