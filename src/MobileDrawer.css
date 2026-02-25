@@ -1,0 +1,138 @@
+/* Side Drawer Styles for Mobile Navbar */
+.side-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 80vw;
+  max-width: 320px;
+  background: #fff;
+  box-shadow: 2px 0 16px rgba(0,0,0,0.18);
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  overflow-y: auto;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  z-index: 1102;
+}
+.side-drawer.open {
+  transform: translateX(0);
+}
+.drawer-overlay {
+  /* Already handled inline for z-index and color */
+}
+.drawer-header {
+  background: #f7f3e9;
+  font-size: 1.2rem;
+  border-top-right-radius: 12px;
+}
+
+.drawer-close-btn {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0.2rem 0.4rem;
+  font-size: 1.7rem;
+  color: #dc3545;
+  cursor: pointer;
+  transition: color 0.18s, transform 0.18s;
+  display: flex;
+  align-items: center;
+}
+.drawer-close-btn:hover {
+  color: #b02a37;
+  transform: scale(1.15);
+}
+.drawer-body {
+  background: #fff;
+}
+
+/* Modern Drawer Menu Styles */
+.drawer-menu {
+  padding: 0.5rem 0.5rem 1.5rem 0.5rem;
+}
+.drawer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.drawer-section {
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.drawer-link, .drawer-sublink {
+  background: none;
+  border: none;
+  outline: none;
+  width: 100%;
+  text-align: left;
+  padding: 0.7rem 1.2rem;
+  font-size: 1.08rem;
+  color: #222;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-weight: 500;
+}
+.drawer-link.active, .drawer-sublink.active {
+  background: #e3eafc;
+  color: #0d6efd;
+  font-weight: 700;
+}
+.drawer-link:hover, .drawer-sublink:hover {
+  background: #f2f6fd;
+  color: #0d6efd;
+}
+.drawer-label {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: #0d6efd;
+  margin: 0.5rem 0 0.2rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.drawer-sublist {
+  list-style: none;
+  margin: 0 0 0 0.5rem;
+  padding: 0;
+  border-left: 2px solid #e3eafc;
+}
+.drawer-sublink {
+  font-size: 0.98rem;
+  padding: 0.55rem 1.5rem 0.55rem 2.2rem;
+  color: #444;
+  border-radius: 6px;
+  font-weight: 400;
+}
+.drawer-sublink.active {
+  background: #e3eafc;
+  color: #0d6efd;
+  font-weight: 600;
+}
+.drawer-sublink:hover {
+  background: #f2f6fd;
+  color: #0d6efd;
+}
+.drawer-icon {
+  min-width: 1.3em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15em;
+}
+.drawer-link.text-danger {
+  color: #dc3545 !important;
+  font-weight: 700;
+}
+.drawer-link.text-danger:hover {
+  background: #ffeaea;
+  color: #b02a37 !important;
+}
+@media (min-width: 992px) {
+  .side-drawer, .drawer-overlay { display: none !important; }
+}

@@ -33,9 +33,15 @@ const PREDEFINED_TEMPLATES = [
     'ISKCON BBSR'
 ];
 
+// Track which template is selected
+// ...existing code...
+
 export default function SadhanaTemplate({ devoteeId, email }) {
+    const [selectedTemplate, setSelectedTemplate] = useState(null);
     // Handler for predefined template buttons
     const applyPredefinedTemplate = async (templateName) => {
+        setSelectedTemplate(templateName);
+        setToast({ show: true, message: 'Submit Below Save Template', type: 'success' });
         try {
             const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/sadhana/predefined-templates`, {
                 params: { sadhana_template: templateName }
@@ -192,18 +198,20 @@ export default function SadhanaTemplate({ devoteeId, email }) {
 
                         <div className="card-body bg-light rounded-bottom-4">
                             {/* Predefined Template Buttons (moved inside card, above core fields) */}
-                            <div className="mb-4 text-center">
+                            <div className="mb-4 text-center sadhana-template-btn-group">
                                 <span className="me-2 fw-semibold">Predefined Templates:</span>
-                                {PREDEFINED_TEMPLATES.map(name => (
-                                    <button
-                                        key={name}
-                                        className="btn btn-outline-primary btn-sm mx-1"
-                                        type="button"
-                                        onClick={() => applyPredefinedTemplate(name)}
-                                    >
-                                        {name}
-                                    </button>
-                                ))}
+                                <div className="template-btns-flex">
+                                    {PREDEFINED_TEMPLATES.map(name => (
+                                        <button
+                                            key={name}
+                                            className={`btn btn-outline-primary btn-sm mx-1 template-btn${selectedTemplate === name ? ' active' : ''}`}
+                                            type="button"
+                                            onClick={() => applyPredefinedTemplate(name)}
+                                        >
+                                            {name}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             <p className="text-muted mb-4">
                                 <i className="bi bi-info-circle me-2"></i>

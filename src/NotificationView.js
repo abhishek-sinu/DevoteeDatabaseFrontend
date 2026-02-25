@@ -14,7 +14,7 @@ const getQuoteOfTheDay = () => {
     return quotes[quoteIndex];
 };
 
-const NotificationView = ({ email }) => {
+const NotificationView = ({ email,userRole }) => {
     const [notifications, setNotifications] = useState([]);
     const [activeTab, setActiveTab] = useState("recent");
     const [loading, setLoading] = useState(false);
@@ -23,10 +23,16 @@ const NotificationView = ({ email }) => {
     const quoteOfTheDay = getQuoteOfTheDay();
 
     useEffect(() => {
-        if (!devoteeEmail) return;
+        let fetchUrl;
+        if (userRole === 'user') {
+            fetchUrl = `${process.env.REACT_APP_API_BASE}/api/notifications/view?devotee_email=ALL`;
+        } else {
+            if (!devoteeEmail) return;
+            fetchUrl = `${process.env.REACT_APP_API_BASE}/api/notifications/view?devotee_email=${encodeURIComponent(devoteeEmail)}`;
+        }
         setLoading(true);
         setError("");
-        fetch(`${process.env.REACT_APP_API_BASE}/api/notifications/view?devotee_email=${encodeURIComponent(devoteeEmail)}`, {
+        fetch(fetchUrl, {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         })
             .then(res => {
@@ -34,12 +40,11 @@ const NotificationView = ({ email }) => {
                 return res.json();
             })
             .then(data => {
-                // Use status from backend: 'read' or 'unread'
                 setNotifications(data.map(n => ({ ...n, read: n.status === 'read' })));
             })
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
-    }, [devoteeEmail]);
+    }, [devoteeEmail, userRole]);
 
     const toggleRead = async (id) => {
         const note = notifications.find(n => n.id === id);

@@ -8,6 +8,7 @@ import SadhanaEntryForm from "./SadhanaEntryForm"; // new
 import SadhanaViewDownload from "./DownloadViewSadhanaCard"; // new
 import UploadSadhanaCard from "./UploadSadhanaCard";
 import './DevoteeApp.css';
+import './MobileDrawer.css';
 import CounsellorEveryDaySadhanaReports from "./CounsellorEveryDaySadhanaReports";
 import MyProfile from "./MyProfile";
 import axios from "axios";
@@ -36,6 +37,9 @@ export default function DevoteeDashboard() {
     const [role, setRole] = useState("user");
     const [displayName, setDisplayName] = useState("");
     const [devoteeId, setDevoteeId] = useState("");
+
+    // State for mobile drawer
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     const handleDropdownSelect = (nextView, dropdownId) => {
         setView(nextView);
@@ -90,36 +94,18 @@ export default function DevoteeDashboard() {
 
     return (
         <div className="container-fluid px-0">
-            {/* Krishna Invocation */}
-            <div
-                className="invocation-header p-3 mb-4 text-white rounded shadow"
-                style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/image/header-bg.jpg)` }}
-            >
-                <div className="invocation-content container-fluid d-flex align-items-center">
-                    <div style={{ width: 90 }} className="d-flex justify-content-start align-items-center">
-                        <img src={process.env.PUBLIC_URL + "/image/iskconlogo.jpg"} alt="ISKCON Logo" width="72" height="72" className="header-logo border border-primary" style={{ objectFit: 'cover' }} />
-                    </div>
-                    <div className="flex-grow-1 text-center">
-                        <h2 className="mb-1">Śrī Guru Śrī Gaurāṅga Jayataha</h2>
-                        <h4 className="mb-0">Welcome to the Devotee Dashboard</h4>
-                    </div>
-                    <div style={{ width: 90 }} className="d-flex justify-content-end align-items-center">
-                        <img src={process.env.PUBLIC_URL + "/image/logo.png"} alt="ISKCON Logo" width="72" height="72" className="header-logo border border-primary" style={{ objectFit: 'cover' }} />
-                    </div>
-                </div>
-            </div>
-           {/* Responsive Navbar */}
-            <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4 rounded dashboard-navbar">
-                <div className="container-fluid">
-                    {/* Logo or Brand */}
-                    <a className="navbar-brand fw-bold d-flex align-items-center" href="#">
-                        <span className="d-none d-sm-inline"></span>
-                    </a>
-                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                        <span className="navbar-toggler-icon"></span>
-                    </button>
-                    <div className="collapse navbar-collapse" id="navbarNavDropdown">
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0 dashboard-nav-main">
+            {/* Responsive Navbar with Side Drawer for Mobile */}
+            <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4 rounded dashboard-navbar position-relative">
+                <div className="container-fluid main-navbar-fluid">
+                    {/* Desktop: logo/app name and nav links in one row; Mobile: logo/app name left, hamburger right */}
+                    <div className="d-none d-lg-flex w-100 flex-row align-items-center justify-content-between mb-0 mb-lg-0" style={{minHeight:'56px'}}>
+                        <div className="navbar-logo-name d-flex align-items-center">
+                            <img src={process.env.PUBLIC_URL + "/image/logo-nav.png"} alt="ISKCON Logo" width="65" height="65" className="main-navbar-logo me-2" />
+                            <span className="fw-bold app-title-text" style={{fontSize:'1.13rem',color:'#0d6efd'}}>Vaidhi Sādhana Bhakti</span>
+                        </div>
+                        <div className="flex-grow-1 d-flex align-items-center">
+                            <div className="collapse navbar-collapse show" id="navbarNavDropdown" style={{flex:1}}>
+                                <ul className="navbar-nav me-auto mb-2 mb-lg-0 dashboard-nav-main">
                             {role === "admin" && (
                                 <>
                                     <li className="nav-item">
@@ -188,8 +174,6 @@ export default function DevoteeDashboard() {
                                         <ul className="dropdown-menu" aria-labelledby="sadhanaDropdown">
                                             <li><button className={`dropdown-item${view === "entry" ? " active" : ""}`} onClick={() => handleDropdownSelect("entry", "sadhanaDropdown")}>New Entry</button></li>
                                             <li><button className={`dropdown-item${view === "download" ? " active" : ""}`} onClick={() => handleDropdownSelect("download", "sadhanaDropdown")}>View Entries</button></li>
-                                            {/* <li><button className={`dropdown-item${view === "uploadSadhanaCard" ? " active" : ""}`} onClick={() => handleDropdownSelect("uploadSadhanaCard", "sadhanaDropdown")}>Upload Sadhana Card</button></li> */}
-                                            {/* <li><button className={`dropdown-item${view === "ViewUploadedSadhanaCard" ? " active" : ""}`} onClick={() => handleDropdownSelect("ViewUploadedSadhanaCard", "sadhanaDropdown")}>View Uploaded Sadhana Card</button></li> */}
                                             <li><button className={`dropdown-item${view === "sadhanaTemplate" ? " active" : ""}`} onClick={() => handleDropdownSelect("sadhanaTemplate", "sadhanaDropdown")}>Sadhana Template</button></li>
                                             <li><button className={`dropdown-item${view === "sadhanaReports" ? " active" : ""}`} onClick={() => handleDropdownSelect("sadhanaReports", "sadhanaDropdown")}>Sadhana Chart Reports</button></li>
                                         </ul>
@@ -216,7 +200,7 @@ export default function DevoteeDashboard() {
                                 </>
                             )}
                         </ul>
-                        <ul className="navbar-nav ms-auto dashboard-nav-right">
+                            <ul className="navbar-nav ms-auto dashboard-nav-right">
                             <li className="nav-item">
                                 <button className={`nav-link btn btn-link${view === "notificationView" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationView")}>View Messages</button>
                             </li>
@@ -233,6 +217,87 @@ export default function DevoteeDashboard() {
                             </li>
                         </ul>
                     </div>
+                        </div>
+                    </div>
+                    {/* Mobile: logo/app name left, hamburger right */}
+                    <div className="d-flex d-lg-none w-100 flex-row align-items-center justify-content-between mb-0 mb-lg-0" style={{minHeight:'48px'}}>
+                        <div className="navbar-logo-name d-flex align-items-center">
+                            <img src={process.env.PUBLIC_URL + "/image/logo-nav.png"} alt="ISKCON Logo" width="108" height="108" className="main-navbar-logo me-2" />
+                            <span className="fw-bold app-title-text" style={{fontSize:'1.13rem',color:'#0d6efd'}}>Vaidhi Sādhana Bhakti</span>
+                        </div>
+                        <div style={{display:'flex',alignItems:'center'}}>
+                            <button className="btn btn-outline-secondary" style={{zIndex:1101}} onClick={() => setDrawerOpen(true)}>
+                                <span className="navbar-toggler-icon"></span>
+                            </button>
+                        </div>
+                    </div>
+                    {/* Side Drawer for Mobile */}
+                    <div className={`side-drawer d-lg-none${drawerOpen ? " open" : ""}`} style={{zIndex:1102}}>
+                        <div className="drawer-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                            <img src={process.env.PUBLIC_URL + "/image/VSB-logo.png"} alt="VSB Logo" width="170" height="108" />
+                            <button className="drawer-close-btn" onClick={() => setDrawerOpen(false)} aria-label="Close menu">
+                                <i className="bi bi-x-circle-fill"></i>
+                            </button>
+                        </div>
+                        <div className="drawer-body p-0">
+                            <nav className="drawer-menu">
+                                <ul className="drawer-list">
+                                    {/* My Profile and Sadhana section always at top, vertical */}
+                                    <li className="drawer-section">
+                                        <button className={`drawer-link${view === "profile" ? " active" : ""}`} onClick={() => { setView("profile"); setDrawerOpen(false); }}>
+                                            <span className="drawer-icon"><i className="bi bi-person-circle"></i></span> My Profile
+                                        </button>
+                                    </li>
+                                    <li className="drawer-section">
+                                        <div className="drawer-label"><span className="drawer-icon"><i className="bi bi-flower1"></i></span> Sadhana</div>
+                                        <ul className="drawer-sublist">
+                                            <li><button className={`drawer-sublink${view === "entry" ? " active" : ""}`} onClick={() => { handleDropdownSelect("entry", "sadhanaDropdown"); setDrawerOpen(false); }}><i className="bi bi-plus-square"></i> New Entry</button></li>
+                                            <li><button className={`drawer-sublink${view === "download" ? " active" : ""}`} onClick={() => { handleDropdownSelect("download", "sadhanaDropdown"); setDrawerOpen(false); }}><i className="bi bi-list-check"></i> View Entries</button></li>
+                                            <li><button className={`drawer-sublink${view === "sadhanaTemplate" ? " active" : ""}`} onClick={() => { handleDropdownSelect("sadhanaTemplate", "sadhanaDropdown"); setDrawerOpen(false); }}><i className="bi bi-file-earmark-text"></i> Sadhana Template</button></li>
+                                            <li><button className={`drawer-sublink${view === "sadhanaReports" ? " active" : ""}`} onClick={() => { handleDropdownSelect("sadhanaReports", "sadhanaDropdown"); setDrawerOpen(false); }}><i className="bi bi-bar-chart"></i> Sadhana Chart Reports</button></li>
+                                        </ul>
+                                    </li>
+                                    {/* Admin/Counsellor extra sections */}
+                                    {role === "admin" && (
+                                        <>
+                                            <li className="drawer-section"><button className={`drawer-link${view === "view" ? " active" : ""}`} onClick={() => { setView("view"); setDrawerOpen(false); }}><i className="bi bi-people"></i> View Devotees</button></li>
+                                            <li className="drawer-section"><button className={`drawer-link${view === "add" ? " active" : ""}`} onClick={() => { setView("add"); setDrawerOpen(false); }}><i className="bi bi-person-plus"></i> Add / Update</button></li>
+                                            <li className="drawer-section"><button className={`drawer-link${view === "bulk" ? " active" : ""}`} onClick={() => { setView("bulk"); setDrawerOpen(false); }}><i className="bi bi-upload"></i> Bulk Upload</button></li>
+                                            <li className="drawer-section"><button className={`drawer-link${view === "register" ? " active" : ""}`} onClick={() => { setView("register"); setDrawerOpen(false); }}><i className="bi bi-person-badge"></i> Assign Role</button></li>
+                                            <li className="drawer-section">
+                                                <div className="drawer-label"><i className="bi bi-clipboard-data"></i> Report</div>
+                                                <ul className="drawer-sublist">
+                                                    <li><button className={`drawer-sublink${view === "adminUploadedReports" ? " active" : ""}`} onClick={() => { handleDropdownSelect("adminUploadedReports", "adminReportDropdown"); setDrawerOpen(false); }}><i className="bi bi-file-earmark-bar-graph"></i> Devotee Reports</button></li>
+                                                    <li><button className={`drawer-sublink${view === "adminDownloadDevotees" ? " active" : ""}`} onClick={() => { handleDropdownSelect("adminDownloadDevotees", "adminReportDropdown"); setDrawerOpen(false); }}><i className="bi bi-download"></i> Download Devotees XLSX</button></li>
+                                                    <li><button className={`drawer-sublink${view === "sadhanaReports" ? " active" : ""}`} onClick={() => { handleDropdownSelect("sadhanaReports", "adminReportDropdown"); setDrawerOpen(false); }}><i className="bi bi-bar-chart"></i> Sadhana Reports</button></li>
+                                                </ul>
+                                            </li>
+                                        </>
+                                    )}
+                                    {role === "counsellor" && (
+                                        <>
+                                            <li className="drawer-section"><button className={`drawer-link${view === "view" ? " active" : ""}`} onClick={() => { setView("view"); setDrawerOpen(false); }}><i className="bi bi-people"></i> Assigned Devotees</button></li>
+                                            <li className="drawer-section">
+                                                <div className="drawer-label"><i className="bi bi-clipboard-data"></i> Devotees Sadhana Reports</div>
+                                                <ul className="drawer-sublist">
+                                                    <li><button className={`drawer-sublink${view === "reports" ? " active" : ""}`} onClick={() => { handleDropdownSelect("reports", "devoteeReportsDropdown"); setDrawerOpen(false); }}><i className="bi bi-calendar-check"></i> View Everyday Entered</button></li>
+                                                    <li><button className={`drawer-sublink${view === "uploadedReports" ? " active" : ""}`} onClick={() => { handleDropdownSelect("uploadedReports", "devoteeReportsDropdown"); setDrawerOpen(false); }}><i className="bi bi-upload"></i> View Uploaded</button></li>
+                                                </ul>
+                                            </li>
+                                            <li className="drawer-section"><button className={`drawer-link${view === "sadhanaReports" ? " active" : ""}`} onClick={() => { setView("sadhanaReports"); setDrawerOpen(false); }}><i className="bi bi-bar-chart"></i> Sadhana Chart Reports</button></li>
+                                        </>
+                                    )}
+                                    {/* General actions */}
+                                    <li className="drawer-section mt-3"><button className={`drawer-link${view === "notificationView" ? " active" : ""}`} onClick={() => { setView("notificationView"); setDrawerOpen(false); }}><i className="bi bi-envelope"></i> View Messages</button></li>
+                                    <li className="drawer-section"><button className={`drawer-link${view === "notificationSend" ? " active" : ""}`} onClick={() => { setView("notificationSend"); setDrawerOpen(false); }}><i className="bi bi-chat-dots"></i> Contact Us</button></li>
+                                    <li className="drawer-section"><span className="drawer-link fw-bold text-primary"><i className="bi bi-person-badge"></i> {displayName}</span></li>
+                                    <li className="drawer-section"><button onClick={() => { handleLogout(); setDrawerOpen(false); }} className="drawer-link text-danger"><i className="bi bi-box-arrow-right"></i> Logout</button></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                    {/* Overlay for drawer */}
+                    {drawerOpen && <div className="drawer-overlay d-lg-none" style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:'rgba(0,0,0,0.3)',zIndex:1100}} onClick={() => setDrawerOpen(false)}></div>}
                 </div>
             </nav>
 
@@ -252,8 +317,15 @@ export default function DevoteeDashboard() {
             {view === "uploadedReports" && (role === "counsellor") && <CounsellorUploadedSadhanaReports userId={localStorage.getItem("userId")} />}
             {view === "adminUploadedReports" && (role === "admin") && <AdminUploadedSadhanaReports />}
             {view === "adminDownloadDevotees" && (role === "admin") && <AdminDownloadDevotees />}
-            {view === "notificationView" && <NotificationView email={localStorage.getItem("userId")} />}
-            {view === "notificationSend" && <NotificationSend senderName={displayName} userRole={role} devoteeId={devoteeId} email={localStorage.getItem("userId")}/>}
+            {view === "notificationView" && <NotificationView email={localStorage.getItem("userId")} userRole={role}/>}
+            {view === "notificationSend" && (
+                <NotificationSend
+                    senderName={displayName || devoteeId || localStorage.getItem("userId") || "Admin"}
+                    userRole={role}
+                    devoteeId={devoteeId}
+                    email={localStorage.getItem("userId")}
+                />
+            )}
         </div>
     );
 }

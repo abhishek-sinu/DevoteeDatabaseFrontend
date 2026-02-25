@@ -528,7 +528,7 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                     </select>
                                 </div>
                                     <button
-                                        className="btn btn-success align-middle px-3 d-flex align-items-center gap-2"
+                                        className="btn btn-xls align-middle px-3 d-flex align-items-center gap-2"
                                         type="button"
                                         style={{ fontWeight: 500 }}
                                         onClick={handleDownloadXLS}
@@ -537,7 +537,7 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                         XLS
                                     </button>
                                     <button
-                                        className="btn btn-warning align-middle px-3 d-flex align-items-center gap-2"
+                                        className="btn btn-pdf align-middle px-3 d-flex align-items-center gap-2"
                                         type="button"
                                         style={{ fontWeight: 500 }}
                                         onClick={handleDownloadPDF}

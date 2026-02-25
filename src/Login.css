@@ -1,35 +1,210 @@
-/* src/Login.css */
-
-.login-page {
-        min-height: 100vh;
-        width: 100vw;
-        display: flex;
-        flex-direction: row;
+/* Signup link styles */
+.signup-link-text {
+    font-size: 1.04rem;
+    color: #a05a2c;
+}
+.signup-link {
+    color: #7a9c5c;
+    font-weight: 700;
+    text-decoration: underline;
+    margin-left: 2px;
+    transition: color 0.15s;
+}
+.signup-link:hover {
+    color: #3e5c2c;
+}
+/* Help Toast */
+.help-toast {
+    position: fixed;
+    bottom: 100px;
+    right: 40px;
+    background: #a05a2c;
+    color: #fff;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    box-shadow: 0 2px 12px rgba(160,90,44,0.13);
+    z-index: 2002;
+    animation: fadeIn 0.2s;
 }
 
-.login-bg-half {
-        flex: 1;
-        background-image: url("../image/Radha madhav.jpeg");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        min-height: 100vh;
+/* Info Card above login form */
+.login-info-card {
+    width: 100%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.65);
+    box-shadow: 0 2px 16px rgba(160,90,44,0.10);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 1.1rem 1.5rem 0.9rem 1.5rem;
+    text-align: center;
+    font-size: 1.08rem;
+    color: #a05a2c;
+    font-weight: 500;
+    margin-bottom: 1.1rem;
+}
+.info-trial {
+    color: #7a9c5c;
+    font-weight: 700;
+}
+.info-help-link {
+    cursor: default;
+}
+.help-link {
+    color: #7a9c5c;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 700;
+    transition: color 0.15s;
+}
+.help-link:hover {
+    color: #3e5c2c;
+}
+/* Floating Help Button */
+.help-btn {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: #a05a2c;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 28px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    box-shadow: 0 2px 12px rgba(160,90,44,0.13);
+    cursor: pointer;
+    z-index: 1001;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+.help-btn:hover {
+    background: #6b3f1d;
+    box-shadow: 0 4px 18px rgba(160,90,44,0.18);
+}
+
+/* Help Modal Styles */
+.help-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.help-modal {
+    background: #fff8e1;
+    border-radius: 18px;
+    box-shadow: 0 4px 32px rgba(160,90,44,0.18);
+    padding: 2.2rem 2.2rem 1.5rem 2.2rem;
+    max-width: 420px;
+    width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    color: #6b3f1d;
+    font-size: 1.08rem;
+    animation: fadeIn 0.2s;
+}
+.help-modal h3 {
+    color: #a05a2c;
+    margin-bottom: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+}
+.help-list {
+    padding-left: 1.2em;
+    margin-bottom: 1.2em;
+}
+.help-list li {
+    margin-bottom: 0.7em;
+    line-height: 1.5;
+}
+.help-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #a05a2c;
+    cursor: pointer;
+    font-weight: 700;
+    z-index: 10;
+}
+.help-note {
+    margin-top: 1.2em;
+    color: #7a9c5c;
+    font-weight: 600;
+    text-align: center;
+    font-size: 1.08rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* src/Login.css */
+
+
+.login-page {
+    min-height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(120deg, #f7ecd7 0%, #fff8e1 100%);
+    position: relative;
+}
+
+.login-logo-container {
+    position: absolute;
+    top: 32px;
+    left: 32px;
+    z-index: 10;
+}
+.login-logo {
+    height: 90px;
+    max-width: 220px;
+    width: auto;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(160,90,44,0.13);
+    padding: 0;
+    display: block;
+}
+
+.login-form-bg {
+    flex: 1;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+    display: flex;
 }
 
 .login-form-container {
-    background-color: rgba(0, 0, 0, 0.6);
+    background: #fff;
     width: 100%;
     max-width: 400px;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(160,90,44,0.10);
 }
 
 @media (max-width: 767px) {
-    .login-page {
-        flex-direction: column;
+    .login-logo-container {
+        top: 16px;
+        left: 16px;
     }
-    .login-bg-half {
-        min-height: 180px;
-        height: 180px;
-        width: 100vw;
+    .login-logo {
+        height: 90px;
+        max-width: 98vw;
+    }
+    .login-form-container {
+        max-width: 98vw;
+        padding: 1.5rem 0.5rem;
     }
 }
 

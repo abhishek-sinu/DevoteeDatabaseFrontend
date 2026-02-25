@@ -1,5 +1,5 @@
 // src/Login.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -12,6 +12,15 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+    const [showHelp, setShowHelp] = useState(false);
+    const [showHelpToast, setShowHelpToast] = useState(false);
+
+    // Show help toast only once on initial load/refresh
+    useEffect(() => {
+        setShowHelpToast(true);
+        const timer = setTimeout(() => setShowHelpToast(false), 3500);
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -63,18 +72,46 @@ export default function Login() {
                     }}
                     dangerouslySetInnerHTML={{ __html: toast.message }}
                 />
-                <div className="login-bg-half d-none d-md-block" />
-                {/* Right: Login Form with background image */}
-                <div 
-                    className="d-flex flex-column justify-content-center align-items-center" 
-                    style={{ 
-                        flex: 1, 
-                        background: `url('${process.env.PUBLIC_URL}/image/header-bg.jpg') center center/cover no-repeat, rgba(0,0,0,0.55)`,
-                        position: 'relative' 
-                    }}
-                >
-                    <div className="login-form-container p-4 shadow-lg rounded w-100" style={{ maxWidth: 400, background: 'rgba(0,0,0,0.6)' }}>
-                        <h2 className="text-center mb-4 text-light">Hare Kṛṣṇa, Devotee</h2>
+                {/* Logo at top left */}
+                <div className="login-logo-container">
+                    <img src={process.env.PUBLIC_URL + '/image/VSB-logo.png'} alt="Vaidhisadhanabhakti Logo with Text" className="login-logo" />
+                </div>
+                {/* Help Button */}
+                <button className="help-btn" onClick={() => setShowHelp(true)}>
+                    <span role="img" aria-label="help">❓</span> Help
+                </button>
+
+                {/* Help Toast */}
+                {showHelpToast && (
+                    <div className="help-toast">If you are a new user? Please checkout the information.</div>
+                )}
+
+                {/* Help Modal */}
+                {showHelp && (
+                    <div className="help-modal-overlay" onClick={() => setShowHelp(false)}>
+                        <div className="help-modal" onClick={e => e.stopPropagation()}>
+                            <button className="help-modal-close" onClick={() => setShowHelp(false)}>&times;</button>
+                            <h3>How to Use Vaidhī Sādhana Bhakti App</h3>
+                            <ul className="help-list">
+                                <li><b>Sign Up:</b> Create your account to get started. Enjoy a <b>1-month free trial</b>!</li>
+                                <li><b>Login:</b> Enter your credentials to access your dashboard.</li>
+                                <li><b>Set Your Template:</b> Personalize your sadhana tracking template as per your daily practices.</li>
+                                <li><b>Fill Sadhana Card:</b> Start recording your daily sādhana activities easily.</li>
+                                <li><b>Download Reports:</b> Instantly download your sadhana data as <b>PDF</b> or <b>XLS</b> for your records.</li>
+                                <li><b>Performance Chart:</b> Visualize your progress with insightful charts and analytics.</li>
+                                <li><b>Contact Us:</b> Reach out with your queries or feedback via the app, or email <a href="mailto:abhi.sinu.1@gmail.com">abhi.sinu.1@gmail.com</a> or call Whatsapp <a href="tel:7032241089">7032241089</a>.</li>
+                                <li><b>Upgrade to Premium:</b> After your trial, continue for just <b>₹10/month</b>—this helps us maintain the website, domain, and devotee database.</li>
+                            </ul>
+                            <div className="help-note">Join us and make your sādhana journey organized, inspiring, and rewarding!</div>
+                        </div>
+                    </div>
+                )}
+                <div className="d-flex flex-column justify-content-center align-items-center login-form-bg">
+                    <div className="login-info-card mb-3">
+                        <span className="info-help-link">New here? <b>Check <span className="help-link" onClick={() => setShowHelp(true)}>Help</span></b> before signing up.<br/>Create your account to get started. <span className="info-trial">Enjoy a 1-month free trial!</span></span>
+                    </div>
+                    <div className="login-form-container p-4 shadow-lg rounded w-100">
+                        <h2 className="text-center mb-4" style={{ color: '#a05a2c' }}>Hare Kṛṣṇa, Devotee</h2>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group mb-3">
                                 <input
@@ -98,7 +135,8 @@ export default function Login() {
                             </div>
                             <button
                                 type="submit"
-                                className="btn btn-primary w-100"
+                                className="btn w-100"
+                                style={{ background: '#a05a2c', color: '#fff', fontWeight: 600 }}
                                 disabled={loading}
                             >
                                 {loading ? (
@@ -115,6 +153,9 @@ export default function Login() {
                                 )}
                             </button>
                         </form>
+                        <div className="text-center mt-3">
+                            <span className="signup-link-text">Don't have an account? <a href="/signup" className="signup-link">Sign up</a></span>
+                        </div>
                     </div>
                 </div>
             </div>
