@@ -21,6 +21,7 @@ import NotificationView from "./NotificationView";
 import NotificationSend from "./NotificationSend";
 import SadhanaReports from "./SadhanaReports";
 import SadhanaTemplate from "./SadhanaTemplate";
+import UpgradePremium from "./UpgradePremium";
 
 
 
@@ -37,6 +38,8 @@ export default function DevoteeDashboard() {
     const [role, setRole] = useState("user");
     const [displayName, setDisplayName] = useState("");
     const [devoteeId, setDevoteeId] = useState("");
+    // State for premium expiry
+    const [premiumExpiry, setPremiumExpiry] = useState(null);
 
     // State for mobile drawer
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -74,9 +77,8 @@ export default function DevoteeDashboard() {
                         params: { userId }
                     });
                     if (res.data[0]) {
-                        console.log("Fetched devoteeId:", res.data[0].id);
                         setDevoteeId(res.data[0].id || "");
-                            console.log("Fetched devoteeId:", res.data[0].devotee_id);
+                        localStorage.setItem("phone", res.data[0].mobile_no || "");
                         if(res.data[0].initiated_name!=="") {
                             setDisplayName(res.data[0].initiated_name);
                         }else {
@@ -89,6 +91,19 @@ export default function DevoteeDashboard() {
                 }
             };
             fetchDevotee();
+            // Fetch premium expiry
+            const fetchPremiumExpiry = async () => {
+                try {
+                    const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/users/premium-expiry`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                        params: { userId }
+                    });
+                    setPremiumExpiry(res.data.expiryDate || null);
+                } catch {
+                    setPremiumExpiry(null);
+                }
+            };
+            fetchPremiumExpiry();
         }
     }, []);
 
@@ -207,9 +222,13 @@ export default function DevoteeDashboard() {
                             <li className="nav-item">
                                 <button className={`nav-link btn btn-link${view === "notificationSend" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationSend")}>Contact Us</button>
                             </li>
-                            <li className="nav-item">
-                                <span className="nav-link fw-bold text-primary">{displayName}</span>
-                            </li>
+                            {/* Display name moved above navbar for desktop */}
+                            {/* Unlock Premium button if not premium, placed above Logout */}
+                            {(!premiumExpiry || new Date(premiumExpiry) < new Date()) && (
+                                <li className="nav-item">
+                                    <button className="nav-link btn btn-warning fw-bold ms-2" style={{color:'#efa208'}} onClick={() => setView('upgradePremium')}>Unlock Premium</button>
+                                </li>
+                            )}
                             <li className="nav-item">
                                 <button onClick={handleLogout} className="nav-link text-danger">
                                     <i className="bi bi-box-arrow-right"></i> Logout
@@ -300,7 +319,19 @@ export default function DevoteeDashboard() {
                     {drawerOpen && <div className="drawer-overlay d-lg-none" style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:'rgba(0,0,0,0.3)',zIndex:1100}} onClick={() => setDrawerOpen(false)}></div>}
                 </div>
             </nav>
-
+            {/* Display name above navbar, right-aligned */}
+            <div className="w-100 d-none d-lg-flex justify-content-end align-items-center" style={{minHeight:'32px', paddingRight: '32px'}}>
+                <span className="fw-bold app-title-text" style={{fontSize:'1.1rem', color:'#3d5a1a', background:'#e6f4ea', borderRadius:'6px', padding:'2px 16px', marginTop:'8px'}}>{displayName}</span>
+            </div>
+            {/* Render UpgradePremium modal if selected */}
+            {view === 'upgradePremium' && (
+                <UpgradePremium
+                    name={displayName}
+                    email={localStorage.getItem("userId")}
+                    phone={localStorage.getItem("phone")} 
+                    onClose={() => setView('notificationView')}
+                />
+            )}
             {/* Content Section */}
             {view === "add" && role === "admin" && <DevoteeApp />}
             {view === "profile" && (role === "user" || role === "counsellor") && <MyProfile />}
