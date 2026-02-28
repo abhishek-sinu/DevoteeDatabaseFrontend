@@ -108,9 +108,11 @@ export default function UpgradePremium({ name, email, phone, onClose }) {
 	const verifyPayment = async (orderIdToVerify, plan) => {
 		try {
 			let res = await axios.post("http://localhost:5000/api/verify", {
-				orderId: orderIdToVerify
+				orderId: orderIdToVerify,
+				duration: plan?.id // send plan id as duration (e.g., 'monthly', '6month', 'yearly')
 			})
-			if(res && res.data && res.data.status === 'success'){
+			console.log('verifyPayment response:', res.data); // DEBUG
+			if(res && res.data && (res.data.status === 'success' || res.data.order_status === 'PAID' || res.data.order_status === 'SUCCESS')){
 				setConfirmation({
 					planTitle: plan?.title || '',
 					planDuration: plan?.duration || '',

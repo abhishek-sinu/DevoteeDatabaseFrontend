@@ -38,8 +38,9 @@ export default function DevoteeDashboard() {
     const [role, setRole] = useState("user");
     const [displayName, setDisplayName] = useState("");
     const [devoteeId, setDevoteeId] = useState("");
-    // State for premium expiry
+    // State for premium expiry and user type
     const [premiumExpiry, setPremiumExpiry] = useState(null);
+    const [userType, setUserType] = useState(null);
 
     // State for mobile drawer
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -62,12 +63,22 @@ export default function DevoteeDashboard() {
             try {
                 const decoded = jwtDecode(token);
                 setRole(decoded.role || "user");
-                // Always show notificationView as first page for all roles
                 setView("notificationView");
             } catch (error) {
                 console.error("Invalid token:", error);
             }
         }
+        // Prefer sessionStorage for premium info
+        const sessionUserType = sessionStorage.getItem("user_type");
+        let sessionPremiumExpiry = sessionStorage.getItem("premium_expiry_date");
+        // Treat 'null' or invalid as null
+        if (sessionUserType && sessionUserType !== 'null') setUserType(sessionUserType);
+        if (sessionPremiumExpiry && sessionPremiumExpiry !== 'null' && sessionPremiumExpiry !== '') {
+            setPremiumExpiry(sessionPremiumExpiry);
+        } else {
+            setPremiumExpiry(null);
+        }
+
         // Fetch devotee details
         if (userId) {
             const fetchDevotee = async () => {
@@ -78,6 +89,7 @@ export default function DevoteeDashboard() {
                     });
                     if (res.data[0]) {
                         setDevoteeId(res.data[0].id || "");
+                        sessionStorage.setItem("email", res.data[0].email || "");
                         localStorage.setItem("phone", res.data[0].mobile_no || "");
                         if(res.data[0].initiated_name!=="") {
                             setDisplayName(res.data[0].initiated_name);
@@ -91,19 +103,33 @@ export default function DevoteeDashboard() {
                 }
             };
             fetchDevotee();
-            // Fetch premium expiry
-            const fetchPremiumExpiry = async () => {
-                try {
-                    const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/users/premium-expiry`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                        params: { userId }
-                    });
-                    setPremiumExpiry(res.data.expiryDate || null);
-                } catch {
-                    setPremiumExpiry(null);
-                }
-            };
-            fetchPremiumExpiry();
+            // If sessionStorage is missing, fetch from API and sync
+            if (!sessionUserType || !sessionPremiumExpiry) {
+                const fetchPremiumInfo = async () => {
+                    try {
+                        const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/users/premium-expiry`, {
+                            headers: { Authorization: `Bearer ${token}` },
+                            params: { userId }
+                        });
+                        setPremiumExpiry(res.data.premium_expiry_date || null);
+                        setUserType(res.data.user_type || null);
+                        // Store in sessionStorage
+                        console.log("Fetched premium info from API - userType:", res.data.user_type, "expiryDate:", res.data.expiryDate);   
+                        if (res.data.user_type) {
+                            sessionStorage.setItem("user_type", res.data.user_type);
+                        }
+                        if (res.data.expiryDate) {
+                            sessionStorage.setItem("premium_expiry", res.data.expiryDate);
+                        }
+                    } catch {
+                        setPremiumExpiry(null);
+                        setUserType(null);
+                        sessionStorage.removeItem("user_type");
+                        sessionStorage.removeItem("premium_expiry");
+                    }
+                };
+                fetchPremiumInfo();
+            }
         }
     }, []);
 
@@ -223,10 +249,21 @@ export default function DevoteeDashboard() {
                                 <button className={`nav-link btn btn-link${view === "notificationSend" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationSend")}>Contact Us</button>
                             </li>
                             {/* Display name moved above navbar for desktop */}
-                            {/* Unlock Premium button if not premium, placed above Logout */}
-                            {(!premiumExpiry || new Date(premiumExpiry) < new Date()) && (
+                            {/* Premium Status Button: Trial, Premium, or Unlock Premium */}
+                            
+                            {(userType === "trial" && premiumExpiry && !isNaN(new Date(premiumExpiry)) && new Date(premiumExpiry) >= new Date()) && (
+                            <li className="nav-item">
+                                <button className="nav-link btn fw-bold ms-2" style={{background:'#fff3cd', color:'#efa208', border:'1px solid #efa208', borderRadius:'6px', cursor:'default'}} disabled>Trial</button>
+                            </li>
+                            )}
+                            {(userType === "premium" && premiumExpiry && !isNaN(new Date(premiumExpiry)) && new Date(premiumExpiry) >= new Date()) && (
                                 <li className="nav-item">
-                                    <button className="nav-link btn btn-warning fw-bold ms-2" style={{color:'#efa208'}} onClick={() => setView('upgradePremium')}>Unlock Premium</button>
+                                    <button className="nav-link btn fw-bold ms-2" style={{background:'#e6f4ea', color:'#3d5a1a', border:'1px solid #3d5a1a', borderRadius:'6px', cursor:'default'}} disabled>Premium</button>
+                                </li>
+                            )}
+                            {((!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date()) || (!userType)) && (
+                                <li className="nav-item">
+                                    <button className="nav-link btn fw-bold ms-2" style={{background:'#f8d7da', color:'#c82333', border:'1px solid #c82333', borderRadius:'6px'}} onClick={() => setView('upgradePremium')}>Unlock Premium</button>
                                 </li>
                             )}
                             <li className="nav-item">
