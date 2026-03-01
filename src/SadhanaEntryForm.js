@@ -200,36 +200,6 @@ const SadhanaEntryForm = () => {
                                 </div>
                             )}
                             
-                            {/* Chanting Before 7:00 AM - Optional (text input) */}
-                            {templateFields.chanting_before_700 && (
-                                <div className="col-md-4">
-                                    <label className="form-label">Chanting Before 7:00 AM</label>
-                                    <input
-                                        type="text"
-                                        name="chantingBefore700Time"
-                                        value={formData.chantingBefore700Time || ''}
-                                        onChange={handleChange}
-                                        className="form-control"
-                                        placeholder="Enter time or note"
-                                    />
-                                </div>
-                            )}
-                            
-                            {/* Chanting Before 7:30 AM - Optional (text input) */}
-                            {templateFields.chanting_before_730 && (
-                                <div className="col-md-4">
-                                    <label className="form-label">Chanting Before 7:30 AM</label>
-                                    <input
-                                        type="text"
-                                        name="chantingBefore730Time"
-                                        value={formData.chantingBefore730Time || ''}
-                                        onChange={handleChange}
-                                        className="form-control"
-                                        placeholder="Enter time or note"
-                                    />
-                                </div>
-                            )}
-                            
                             
                             {/* Reading Topic */}
                             {templateFields.reading_topic && (
@@ -336,6 +306,36 @@ const SadhanaEntryForm = () => {
                                             <option value="hours">Hours</option>
                                         </select>
                                     </div>
+                                </div>
+                            )}
+
+                            {/* Chanting Before 7:00 AM - Optional (text input) */}
+                            {templateFields.chanting_before_700 && (
+                                <div className="col-md-4">
+                                    <label className="form-label">Chanting Before 7:00 AM</label>
+                                    <input
+                                        type="text"
+                                        name="chantingBefore700Time"
+                                        value={formData.chantingBefore700Time || ''}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                        placeholder="Enter time or note"
+                                    />
+                                </div>
+                            )}
+                            
+                            {/* Chanting Before 7:30 AM - Optional (text input) */}
+                            {templateFields.chanting_before_730 && (
+                                <div className="col-md-4">
+                                    <label className="form-label">Chanting Before 7:30 AM</label>
+                                    <input
+                                        type="text"
+                                        name="chantingBefore730Time"
+                                        value={formData.chantingBefore730Time || ''}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                        placeholder="Enter time or note"
+                                    />
                                 </div>
                             )}
                             

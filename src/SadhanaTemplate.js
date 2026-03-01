@@ -50,19 +50,35 @@ export default function SadhanaTemplate({ devoteeId, email }) {
             const templateObj = Array.isArray(res.data) ? res.data[0] : res.data;
             if (templateObj) {
                 setTemplateFields(prev => {
-                    // Deep clone and update all fields, setting missing ones to false
                     const updated = {};
                     Object.keys(prev).forEach(field => {
                         updated[field] = { ...prev[field] };
                     });
-                    // Set all fields (core and optional) based on API response, fallback to false for missing optionals
+                    // Use explicit mapping for snake_case to camelCase
                     Object.keys(updated).forEach(field => {
-                        // Find the snake_case key for this field
-                        const camelToSnake = str => {
-                            return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-                        };
-                        const snakeKey = camelToSnake(field);
-                        // If present in API response, use its value, else:
+                        // Use the same mapping as snakeToCamel but reversed
+                        let snakeKey = field;
+                        // Map camelCase to snake_case for known fields
+                        if (field === 'chantingBefore700') snakeKey = 'chanting_before_700';
+                        else if (field === 'chantingBefore730') snakeKey = 'chanting_before_730';
+                        else if (field === 'attendedMangalArati') snakeKey = 'attended_mangal_arati';
+                        else if (field === 'attendedBhagavatamClass') snakeKey = 'attended_bhagavatam_class';
+                        else if (field === 'bookDistribution') snakeKey = 'book_distribution';
+                        else if (field === 'prasadamHonored') snakeKey = 'prasadam_honored';
+                        else if (field === 'ekadashiFollowed') snakeKey = 'ekadashi_followed';
+                        else if (field === 'japaQuality') snakeKey = 'japa_quality';
+                        else if (field === 'sleepingTime') snakeKey = 'sleeping_time';
+                        else if (field === 'serviceName') snakeKey = 'service_name';
+                        else if (field === 'serviceTime') snakeKey = 'service_time';
+                        else if (field === 'hearingTopic') snakeKey = 'hearing_topic';
+                        else if (field === 'hearingTime') snakeKey = 'hearing_time';
+                        else if (field === 'readingTopic') snakeKey = 'reading_topic';
+                        else if (field === 'readingTime') snakeKey = 'reading_time';
+                        else if (field === 'chantingRounds') snakeKey = 'chanting_rounds';
+                        else if (field === 'wakeUpTime') snakeKey = 'wake_up_time';
+                        else if (field === 'entryDate') snakeKey = 'entry_date';
+                        // Default fallback for unknown fields
+                        else snakeKey = field.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
                         if (templateObj.hasOwnProperty(snakeKey)) {
                             updated[field].enabled = !!templateObj[snakeKey];
                         } else if (!updated[field].locked) {
@@ -253,26 +269,36 @@ export default function SadhanaTemplate({ devoteeId, email }) {
                                     Optional Fields (Customize)
                                 </h5>
                                 <div className="row g-3">
-                                    {optionalFields.map(([fieldName, fieldData]) => (
-                                        <div key={fieldName} className="col-md-6 col-lg-4">
-                                            <div className={`form-check p-3 border rounded shadow-sm ${fieldData.enabled ? 'bg-success bg-opacity-10 border-success' : 'bg-white'}`}>
-                                                <input 
-                                                    className="form-check-input" 
-                                                    type="checkbox" 
-                                                    id={fieldName}
-                                                    checked={fieldData.enabled}
-                                                    onChange={() => handleToggle(fieldName)}
-                                                />
-                                                <label className="form-check-label ms-2" htmlFor={fieldName} style={{ cursor: 'pointer' }}>
-                                                    <strong>{fieldData.label}</strong>
-                                                    <br />
-                                                    <small className="text-muted">
-                                                        {fieldData.enabled ? 'Will be tracked' : 'Click to enable'}
-                                                    </small>
-                                                </label>
+                                    {optionalFields.map(([fieldName, fieldData]) => {
+                                        // Special handling for chanting_before_700 and chanting_before_730
+                                        let checked = fieldData.enabled;
+                                        if (fieldName === 'chantingBefore700' && typeof fieldData.enabled === 'boolean') {
+                                            checked = fieldData.enabled;
+                                        }
+                                        if (fieldName === 'chantingBefore730' && typeof fieldData.enabled === 'boolean') {
+                                            checked = fieldData.enabled;
+                                        }
+                                        return (
+                                            <div key={fieldName} className="col-md-6 col-lg-4">
+                                                <div className={`form-check p-3 border rounded shadow-sm ${checked ? 'bg-success bg-opacity-10 border-success' : 'bg-white'}`}> 
+                                                    <input 
+                                                        className="form-check-input" 
+                                                        type="checkbox" 
+                                                        id={fieldName}
+                                                        checked={checked}
+                                                        onChange={() => handleToggle(fieldName)}
+                                                    />
+                                                    <label className="form-check-label ms-2" htmlFor={fieldName} style={{ cursor: 'pointer' }}>
+                                                        <strong>{fieldData.label}</strong>
+                                                        <br />
+                                                        <small className="text-muted">
+                                                            {checked ? 'Will be tracked' : 'Click to enable'}
+                                                        </small>
+                                                    </label>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
 

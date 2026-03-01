@@ -162,7 +162,7 @@ export default function MyProfile() {
                         {profile.photo && (
                             <div className="d-flex justify-content-center mb-4">
                                 <img
-                                    src={API_BASE + profile.photo}
+                                    src={/^https?:\/\//.test(profile.photo) ? profile.photo : API_BASE + profile.photo}
                                     alt="Profile"
                                     className="rounded-circle border"
                                     style={{ width: "120px", height: "120px", objectFit: "cover" }}
@@ -225,7 +225,7 @@ export default function MyProfile() {
                                             <label className="form-label">Profile Photo</label>
                                             <input type="file" className="form-control" name="photo" accept="image/*" onChange={handleEditChange} />
                                             {editData.photo && !editPhoto && (
-                                                <img src={API_BASE + editData.photo} alt="Current" style={{ width: 60, height: 60, borderRadius: '50%', marginTop: 8 }} />
+                                                <img src={/^https?:\/\//.test(editData.photo) ? editData.photo : API_BASE + editData.photo} alt="Current" style={{ width: 60, height: 60, borderRadius: '50%', marginTop: 8 }} />
                                             )}
                                             {editPhoto && (
                                                 <img src={URL.createObjectURL(editPhoto)} alt="Preview" style={{ width: 60, height: 60, borderRadius: '50%', marginTop: 8 }} />

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-d
 import Login from "./Login";
 import Signup from "./Signup";
 import DevoteeDashboard from "./DevoteeDashboard";
+import HelpGuide from "./HelpGuide";
 import PublicDevoteeEntry from "./PublicDevoteeEntry";
 
 function PrivateRoute({ children }) {
@@ -26,6 +27,7 @@ function App() {
                         </PrivateRoute>
                     }
                 />
+                <Route path="/help" element={<HelpGuide />} />
                 <Route path="/" element={<Navigate to="/login" />} />
             </Routes>
         </Router>

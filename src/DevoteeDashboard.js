@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import DevoteeApp from "./DevoteeApp";
+import HelpGuide from "./HelpGuide";
 import BulkUploadDevotees from "./BulkUploadDevotees";
 import ViewDevoteesTable from "./ViewDevoteesTable";
 import Register from "./createUser";
@@ -33,8 +35,9 @@ const handleLogout = () => {
 
 
 export default function DevoteeDashboard() {
-    // Default view is notificationView for all roles
-    const [view, setView] = useState("notificationView");
+    const navigate = useNavigate();
+    // Default view is helpGuide for all roles
+    const [view, setView] = useState("helpGuide");
     const [role, setRole] = useState("user");
     const [displayName, setDisplayName] = useState("");
     const [devoteeId, setDevoteeId] = useState("");
@@ -63,7 +66,7 @@ export default function DevoteeDashboard() {
             try {
                 const decoded = jwtDecode(token);
                 setRole(decoded.role || "user");
-                setView("notificationView");
+                setView("helpGuide");
             } catch (error) {
                 console.error("Invalid token:", error);
             }
@@ -242,9 +245,9 @@ export default function DevoteeDashboard() {
                             )}
                         </ul>
                             <ul className="navbar-nav ms-auto dashboard-nav-right">
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                                 <button className={`nav-link btn btn-link${view === "notificationView" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationView")}>View Messages</button>
-                            </li>
+                            </li> */}
                             <li className="nav-item">
                                 <button className={`nav-link btn btn-link${view === "notificationSend" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationSend")}>Contact Us</button>
                             </li>
@@ -266,6 +269,16 @@ export default function DevoteeDashboard() {
                                     <button className="nav-link btn fw-bold ms-2" style={{background:'#f8d7da', color:'#c82333', border:'1px solid #c82333', borderRadius:'6px'}} onClick={() => setView('upgradePremium')}>Unlock Premium</button>
                                 </li>
                             )}
+                            <li className="nav-item d-flex align-items-center">
+                                <button
+                                    className="nav-link btn btn-link"
+                                    style={{ fontSize: 22, color: '#8d5524', background: 'none', border: 'none', marginRight: 8 }}
+                                    title="How to use the app"
+                                    onClick={() => setView('helpGuide')}
+                                >
+                                    <i className="bi bi-question-circle-fill" style={{ color: '#8d5524' }}></i>
+                                </button>
+                            </li>
                             <li className="nav-item">
                                 <button onClick={handleLogout} className="nav-link text-danger">
                                     <i className="bi bi-box-arrow-right"></i> Logout
@@ -304,6 +317,22 @@ export default function DevoteeDashboard() {
                                             <span className="drawer-icon"><i className="bi bi-person-circle"></i></span> My Profile
                                         </button>
                                     </li>
+                                    {/* Unlock Premium for mobile */}
+                                    {(userType === "trial" && premiumExpiry && !isNaN(new Date(premiumExpiry)) && new Date(premiumExpiry) >= new Date()) && (
+                                        <li className="drawer-section">
+                                            <button className="drawer-link fw-bold" style={{background:'#fff3cd', color:'#efa208', border:'1px solid #efa208', borderRadius:'6px', cursor:'default'}} disabled>Trial</button>
+                                        </li>
+                                    )}
+                                    {(userType === "premium" && premiumExpiry && !isNaN(new Date(premiumExpiry)) && new Date(premiumExpiry) >= new Date()) && (
+                                        <li className="drawer-section">
+                                            <button className="drawer-link fw-bold" style={{background:'#e6f4ea', color:'#3d5a1a', border:'1px solid #3d5a1a', borderRadius:'6px', cursor:'default'}} disabled>Premium</button>
+                                        </li>
+                                    )}
+                                    {((!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date()) || (!userType)) && (
+                                        <li className="drawer-section">
+                                            <button className="drawer-link fw-bold" style={{background:'#f8d7da', color:'#c82333', border:'1px solid #c82333', borderRadius:'6px'}} onClick={() => { setView('upgradePremium'); setDrawerOpen(false); }}>Unlock Premium</button>
+                                        </li>
+                                    )}
                                     <li className="drawer-section">
                                         <div className="drawer-label"><span className="drawer-icon"><i className="bi bi-flower1"></i></span> Sadhana</div>
                                         <ul className="drawer-sublist">
@@ -385,7 +414,7 @@ export default function DevoteeDashboard() {
             {view === "uploadedReports" && (role === "counsellor") && <CounsellorUploadedSadhanaReports userId={localStorage.getItem("userId")} />}
             {view === "adminUploadedReports" && (role === "admin") && <AdminUploadedSadhanaReports />}
             {view === "adminDownloadDevotees" && (role === "admin") && <AdminDownloadDevotees />}
-            {view === "notificationView" && <NotificationView email={localStorage.getItem("userId")} userRole={role}/>}
+            {/* {view === "notificationView" && <NotificationView email={localStorage.getItem("userId")} userRole={role}/>} */}
             {view === "notificationSend" && (
                 <NotificationSend
                     senderName={displayName || devoteeId || localStorage.getItem("userId") || "Admin"}
@@ -394,6 +423,7 @@ export default function DevoteeDashboard() {
                     email={localStorage.getItem("userId")}
                 />
             )}
+            {view === "helpGuide" && <HelpGuide setView={setView} />}
         </div>
     );
 }
