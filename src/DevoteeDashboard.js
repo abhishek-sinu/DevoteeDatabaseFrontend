@@ -2,6 +2,41 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import DevoteeApp from "./DevoteeApp";
+// Upgrade block card for expired premium/trial
+function UpgradeBlockCard({ setView }) {
+    return (
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 350 }}>
+            <div className="card shadow-lg border-0 rounded-4 p-4" style={{ maxWidth: 420, width: '100%', background: '#fff8f3' }}>
+                <div className="text-center mb-3">
+                    <span style={{ fontSize: 48, color: '#c82333' }}><i className="bi bi-emoji-frown"></i></span>
+                    <h4 className="fw-bold mt-2" style={{ color: '#c82333' }}>Access Restricted</h4>
+                </div>
+                <div className="mb-3 text-center" style={{ fontSize: 18, color: '#7a4f01' }}>
+                    Sorry, your <b>trial pack</b> or <b>premium pack</b> has expired.<br />
+                    Please upgrade to continue enjoying all features!
+                </div>
+                <div className="mb-3 text-center" style={{ fontSize: 16, color: '#444' }}>
+                    <b>Upgrade for just ₹10/month</b> — this helps us maintain the website, domain, and devotee database.
+                </div>
+                <div className="alert alert-success d-flex align-items-center justify-content-between fw-bold mb-3" style={{ fontSize: 16, background: '#e6f4ea', color: '#256029', border: '1px solid #b7e0c7' }}>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ fontSize: 18, marginRight: 8 }}>😊</span> Don't worry, you can still continue entering your sadhana!
+                    </span>
+                    <button
+                        className="btn btn-outline-success btn-sm fw-bold ms-3"
+                        style={{ borderRadius: '8px', minWidth: 'auto', fontSize: '0.98rem', whiteSpace: 'nowrap' }}
+                        onClick={() => setView && setView("entry")}
+                    >
+                        Sadhana Entry
+                    </button>
+                </div>
+                <div className="text-center mt-3 d-flex flex-column gap-2 align-items-center">
+                    <button className="btn btn-danger btn-lg px-5 fw-bold mb-2" onClick={() => setView && setView("upgradePremium")}>Upgrade to Premium</button>
+                </div>
+            </div>
+        </div>
+    );
+}
 import HelpGuide from "./HelpGuide";
 import BulkUploadDevotees from "./BulkUploadDevotees";
 import ViewDevoteesTable from "./ViewDevoteesTable";
@@ -405,9 +440,17 @@ export default function DevoteeDashboard() {
             {view === "register" && role === "admin" && <Register />}
             {view === "view" && (role === "admin" || role === "counsellor") &&  <ViewDevoteesTable userId={localStorage.getItem("userId")}/>}
             {view === "entry" && (role === "user"||role === "counsellor") && <SadhanaEntryForm userId={localStorage.getItem("userId")} />}
-            {view === "download" && (role === "user"||role === "counsellor") && <SadhanaViewDownload userRole={role} devoteeId={devoteeId} email={localStorage.getItem("userId")} />}
+                        {view === "download" && (role === "user"||role === "counsellor") && (
+                            (!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date())
+                                ? <UpgradeBlockCard setView={setView} />
+                                : <SadhanaViewDownload userRole={role} devoteeId={devoteeId} email={localStorage.getItem("userId")} />
+                        )}
             {view === "sadhanaTemplate" && (role === "user"||role === "counsellor") && <SadhanaTemplate devoteeId={devoteeId} email={localStorage.getItem("userId")} />}
-            {view === "sadhanaReports" && (role === "admin" || role === "counsellor" || role === "user") && <SadhanaReports devoteeId={devoteeId} userRole={role} />}
+                        {view === "sadhanaReports" && (role === "admin" || role === "counsellor" || role === "user") && (
+                            (role === "user" || role === "counsellor") && (!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date())
+                                ? <UpgradeBlockCard setView={setView} />
+                                : <SadhanaReports devoteeId={devoteeId} userRole={role} />
+                        )}
             {view === "reports" && role === "counsellor" && <CounsellorEveryDaySadhanaReports userId={localStorage.getItem("userId")}/>}
             {view === "uploadSadhanaCard" && (role === "user" || role === "counsellor") && <UploadSadhanaCard email={localStorage.getItem("userId")} />}
             {view === "ViewUploadedSadhanaCard" && (role === "user" || role === "counsellor") && <ViewUploadedSadhanaCard email={localStorage.getItem("userId")} />}

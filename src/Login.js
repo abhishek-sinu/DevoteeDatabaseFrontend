@@ -83,7 +83,7 @@ export default function Login() {
 
                 {/* Help Toast */}
                 {showHelpToast && (
-                    <div className="help-toast">If you are a new user? Please checkout the information.</div>
+                    <div className="help-toast">How to Use?</div>
                 )}
 
                 {/* Help Modal */}
