@@ -188,7 +188,7 @@ export default function DevoteeDashboard() {
                     <div className="d-none d-lg-flex w-100 flex-row align-items-center justify-content-between mb-0 mb-lg-0" style={{minHeight:'56px'}}>
                         <div className="navbar-logo-name d-flex align-items-center">
                             <img src={process.env.PUBLIC_URL + "/image/logo-nav.png"} alt="ISKCON Logo" width="65" height="65" className="main-navbar-logo me-2" />
-                            <span className="fw-bold app-title-text" style={{fontSize:'1.13rem',color:'#0d6efd'}}>Vaidhi Sādhana Bhakti</span>
+                            <span className="fw-bold app-title-text" style={{fontSize:'1.13rem',color:'#0d6efd'}}>Vaiḍhī Sādhana Bhakti</span>
                         </div>
                         <div className="flex-grow-1 d-flex align-items-center">
                             <div className="collapse navbar-collapse show" id="navbarNavDropdown" style={{flex:1}}>
