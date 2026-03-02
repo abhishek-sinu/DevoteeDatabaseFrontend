@@ -131,6 +131,9 @@ export default function Signup() {
                                     required
                                 />
                             </div>
+                            <div style={{ color: '#b36b00', fontSize: '14px', marginBottom: '10px', marginTop: '-5px' }}>
+                              Please check your spam folder as well if you do not see the OTP email.
+                            </div>
                             <button
                                 className="btn w-100 mb-3"
                                 style={{ background: '#7a9c5c', color: '#fff', fontWeight: 600 }}
