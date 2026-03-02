@@ -6,6 +6,24 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./Login.css"; // Custom styles
 
 export default function Login() {
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+    useEffect(() => {
+        const handler = (e) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handler);
+        return () => window.removeEventListener('beforeinstallprompt', handler);
+    }, []);
+
+    const handleDownloadApp = () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+        } else {
+            window.open('https://support.google.com/chrome/answer/9658361', '_blank'); // fallback info
+        }
+    };
 
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState("");
@@ -73,9 +91,16 @@ export default function Login() {
                     dangerouslySetInnerHTML={{ __html: toast.message }}
                 />
                 {/* Logo at top left */}
-                <div className="login-logo-container">
+                   <div className="login-logo-container" style={{ position: 'relative' }}>
                     <img src={process.env.PUBLIC_URL + '/image/VSB-logo.png'} alt="Vaidhisadhanabhakti Logo with Text" className="login-logo" />
-                </div>
+                       <button
+                           className="btn btn-success d-block d-md-none"
+                           style={{ position: 'fixed', top: 16, right: 32, fontWeight: 600, borderRadius: 8, fontSize: '1rem', background: '#a05a2c', color: '#fff', padding: '10px 22px', zIndex: 1050, boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
+                           onClick={handleDownloadApp}
+                       >
+                           Download App
+                       </button>
+                   </div>
                 {/* Help Button */}
                 <button className="help-btn" onClick={() => setShowHelp(true)}>
                     <span role="img" aria-label="help">❓</span> Help

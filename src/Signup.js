@@ -1,9 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Login.css";
 
 export default function Signup() {
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+    useEffect(() => {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        });
+    }, []);
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [otp, setOtp] = useState("");
@@ -111,10 +119,25 @@ export default function Signup() {
         setLoading(false);
     };
 
+    const handleDownloadApp = () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+        } else {
+            window.open('https://support.google.com/chrome/answer/9658361', '_blank'); // fallback info
+        }
+    };
+
     return (
         <div className="login-page">
-            <div className="login-logo-container">
+            <div className="login-logo-container" style={{ position: 'relative' }}>
                 <img src={process.env.PUBLIC_URL + '/image/VSB-logo.png'} alt="Vaidhisadhanabhakti Logo with Text" className="login-logo" />
+                <button
+                    className="btn btn-success d-block d-md-none"
+                    style={{ position: 'absolute', top: 0, right: 0, fontWeight: 600, borderRadius: 8, fontSize: '1rem', background: '#3d5a1a', color: '#fff', padding: '8px 18px', zIndex: 10 }}
+                    onClick={handleDownloadApp}
+                >
+                    Download App
+                </button>
             </div>
             <div className="d-flex flex-column justify-content-center align-items-center login-form-bg">
                 <div className="login-form-container p-4 shadow-lg rounded w-100">

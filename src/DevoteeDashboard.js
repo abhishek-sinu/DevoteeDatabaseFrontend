@@ -299,12 +299,12 @@ export default function DevoteeDashboard() {
                             
                             {(userType === "trial" && premiumExpiry && !isNaN(new Date(premiumExpiry)) && new Date(premiumExpiry) >= new Date()) && (
                             <li className="nav-item">
-                                <button className="nav-link btn fw-bold ms-2" style={{background:'#fff3cd', color:'#efa208', border:'1px solid #efa208', borderRadius:'6px', cursor:'default'}} disabled>Trial</button>
+                                <button className="nav-link btn fw-bold ms-2" style={{background:'#fff3cd', color:'#efa208', border:'1px solid #efa208', borderRadius:'6px', cursor:'default'}}  onClick={() => setView('upgradePremium')} >Trial</button>
                             </li>
                             )}
                             {(userType === "premium" && premiumExpiry && !isNaN(new Date(premiumExpiry)) && new Date(premiumExpiry) >= new Date()) && (
                                 <li className="nav-item">
-                                    <button className="nav-link btn fw-bold ms-2" style={{background:'#e6f4ea', color:'#3d5a1a', border:'1px solid #3d5a1a', borderRadius:'6px', cursor:'default'}} disabled>Premium</button>
+                                    <button className="nav-link btn fw-bold ms-2" style={{background:'#e6f4ea', color:'#3d5a1a', border:'1px solid #3d5a1a', borderRadius:'6px', cursor:'default'}}  onClick={() => setView('upgradePremium')} >Premium</button>
                                 </li>
                             )}
                             {((!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date()) || (!userType)) && (

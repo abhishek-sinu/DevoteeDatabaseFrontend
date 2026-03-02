@@ -60,6 +60,10 @@ export default function HelpGuide({ setView }) {
         <span className="me-2">After your trial pack:</span>
         <span style={{ color: '#c82333', fontWeight: 700 }}>Upgrade to Premium</span>
         <span className="ms-2">for just <b>₹10/month</b>—this helps us maintain the website, domain, and devotee database.</span>
+        <div className="mt-2" style={{ fontSize: 16, color: '#7a5a2c' }}>
+          <b>If you upgrade during your trial, you get both your remaining trial days <u>plus</u> the premium days you select!</b><br />
+          You can upgrade anytime and your premium will start immediately, with no loss of trial days.
+        </div>
         <div className="mt-3">
           <button className="btn btn-danger btn-lg px-5 fw-bold" onClick={() => setView && setView("upgradePremium")}>Upgrade Now</button>
         </div>

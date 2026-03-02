@@ -1,0 +1,22 @@
+{
+  "short_name": "VSB",
+  "name": "Vaidhi Sadhana Bhakti",
+  "icons": [
+    {
+      "src": "image/logo-nav.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "image/logo-nav.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f9f6ee",
+  "theme_color": "#a05a2c",
+  "description": "Sadhana tracking and devotee dashboard for ISKCON community.",
+  "splash_pages": null
+}
