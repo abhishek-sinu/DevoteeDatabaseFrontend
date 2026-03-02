@@ -235,11 +235,13 @@ export default function MyProfile() {
                                         <>
                                             <label className="form-label">{field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</label>
                                             <input
-                                                type={field.toLowerCase().includes('date') ? 'date' : 'text'}
+                                                type={field.toLowerCase().includes('date') ? 'date' : (field === 'email' ? 'email' : 'text')}
                                                 className="form-control"
                                                 name={field}
                                                 value={editData[field] || ''}
                                                 onChange={handleEditChange}
+                                                readOnly={field === 'email'}
+                                                style={field === 'email' ? { background: '#f5f5f5', color: '#888', cursor: 'not-allowed' } : {}}
                                             />
                                         </>
                                     )}

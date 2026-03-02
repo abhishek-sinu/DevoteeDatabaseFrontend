@@ -27,6 +27,34 @@
     box-shadow: 0 2px 12px rgba(160,90,44,0.13);
     z-index: 2002;
     animation: fadeIn 0.2s;
+    min-width: 220px;
+    max-width: 90vw;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .help-toast {
+        top: unset;
+        bottom: 80px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        min-width: 140px;
+        max-width: 90vw;
+        font-size: 0.95rem;
+        padding: 7px 8px;
+        border-radius: 8px;
+        line-height: 1.2;
+        box-sizing: border-box;
+    }
+    .help-modal {
+        width: 98vw;
+        max-width: 98vw;
+        padding: 1.1rem 0.7rem 1.1rem 0.7rem;
+        max-height: 80vh;
+        font-size: 1rem;
+        border-radius: 12px;
+    }
 }
 
 /* Info Card above login form */
@@ -97,18 +125,29 @@
     justify-content: center;
 }
 .help-modal {
-    background: #fff8e1;
-    border-radius: 18px;
-    box-shadow: 0 4px 32px rgba(160,90,44,0.18);
-    padding: 2.2rem 2.2rem 1.5rem 2.2rem;
-    max-width: 420px;
-    width: 95vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-    color: #6b3f1d;
-    font-size: 1.08rem;
-    animation: fadeIn 0.2s;
+        background: #fff8e1;
+        border-radius: 18px;
+        box-shadow: 0 4px 32px rgba(160,90,44,0.18);
+        padding: 2.2rem 2.2rem 1.5rem 2.2rem;
+        max-width: 420px;
+        width: 95vw;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        color: #6b3f1d;
+        font-size: 1.08rem;
+        animation: fadeIn 0.2s;
+}
+
+@media (max-width: 600px) {
+    .help-modal {
+        width: 98vw;
+        max-width: 98vw;
+        padding: 1.1rem 0.7rem 1.1rem 0.7rem;
+        max-height: 80vh;
+        font-size: 1rem;
+        border-radius: 12px;
+    }
 }
 .help-modal h3 {
     color: #a05a2c;

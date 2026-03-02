@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import DevoteeApp from "./DevoteeApp";
+import ContactUs from "./ContactUs";
 // Upgrade block card for expired premium/trial
 function UpgradeBlockCard({ setView }) {
     return (
@@ -79,9 +80,10 @@ export default function DevoteeDashboard() {
     // State for premium expiry and user type
     const [premiumExpiry, setPremiumExpiry] = useState(null);
     const [userType, setUserType] = useState(null);
-
     // State for mobile drawer
     const [drawerOpen, setDrawerOpen] = useState(false);
+    // Toast for profile picture/temple name
+    const [profileToast, setProfileToast] = useState({ show: false, message: '', type: 'warning' });
 
     const handleDropdownSelect = (nextView, dropdownId) => {
         setView(nextView);
@@ -129,11 +131,18 @@ export default function DevoteeDashboard() {
                         setDevoteeId(res.data[0].id || "");
                         sessionStorage.setItem("email", res.data[0].email || "");
                         localStorage.setItem("phone", res.data[0].mobile_no || "");
-                        if(res.data[0].initiated_name!=="") {
+                        if(res.data[0].initiated_name!=='') {
                             setDisplayName(res.data[0].initiated_name);
-                        }else {
+                        } else {
                             setDisplayName(`${res.data[0].first_name} ${res.data[0].last_name}`);
                         }
+                        // Show toast if photo or temple_name is empty
+                        if (!res.data[0].photo || res.data[0].photo === "") {
+                            setProfileToast({ show: true, message: "Please set your profile picture in My Profile / Temple Name.", type: 'warning' });
+                        } else if (!res.data[0].temple_name || res.data[0].temple_name === "") {
+                            setProfileToast({ show: true, message: "Please set your temple name in My Profile.", type: 'warning' });
+                        }
+                        setTimeout(() => setProfileToast({ show: false, message: '', type: 'warning' }), 5000);
                     }
                 } catch {
                     setDisplayName("");
@@ -152,7 +161,6 @@ export default function DevoteeDashboard() {
                         setPremiumExpiry(res.data.premium_expiry_date || null);
                         setUserType(res.data.user_type || null);
                         // Store in sessionStorage
-                        console.log("Fetched premium info from API - userType:", res.data.user_type, "expiryDate:", res.data.expiryDate);   
                         if (res.data.user_type) {
                             sessionStorage.setItem("user_type", res.data.user_type);
                         }
@@ -284,7 +292,7 @@ export default function DevoteeDashboard() {
                                 <button className={`nav-link btn btn-link${view === "notificationView" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationView")}>View Messages</button>
                             </li> */}
                             <li className="nav-item">
-                                <button className={`nav-link btn btn-link${view === "notificationSend" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("notificationSend")}>Contact Us</button>
+                                <button className={`nav-link btn btn-link${view === "contact" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("contact")}>Contact Us</button>
                             </li>
                             {/* Display name moved above navbar for desktop */}
                             {/* Premium Status Button: Trial, Premium, or Unlock Premium */}
@@ -409,7 +417,7 @@ export default function DevoteeDashboard() {
                                     )}
                                     {/* General actions */}
                                     <li className="drawer-section mt-3"><button className={`drawer-link${view === "notificationView" ? " active" : ""}`} onClick={() => { setView("notificationView"); setDrawerOpen(false); }}><i className="bi bi-envelope"></i> View Messages</button></li>
-                                    <li className="drawer-section"><button className={`drawer-link${view === "notificationSend" ? " active" : ""}`} onClick={() => { setView("notificationSend"); setDrawerOpen(false); }}><i className="bi bi-chat-dots"></i> Contact Us</button></li>
+                                    <li className="drawer-section"><button className={`drawer-link${view === "contact" ? " active" : ""}`} onClick={() => { setView("contact"); setDrawerOpen(false); }}><i className="bi bi-chat-dots"></i> Contact Us</button></li>
                                     <li className="drawer-section"><span className="drawer-link fw-bold text-primary"><i className="bi bi-person-badge"></i> {displayName}</span></li>
                                     <li className="drawer-section"><button onClick={() => { handleLogout(); setDrawerOpen(false); }} className="drawer-link text-danger"><i className="bi bi-box-arrow-right"></i> Logout</button></li>
                                 </ul>
@@ -420,9 +428,13 @@ export default function DevoteeDashboard() {
                     {drawerOpen && <div className="drawer-overlay d-lg-none" style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:'rgba(0,0,0,0.3)',zIndex:1100}} onClick={() => setDrawerOpen(false)}></div>}
                 </div>
             </nav>
-            {/* Display name above navbar, right-aligned */}
+            {/* Display name above navbar, right-aligned (desktop) and top-right (mobile) */}
             <div className="w-100 d-none d-lg-flex justify-content-end align-items-center" style={{minHeight:'32px', paddingRight: '32px'}}>
                 <span className="fw-bold app-title-text" style={{fontSize:'1.1rem', color:'#3d5a1a', background:'#e6f4ea', borderRadius:'6px', padding:'2px 16px', marginTop:'8px'}}>{displayName}</span>
+            </div>
+            {/* Mobile display name */}
+            <div className="d-flex d-lg-none justify-content-end align-items-center w-100" style={{paddingRight: '16px', marginTop: '8px', marginBottom: '-8px'}}>
+                <span className="fw-bold app-title-text" style={{fontSize:'1.05rem', color:'#3d5a1a', background:'#e6f4ea', borderRadius:'6px', padding:'2px 12px'}}>{displayName}</span>
             </div>
             {/* Render UpgradePremium modal if selected */}
             {view === 'upgradePremium' && (
@@ -467,6 +479,60 @@ export default function DevoteeDashboard() {
                 />
             )}
             {view === "helpGuide" && <HelpGuide setView={setView} />}
+            {view === "contact" && <ContactUs />}
+            {/* Quick Access Links */}
+            <div className="dashboard-quick-links d-flex justify-content-center align-items-center gap-3 mt-2 mb-1">
+                <button
+                    className="btn btn-primary fw-bold px-4 py-2 dashboard-quick-link-btn"
+                    style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#7a9c5c', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
+                    onClick={() => setView('entry')}
+                >
+                    <i className="bi bi-pencil-square me-2"></i> Sadhana Entry
+                </button>
+                <button
+                    className="btn btn-info fw-bold px-4 py-2 dashboard-quick-link-btn"
+                    style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#3d5a1a', color: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
+                    onClick={() => setView('download')}
+                >
+                    <i className="bi bi-list-check me-2"></i> View Entries
+                </button>
+                <button
+                    className="btn btn-warning fw-bold px-4 py-2 dashboard-quick-link-btn"
+                    style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#a05a2c', color: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
+                    onClick={() => setView('sadhanaReports')}
+                >
+                    <i className="bi bi-bar-chart-fill me-2"></i> Sadhana Chart Report
+                </button>
+            </div>
+        {profileToast.show && (
+            <div
+                className={`help-toast ${profileToast.type}`}
+                style={{
+                    position: 'fixed',
+                    top: '76px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: profileToast.type === 'warning' ? '#ffeaea' : undefined,
+                    color: profileToast.type === 'warning' ? '#a94442' : undefined,
+                    fontWeight: 700,
+                    fontSize: '1.05rem',
+                    borderRadius: '10px',
+                    boxShadow: '0 2px 8px rgba(160,90,44,0.10)',
+                    padding: '10px 18px',
+                    minWidth: '180px',
+                    maxHeight: '80px',
+                    zIndex: 3002,
+                    border: '1.2px solid #f5c2c7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <span style={{marginRight: 8, fontSize: '1.15em'}}>⚠️</span>
+                {profileToast.message}
+            </div>
+        )}
         </div>
+        
     );
 }

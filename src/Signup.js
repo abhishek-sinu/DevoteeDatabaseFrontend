@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Login.css";
 
 export default function Signup() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [otp, setOtp] = useState("");
     const [otpSent, setOtpSent] = useState(false);
@@ -17,6 +19,7 @@ export default function Signup() {
 
     // Step 1: Send OTP
     const handleSendOtp = async () => {
+        console.log('Email value before send OTP:', email);
         if (!email) {
             setToast({ show: true, message: "Please enter your email.", type: "error" });
             setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3500);
@@ -24,6 +27,22 @@ export default function Signup() {
         }
         setLoading(true);
         try {
+            // First, check if email already exists
+            const checkRes = await fetch(`${process.env.REACT_APP_API_BASE}/api/check-email-exists`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })
+            });
+            console.log('Raw checkRes:', checkRes);
+            const checkData = await checkRes.json();
+            console.log('Check email exists response:', checkData);
+            if (checkData.exists) {
+                setToast({ show: true, message: "Email already registered. Please login.", type: "error" });
+                setLoading(false);
+                setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3500);
+                return;
+            }
+            // If not exists, send OTP
             const res = await fetch(`${process.env.REACT_APP_API_BASE}/api/send-otp`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -31,8 +50,9 @@ export default function Signup() {
             });
             if (!res.ok) throw new Error("Failed to send OTP");
             setOtpSent(true);
-            setToast({ show: true, message: "OTP sent to your email.", type: "success" });
+            setToast({ show: true, message: "OTP sent to your email. Please check spam folder if not see in Inbox.", type: "success" });
         } catch (err) {
+             console.error('Error in handleSendOtp:', err);
             setToast({ show: true, message: "Failed to send OTP. Try again.", type: "error" });
         }
         setLoading(false);
@@ -81,11 +101,14 @@ export default function Signup() {
             if (!res.ok) throw new Error("Signup failed");
             setToast({ show: true, message: "Signup successful! Please check your email to verify your account.", type: "success" });
             setEmail(""); setName(""); setInitiatedName(""); setMobile(""); setPassword(""); setConfirmPassword(""); setOtp(""); setOtpSent(false); setOtpVerified(false);
+            setTimeout(() => {
+                setToast({ show: false, message: '', type: 'success' });
+                navigate('/login');
+            }, 1800);
         } catch (err) {
             setToast({ show: true, message: "Signup failed. Please try again.", type: "error" });
         }
         setLoading(false);
-        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3500);
     };
 
     return (

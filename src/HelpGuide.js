@@ -15,6 +15,14 @@ export default function HelpGuide({ setView }) {
           <ol className="list-unstyled mb-0">
             <li className="mb-4">
               <div className="d-flex align-items-center mb-2">
+                <span className="step-circle me-3" style={{background:'#fff3cd', color:'#a05a2c', borderColor:'#a05a2c'}}>!</span>
+                <span className="fw-bold" style={{ fontSize: 20, color:'#a05a2c' }}>Set Your Profile Picture & Temple Name</span>
+              </div>
+              <div className="mb-2">For a complete experience, please set your profile picture and temple name. This helps your counsellor/admin identify you and improves your dashboard experience.</div>
+              <button className="btn btn-outline-success btn-sm px-4" onClick={() => setView && setView("profile")}>Edit My Profile</button>
+            </li>
+            <li className="mb-4">
+              <div className="d-flex align-items-center mb-2">
                 <span className="step-circle me-3">1</span>
                 <span className="fw-bold" style={{ fontSize: 20 }}>Set Your Template</span>
               </div>
