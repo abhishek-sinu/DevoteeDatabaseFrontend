@@ -182,7 +182,7 @@ export default function DevoteeDashboard() {
     return (
         <div className="container-fluid px-0">
             {/* Responsive Navbar with Side Drawer for Mobile */}
-            <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4 rounded dashboard-navbar position-relative">
+            <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-0 rounded dashboard-navbar position-relative">
                 <div className="container-fluid main-navbar-fluid">
                     {/* Desktop: logo/app name and nav links in one row; Mobile: logo/app name left, hamburger right */}
                     <div className="d-none d-lg-flex w-100 flex-row align-items-center justify-content-between mb-0 mb-lg-0" style={{minHeight:'56px'}}>
@@ -429,21 +429,23 @@ export default function DevoteeDashboard() {
                 </div>
             </nav>
             {/* Display name above navbar, right-aligned (desktop) and top-right (mobile) */}
-            <div className="w-100 d-none d-lg-flex justify-content-end align-items-center" style={{minHeight:'32px', paddingRight: '32px'}}>
-                <span className="fw-bold app-title-text" style={{fontSize:'1.1rem', color:'#3d5a1a', background:'#e6f4ea', borderRadius:'6px', padding:'2px 16px', marginTop:'8px'}}>{displayName}</span>
+            <div className="d-none d-lg-flex justify-content-end align-items-center" style={{position:'absolute', top:'92px', right:'32px', zIndex:1000}}>
+                <span className="fw-bold app-title-text" style={{fontSize:'1.1rem', color:'#3d5a1a', background:'#e6f4ea', borderRadius:'6px', padding:'2px 16px'}}>{displayName}</span>
             </div>
             {/* Mobile display name */}
-            <div className="d-flex d-lg-none justify-content-end align-items-center w-100" style={{paddingRight: '16px', marginTop: '8px', marginBottom: '-8px'}}>
+            <div className="d-flex d-lg-none justify-content-end align-items-center" style={{position:'absolute', top:'88px', right:'16px', zIndex:1000}}>
                 <span className="fw-bold app-title-text" style={{fontSize:'1.05rem', color:'#3d5a1a', background:'#e6f4ea', borderRadius:'6px', padding:'2px 12px'}}>{displayName}</span>
             </div>
             {/* Render UpgradePremium modal if selected */}
             {view === 'upgradePremium' && (
-                <UpgradePremium
-                    name={displayName}
-                    email={localStorage.getItem("userId")}
-                    phone={localStorage.getItem("phone")} 
-                    onClose={() => setView('notificationView')}
-                />
+                <div className="upgrade-premium-view mt-3 mt-md-4">
+                    <UpgradePremium
+                        name={displayName}
+                        email={localStorage.getItem("userId")}
+                        phone={localStorage.getItem("phone")} 
+                        onClose={() => setView('notificationView')}
+                    />
+                </div>
             )}
             {/* Content Section */}
             {view === "add" && role === "admin" && <DevoteeApp />}
@@ -451,7 +453,11 @@ export default function DevoteeDashboard() {
             {view === "bulk" && role === "admin" && <BulkUploadDevotees />}
             {view === "register" && role === "admin" && <Register />}
             {view === "view" && (role === "admin" || role === "counsellor") &&  <ViewDevoteesTable userId={localStorage.getItem("userId")}/>}
-            {view === "entry" && (role === "user"||role === "counsellor") && <SadhanaEntryForm userId={localStorage.getItem("userId")} />}
+            {view === "entry" && (role === "user"||role === "counsellor") && (
+                <div className="mt-4 mt-md-5">
+                    <SadhanaEntryForm userId={localStorage.getItem("userId")} />
+                </div>
+            )}
                         {view === "download" && (role === "user"||role === "counsellor") && (
                             (!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date())
                                 ? <UpgradeBlockCard setView={setView} />

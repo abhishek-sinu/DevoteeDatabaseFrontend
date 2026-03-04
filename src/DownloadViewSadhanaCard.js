@@ -307,7 +307,16 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         hearingTopic: '',
         serviceName: '',
         serviceTime: '',
-        serviceTimeUnit: 'minutes'
+        serviceTimeUnit: 'minutes',
+        sleepingTime: '',
+        chantingBefore700Time: '',
+        chantingBefore730Time: '',
+        attendedMangalAratiTime: '',
+        attendedBhagavatamClass: false,
+        bookDistribution: '',
+        prasadamHonored: false,
+        ekadashiFollowed: false,
+        japaQuality: ''
     });
     const [templateFields, setTemplateFields] = useState(null);
 
@@ -387,6 +396,7 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         const readingData = convertMinutesToForm(entry.reading_time);
         const hearingData = convertMinutesToForm(entry.hearing_time);
         const serviceData = convertMinutesToForm(entry.service_time);
+        const toBoolean = (value) => value === true || value === 1 || value === '1';
 
         setEditingEntry(entry);
         setEditFormData({
@@ -401,7 +411,16 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
             hearingTopic: entry.hearing_topic || '',
             serviceName: entry.service_name || '',
             serviceTime: serviceData.value,
-            serviceTimeUnit: serviceData.unit
+            serviceTimeUnit: serviceData.unit,
+            sleepingTime: entry.sleeping_time || '',
+            chantingBefore700Time: entry.chanting_before_700 || '',
+            chantingBefore730Time: entry.chanting_before_730 || '',
+            attendedMangalAratiTime: entry.attended_mangal_arati || '',
+            attendedBhagavatamClass: toBoolean(entry.attended_bhagavatam_class),
+            bookDistribution: entry.book_distribution || '',
+            prasadamHonored: toBoolean(entry.prasadam_honored),
+            ekadashiFollowed: toBoolean(entry.ekadashi_followed),
+            japaQuality: entry.japa_quality || ''
         });
         setShowEditModal(true);
     };
@@ -454,16 +473,62 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
             return unit === 'hours' ? num * 60 : num;
         };
 
+        const entryDate = editFormData.entryDate || null;
+        const wakeUpTime = editFormData.wakeUpTime || null;
+        const chantingRounds = editFormData.chantingRounds ? parseInt(editFormData.chantingRounds) : null;
+        const readingTime = convertToMinutes(editFormData.readingTime, editFormData.readingTimeUnit);
+        const readingTopic = editFormData.readingTopic || null;
+        const hearingTime = convertToMinutes(editFormData.hearingTime, editFormData.hearingTimeUnit);
+        const hearingTopic = editFormData.hearingTopic || null;
+        const serviceName = editFormData.serviceName || null;
+        const serviceTime = convertToMinutes(editFormData.serviceTime, editFormData.serviceTimeUnit);
+        const sleepingTime = templateFields?.sleeping_time ? (editFormData.sleepingTime || null) : null;
+        const chantingBefore700Time = templateFields?.chanting_before_700 ? (editFormData.chantingBefore700Time || null) : null;
+        const chantingBefore730Time = templateFields?.chanting_before_730 ? (editFormData.chantingBefore730Time || null) : null;
+        const attendedMangalAratiTime = templateFields?.attended_mangal_arati ? (editFormData.attendedMangalAratiTime || null) : null;
+        const attendedBhagavatamClass = templateFields?.attended_bhagavatam_class ? editFormData.attendedBhagavatamClass : null;
+        const bookDistribution = templateFields?.book_distribution ? (editFormData.bookDistribution ? parseInt(editFormData.bookDistribution) : null) : null;
+        const prasadamHonored = templateFields?.prasadam_honored ? editFormData.prasadamHonored : null;
+        const ekadashiFollowed = templateFields?.ekadashi_followed ? editFormData.ekadashiFollowed : null;
+        const japaQuality = templateFields?.japa_quality ? (editFormData.japaQuality ? parseInt(editFormData.japaQuality) : null) : null;
+
         const updatedData = {
-            entryDate: editFormData.entryDate || null,
-            wakeUpTime: editFormData.wakeUpTime || null,
-            chantingRounds: editFormData.chantingRounds ? parseInt(editFormData.chantingRounds) : null,
-            readingTime: convertToMinutes(editFormData.readingTime, editFormData.readingTimeUnit),
-            readingTopic: editFormData.readingTopic || null,
-            hearingTime: convertToMinutes(editFormData.hearingTime, editFormData.hearingTimeUnit),
-            hearingTopic: editFormData.hearingTopic || null,
-            serviceName: editFormData.serviceName || null,
-            serviceTime: convertToMinutes(editFormData.serviceTime, editFormData.serviceTimeUnit)
+            entryDate,
+            wakeUpTime,
+            chantingRounds,
+            readingTime,
+            readingTopic,
+            hearingTime,
+            hearingTopic,
+            serviceName,
+            serviceTime,
+            sleepingTime,
+            chantingBefore700Time,
+            chantingBefore730Time,
+            attendedMangalAratiTime,
+            attendedBhagavatamClass,
+            bookDistribution,
+            prasadamHonored,
+            ekadashiFollowed,
+            japaQuality,
+            entry_date: entryDate,
+            wake_up_time: wakeUpTime,
+            chanting_rounds: chantingRounds,
+            reading_time: readingTime,
+            reading_topic: readingTopic,
+            hearing_time: hearingTime,
+            hearing_topic: hearingTopic,
+            service_name: serviceName,
+            service_time: serviceTime,
+            sleeping_time: sleepingTime,
+            chanting_before_700: chantingBefore700Time,
+            chanting_before_730: chantingBefore730Time,
+            attended_mangal_arati: attendedMangalAratiTime,
+            attended_bhagavatam_class: attendedBhagavatamClass,
+            book_distribution: bookDistribution,
+            prasadam_honored: prasadamHonored,
+            ekadashi_followed: ekadashiFollowed,
+            japa_quality: japaQuality
         };
 
         console.log("Updating entry ID:", editingEntry.id);
@@ -645,7 +710,7 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                             <div className="modal-body">
                                 <form onSubmit={handleEditFormSubmit} id="editSadhanaForm">
                                     <div className="row g-3">
-                                        <div className="col-md-4">
+                                        {(!templateFields || templateFields.entry_date) && (<div className="col-md-4">
                                             <label className="form-label">Date</label>
                                             <input 
                                                 type="date" 
@@ -655,8 +720,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                 className="form-control" 
                                                 required 
                                             />
-                                        </div>
-                                        <div className="col-md-4">
+                                        </div>)}
+                                        {(!templateFields || templateFields.wake_up_time) && (<div className="col-md-4">
                                             <label className="form-label">Wake-up Time</label>
                                             <input 
                                                 type="time" 
@@ -665,8 +730,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                 onChange={handleEditFormChange} 
                                                 className="form-control" 
                                             />
-                                        </div>
-                                        <div className="col-md-4">
+                                        </div>)}
+                                        {(!templateFields || templateFields.chanting_rounds) && (<div className="col-md-4">
                                             <label className="form-label">Chanting Rounds</label>
                                             <input 
                                                 type="number" 
@@ -675,8 +740,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                 onChange={handleEditFormChange} 
                                                 className="form-control" 
                                             />
-                                        </div>
-                                        <div className="col-md-6">
+                                        </div>)}
+                                        {(!templateFields || templateFields.reading_topic) && (<div className="col-md-6">
                                             <label className="form-label">Reading Topic</label>
                                             <input 
                                                 type="text" 
@@ -685,8 +750,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                 onChange={handleEditFormChange} 
                                                 className="form-control" 
                                             />
-                                        </div>
-                                        <div className="col-md-6">
+                                        </div>)}
+                                        {(!templateFields || templateFields.reading_time) && (<div className="col-md-6">
                                             <label className="form-label">Reading Time</label>
                                             <div className="input-group">
                                                 <input 
@@ -707,8 +772,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                     <option value="hours">Hours</option>
                                                 </select>
                                             </div>
-                                        </div>
-                                        <div className="col-md-6">
+                                        </div>)}
+                                        {(!templateFields || templateFields.hearing_topic) && (<div className="col-md-6">
                                             <label className="form-label">Hearing Topic</label>
                                             <input 
                                                 type="text" 
@@ -717,8 +782,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                 onChange={handleEditFormChange} 
                                                 className="form-control" 
                                             />
-                                        </div>
-                                        <div className="col-md-6">
+                                        </div>)}
+                                        {(!templateFields || templateFields.hearing_time) && (<div className="col-md-6">
                                             <label className="form-label">Hearing Time</label>
                                             <div className="input-group">
                                                 <input 
@@ -739,8 +804,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                     <option value="hours">Hours</option>
                                                 </select>
                                             </div>
-                                        </div>
-                                        <div className="col-md-6">
+                                        </div>)}
+                                        {(!templateFields || templateFields.service_name) && (<div className="col-md-6">
                                             <label className="form-label">Service Name</label>
                                             <input 
                                                 type="text" 
@@ -749,8 +814,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                 onChange={handleEditFormChange} 
                                                 className="form-control" 
                                             />
-                                        </div>
-                                        <div className="col-md-6">
+                                        </div>)}
+                                        {(!templateFields || templateFields.service_time) && (<div className="col-md-6">
                                             <label className="form-label">Service Time</label>
                                             <div className="input-group">
                                                 <input 
@@ -771,7 +836,147 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                     <option value="hours">Hours</option>
                                                 </select>
                                             </div>
-                                        </div>
+                                        </div>)}
+
+                                        {templateFields && templateFields.chanting_before_700 && (
+                                            <div className="col-md-4">
+                                                <label className="form-label">How many Round Chanted Before 7:00 AM</label>
+                                                <input
+                                                    type="text"
+                                                    name="chantingBefore700Time"
+                                                    value={editFormData.chantingBefore700Time || ''}
+                                                    onChange={handleEditFormChange}
+                                                    className="form-control"
+                                                    placeholder="Enter time or note"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.chanting_before_730 && (
+                                            <div className="col-md-4">
+                                                <label className="form-label">How many Round Chanted Before 7:30 AM</label>
+                                                <input
+                                                    type="text"
+                                                    name="chantingBefore730Time"
+                                                    value={editFormData.chantingBefore730Time || ''}
+                                                    onChange={handleEditFormChange}
+                                                    className="form-control"
+                                                    placeholder="Enter time or note"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.sleeping_time && (
+                                            <div className="col-md-4">
+                                                <label className="form-label">Sleeping Time</label>
+                                                <input
+                                                    type="time"
+                                                    name="sleepingTime"
+                                                    value={editFormData.sleepingTime || ''}
+                                                    onChange={handleEditFormChange}
+                                                    className="form-control"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.attended_mangal_arati && (
+                                            <div className="col-md-4">
+                                                <label className="form-label">Attended Mangal Arati</label>
+                                                <input
+                                                    type="text"
+                                                    name="attendedMangalAratiTime"
+                                                    value={editFormData.attendedMangalAratiTime || ''}
+                                                    onChange={handleEditFormChange}
+                                                    className="form-control"
+                                                    placeholder="Enter time or note"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.attended_bhagavatam_class && (
+                                            <div className="col-md-4">
+                                                <label className="form-label d-block">Program Attendance</label>
+                                                <div className="form-check">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="attendedBhagavatamClass"
+                                                        checked={editFormData.attendedBhagavatamClass}
+                                                        onChange={(e) => setEditFormData({ ...editFormData, attendedBhagavatamClass: e.target.checked })}
+                                                        className="form-check-input"
+                                                        id="editAttendedBhagavatamClass"
+                                                    />
+                                                    <label className="form-check-label" htmlFor="editAttendedBhagavatamClass">
+                                                        Attended Bhagavatam Class
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.book_distribution && (
+                                            <div className="col-md-4">
+                                                <label className="form-label">Book Distribution (Books)</label>
+                                                <input
+                                                    type="number"
+                                                    name="bookDistribution"
+                                                    value={editFormData.bookDistribution}
+                                                    onChange={handleEditFormChange}
+                                                    className="form-control"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.prasadam_honored && (
+                                            <div className="col-md-4">
+                                                <label className="form-label d-block">Prasadam</label>
+                                                <div className="form-check">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="prasadamHonored"
+                                                        checked={editFormData.prasadamHonored}
+                                                        onChange={(e) => setEditFormData({ ...editFormData, prasadamHonored: e.target.checked })}
+                                                        className="form-check-input"
+                                                        id="editPrasadamHonored"
+                                                    />
+                                                    <label className="form-check-label" htmlFor="editPrasadamHonored">
+                                                        Prasadam Honored
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.ekadashi_followed && (
+                                            <div className="col-md-4">
+                                                <label className="form-label d-block">Fasting</label>
+                                                <div className="form-check">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="ekadashiFollowed"
+                                                        checked={editFormData.ekadashiFollowed}
+                                                        onChange={(e) => setEditFormData({ ...editFormData, ekadashiFollowed: e.target.checked })}
+                                                        className="form-check-input"
+                                                        id="editEkadashiFollowed"
+                                                    />
+                                                    <label className="form-check-label" htmlFor="editEkadashiFollowed">
+                                                        Ekadashi Followed
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.japa_quality && (
+                                            <div className="col-md-4">
+                                                <label className="form-label">Japa Quality (1-10)</label>
+                                                <input
+                                                    type="number"
+                                                    name="japaQuality"
+                                                    min="1"
+                                                    max="10"
+                                                    value={editFormData.japaQuality}
+                                                    onChange={handleEditFormChange}
+                                                    className="form-control"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </form>
                             </div>

@@ -107,8 +107,8 @@ export default function SadhanaTemplate({ devoteeId, email }) {
         
         // Optional/Custom fields
         sleepingTime: { enabled: false, locked: false, label: 'Sleeping Time' },
-        chantingBefore700: { enabled: false, locked: false, label: 'Chanting Before 7:00 AM' },
-        chantingBefore730: { enabled: false, locked: false, label: 'Chanting Before 7:30 AM' },
+        chantingBefore700: { enabled: false, locked: false, label: 'How many Round chanted Before 7:00 AM' },
+        chantingBefore730: { enabled: false, locked: false, label: 'How many Round chanted Before 7:30 AM' },
         attendedMangalArati: { enabled: false, locked: false, label: 'Attended Mangal Arati' },
         attendedBhagavatamClass: { enabled: false, locked: false, label: 'Attended Bhagavatam Class' },
         bookDistribution: { enabled: false, locked: false, label: 'Book Distribution (Books)' },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './CustomToast.css';
 
@@ -7,6 +7,8 @@ const SadhanaEntryForm = () => {
     const [email, setEmail] = useState('');
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
     const [templateFields, setTemplateFields] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const submitLockRef = useRef(false);
     const [formData, setFormData] = useState({
         entryDate: '',
         wakeUpTime: '',
@@ -88,6 +90,9 @@ const SadhanaEntryForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (submitLockRef.current || isSubmitting) return;
+        submitLockRef.current = true;
+        setIsSubmitting(true);
 
         const API_BASE = process.env.REACT_APP_API_BASE;
 
@@ -152,6 +157,9 @@ const SadhanaEntryForm = () => {
         } catch (err) {
             setToast({ show: true, message: 'Error submitting entry', type: 'error' });
             console.error(err);
+        } finally {
+            submitLockRef.current = false;
+            setIsSubmitting(false);
         }
     };
 
@@ -195,7 +203,7 @@ const SadhanaEntryForm = () => {
                             {/* Chanting Rounds */}
                             {templateFields.chanting_rounds && (
                                 <div className="col-md-4">
-                                    <label className="form-label">Chanting Rounds</label>
+                                    <label className="form-label">How many Round you chanted</label>
                                     <input type="number" name="chantingRounds" value={formData.chantingRounds} onChange={handleChange} className="form-control" />
                                 </div>
                             )}
@@ -312,7 +320,7 @@ const SadhanaEntryForm = () => {
                             {/* Chanting Before 7:00 AM - Optional (text input) */}
                             {templateFields.chanting_before_700 && (
                                 <div className="col-md-4">
-                                    <label className="form-label">Chanting Before 7:00 AM</label>
+                                    <label className="form-label">How many Round Chanted Before 7:00 AM</label>
                                     <input
                                         type="text"
                                         name="chantingBefore700Time"
@@ -327,7 +335,7 @@ const SadhanaEntryForm = () => {
                             {/* Chanting Before 7:30 AM - Optional (text input) */}
                             {templateFields.chanting_before_730 && (
                                 <div className="col-md-4">
-                                    <label className="form-label">Chanting Before 7:30 AM</label>
+                                    <label className="form-label">How many Round Chanted Before 7:30 AM</label>
                                     <input
                                         type="text"
                                         name="chantingBefore730Time"
@@ -439,8 +447,17 @@ const SadhanaEntryForm = () => {
                             )}
                             
                             <div className="col-12 text-center">
-                                <button type="submit" className="btn btn-success">
-                                    <i className="bi bi-check-circle"></i> Submit Sadhana
+                                <button type="submit" className="btn btn-success" disabled={isSubmitting}>
+                                    {isSubmitting ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="bi bi-check-circle"></i> Submit Sadhana
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </form>

@@ -11,6 +11,8 @@ export default function UpgradePremium({ name, email, phone, onClose }) {
 	const [selectedPlanId, setSelectedPlanId] = useState(null);
 	const [confirmation, setConfirmation] = useState(null);
 	const [confirmationType, setConfirmationType] = useState('success'); // 'success' or 'failure'
+	const plansContainerRef = useRef(null);
+	const firstPlanRef = useRef(null);
 	let cashfree;
 	// Determine Cashfree mode from environment variable (default to 'sandbox')
 	const CASHFREE_MODE = process.env.REACT_APP_CASHFREE_MODE === 'PROD' ? 'production' : 'sandbox';
@@ -93,6 +95,23 @@ export default function UpgradePremium({ name, email, phone, onClose }) {
 			highlight: false,
 		}
 	];
+
+	useEffect(() => {
+		if (window.innerWidth >= 768) return;
+
+		const container = plansContainerRef.current;
+		const firstCard = firstPlanRef.current;
+
+		requestAnimationFrame(() => {
+			if (container) {
+				container.scrollTo({ left: 0, behavior: 'auto' });
+			}
+			if (firstCard) {
+				firstCard.scrollIntoView({ block: 'nearest', inline: 'start', behavior: 'auto' });
+			}
+			window.scrollTo({ top: 0, behavior: 'auto' });
+		});
+	}, []);
 
   insitialzeSDK()
 
@@ -204,10 +223,11 @@ export default function UpgradePremium({ name, email, phone, onClose }) {
 			<div className={modalOpen ? "blurred-content" : ""}>
 				{/* Premium Cards UI */}
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', background: 'linear-gradient(135deg,#f9f6ee 60%,#e6e1d3 100%)' }}>
-					<div className="d-flex flex-wrap gap-4 justify-content-center" style={{ width: '100%', maxWidth: 1200 }}>
-						{plans.map(plan => (
+					<div ref={plansContainerRef} className="d-flex flex-wrap gap-4 justify-content-center" style={{ width: '100%', maxWidth: 1200 }}>
+						{plans.map((plan, index) => (
 							<div
 								key={plan.id}
+								ref={index === 0 ? firstPlanRef : null}
 								className={`card shadow-lg premium-card ${plan.highlight ? 'border-4 border-primary scale-up' : ''}`}
 								style={{
 									maxWidth: 370,
