@@ -363,12 +363,12 @@ export default function DevoteeDashboard() {
                                     {/* Unlock Premium for mobile */}
                                     {(userType === "trial" && premiumExpiry && !isNaN(new Date(premiumExpiry)) && new Date(premiumExpiry) >= new Date()) && (
                                         <li className="drawer-section">
-                                            <button className="drawer-link fw-bold" style={{background:'#fff3cd', color:'#efa208', border:'1px solid #efa208', borderRadius:'6px', cursor:'default'}} disabled>Trial</button>
+                                            <button className="drawer-link fw-bold" style={{background:'#fff3cd', color:'#efa208', border:'1px solid #efa208', borderRadius:'6px', cursor:'default'}} onClick={() => { setView('upgradePremium'); setDrawerOpen(false); }}>Trial</button>
                                         </li>
                                     )}
                                     {(userType === "premium" && premiumExpiry && !isNaN(new Date(premiumExpiry)) && new Date(premiumExpiry) >= new Date()) && (
                                         <li className="drawer-section">
-                                            <button className="drawer-link fw-bold" style={{background:'#e6f4ea', color:'#3d5a1a', border:'1px solid #3d5a1a', borderRadius:'6px', cursor:'default'}} disabled>Premium</button>
+                                            <button className="drawer-link fw-bold" style={{background:'#e6f4ea', color:'#3d5a1a', border:'1px solid #3d5a1a', borderRadius:'6px', cursor:'default'}} onClick={() => { setView('upgradePremium'); setDrawerOpen(false); }}>Premium</button>
                                         </li>
                                     )}
                                     {((!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date()) || (!userType)) && (
