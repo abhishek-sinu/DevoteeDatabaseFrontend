@@ -6,6 +6,7 @@ import DevoteeDashboard from "./DevoteeDashboard";
 import ContactUs from "./ContactUs";
 import HelpGuide from "./HelpGuide";
 import PublicDevoteeEntry from "./PublicDevoteeEntry";
+import LandingPage from "./LandingPage";
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem("token");
@@ -30,7 +31,7 @@ function App() {
                 />
                 <Route path="/help" element={<HelpGuide />} />
                 <Route path="/contact" element={<ContactUs />} />
-                <Route path="/" element={<Navigate to="/login" />} />
+                <Route path="/" element={<LandingPage />} />
             </Routes>
         </Router>
     );
