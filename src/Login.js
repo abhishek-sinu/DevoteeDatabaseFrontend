@@ -26,8 +26,18 @@ export default function Login() {
     };
 
     const [loading, setLoading] = useState(false);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [email, setEmail] = useState(() => {
+        const saved = localStorage.getItem("rememberMe") === "true" ? localStorage.getItem("rememberEmail") : "";
+        return saved || "";
+    });
+    const [password, setPassword] = useState(() => {
+        const saved = localStorage.getItem("rememberMe") === "true" ? localStorage.getItem("rememberPassword") : "";
+        return saved || "";
+    });
+    const [rememberMe, setRememberMe] = useState(() => {
+        const saved = localStorage.getItem("rememberMe");
+        return saved === null ? true : saved === "true";
+    });
     const navigate = useNavigate();
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
     const [showHelp, setShowHelp] = useState(false);
@@ -48,12 +58,23 @@ export default function Login() {
                 email,
                 password,
             });
-            localStorage.setItem("token", res.data.token);
+            if (rememberMe) {
+                localStorage.setItem("token", res.data.token);
+                localStorage.setItem("userId", email);
+                localStorage.setItem("rememberMe", "true");
+                localStorage.setItem("rememberEmail", email);
+                localStorage.setItem("rememberPassword", password);
+            } else {
+                sessionStorage.setItem("token", res.data.token);
+                sessionStorage.setItem("userId", email);
+                localStorage.setItem("rememberMe", "false");
+                localStorage.removeItem("rememberEmail");
+                localStorage.removeItem("rememberPassword");
+            }
             setToast({ show: true, message: "<b>Login successful!</b>", type: "success" });
-            localStorage.setItem("userId", email);
             setTimeout(() => {
                 setToast({ show: false, message: '', type: 'success' });
-                navigate("/dashboard");
+                navigate("/dashboard", { replace: true });
             }, 1200);
         } catch (err) {
             setToast({ show: true, message: "<b>Login failed:</b> " + (err.response?.data?.message || err.message), type: "error" });
@@ -157,6 +178,26 @@ export default function Login() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                 />
+                            </div>
+                            <div className="form-group mb-3" style={{ width: '100%', textAlign: 'left', marginLeft: 0 }}>
+                                <input
+                                    type="checkbox"
+                                    id="rememberMe"
+                                    checked={rememberMe}
+                                    onChange={() => {
+                                        setRememberMe(!rememberMe);
+                                        localStorage.setItem("rememberMe", (!rememberMe).toString());
+                                        if (!rememberMe) {
+                                            localStorage.setItem("rememberEmail", email);
+                                            localStorage.setItem("rememberPassword", password);
+                                        } else {
+                                            localStorage.removeItem("rememberEmail");
+                                            localStorage.removeItem("rememberPassword");
+                                        }
+                                    }}
+                                    style={{ marginRight: 8, width: 20, height: 20 }}
+                                />
+                                <label htmlFor="rememberMe" style={{ marginBottom: 0, fontWeight: 600, color: '#a05a2c', fontSize: '1rem' }}>Remember Me</label>
                             </div>
                             <button
                                 type="submit"
