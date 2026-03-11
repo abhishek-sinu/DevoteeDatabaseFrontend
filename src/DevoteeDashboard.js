@@ -490,32 +490,36 @@ export default function DevoteeDashboard() {
             {/* Quick Access Links */}
             <div className="dashboard-quick-links d-flex justify-content-center align-items-center gap-3 mt-2 mb-1">
                 <button
-                    className="btn btn-success fw-bold px-4 py-2 dashboard-quick-link-btn"
+                    className="btn btn-success fw-bold px-4 py-2 dashboard-quick-link-btn dashboard-quick-link-icon"
                     style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#3b5998', color: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
                     onClick={() => setView('todoList')}
                 >
-                    <i className="bi bi-check2-square me-2"></i> Daily Todo List
+                    <i className="bi bi-check2-square"></i>
+                    <span className="d-none d-md-inline"> Daily Todo List</span>
                 </button>
                 <button
-                    className="btn btn-primary fw-bold px-4 py-2 dashboard-quick-link-btn"
+                    className="btn btn-primary fw-bold px-4 py-2 dashboard-quick-link-btn dashboard-quick-link-icon"
                     style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#7a9c5c', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
                     onClick={() => setView('entry')}
                 >
-                    <i className="bi bi-pencil-square me-2"></i> Sadhana Entry
+                    <i className="bi bi-pencil-square"></i>
+                    <span className="d-none d-md-inline"> Sadhana Entry</span>
                 </button>
                 <button
-                    className="btn btn-info fw-bold px-4 py-2 dashboard-quick-link-btn"
+                    className="btn btn-info fw-bold px-4 py-2 dashboard-quick-link-btn dashboard-quick-link-icon"
                     style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#3d5a1a', color: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
                     onClick={() => setView('download')}
                 >
-                    <i className="bi bi-list-check me-2"></i> View Entries
+                    <i className="bi bi-list-check"></i>
+                    <span className="d-none d-md-inline"> View Entries</span>
                 </button>
                 <button
-                    className="btn btn-warning fw-bold px-4 py-2 dashboard-quick-link-btn"
+                    className="btn btn-warning fw-bold px-4 py-2 dashboard-quick-link-btn dashboard-quick-link-icon"
                     style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#a05a2c', color: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
                     onClick={() => setView('sadhanaReports')}
                 >
-                    <i className="bi bi-bar-chart-fill me-2"></i> Sadhana Chart Report
+                    <i className="bi bi-bar-chart-fill"></i>
+                    <span className="d-none d-md-inline"> Sadhana Chart Report</span>
                 </button>
             </div>
             {view === 'todoList' && <DevoteeTodoList setView={setView} />}
