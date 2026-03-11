@@ -1,3 +1,6 @@
+# Environment files
+.env
+.env.local
 # See https://github.com/facebook/create-react-app/blob/main/.gitignore
 
 # dependencies
@@ -27,3 +30,5 @@ yarn-error.log*
 # OS files
 Thumbs.db
 .env
+.env.local
+.env.production

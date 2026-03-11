@@ -47,6 +47,7 @@ import SadhanaViewDownload from "./DownloadViewSadhanaCard"; // new
 import UploadSadhanaCard from "./UploadSadhanaCard";
 import './DevoteeApp.css';
 import './MobileDrawer.css';
+import DevoteeTodoList from './DevoteeTodoList';
 import CounsellorEveryDaySadhanaReports from "./CounsellorEveryDaySadhanaReports";
 import MyProfile from "./MyProfile";
 import axios from "axios";
@@ -72,8 +73,8 @@ const handleLogout = () => {
 
 export default function DevoteeDashboard() {
     const navigate = useNavigate();
-    // Default view is helpGuide for all roles
-    const [view, setView] = useState("helpGuide");
+    // Default view is todoList for all roles
+    const [view, setView] = useState("todoList");
     const [role, setRole] = useState("user");
     const [displayName, setDisplayName] = useState("");
     const [devoteeId, setDevoteeId] = useState("");
@@ -103,7 +104,7 @@ export default function DevoteeDashboard() {
             try {
                 const decoded = jwtDecode(token);
                 setRole(decoded.role || "user");
-                setView("helpGuide");
+                // Do not override landing page view
             } catch (error) {
                 console.error("Invalid token:", error);
             }
@@ -489,6 +490,13 @@ export default function DevoteeDashboard() {
             {/* Quick Access Links */}
             <div className="dashboard-quick-links d-flex justify-content-center align-items-center gap-3 mt-2 mb-1">
                 <button
+                    className="btn btn-success fw-bold px-4 py-2 dashboard-quick-link-btn"
+                    style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#3b5998', color: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
+                    onClick={() => setView('todoList')}
+                >
+                    <i className="bi bi-check2-square me-2"></i> Daily Todo List
+                </button>
+                <button
                     className="btn btn-primary fw-bold px-4 py-2 dashboard-quick-link-btn"
                     style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#7a9c5c', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
                     onClick={() => setView('entry')}
@@ -510,6 +518,7 @@ export default function DevoteeDashboard() {
                     <i className="bi bi-bar-chart-fill me-2"></i> Sadhana Chart Report
                 </button>
             </div>
+            {view === 'todoList' && <DevoteeTodoList setView={setView} />}
         {profileToast.show && (
             <div
                 className={`help-toast ${profileToast.type}`}

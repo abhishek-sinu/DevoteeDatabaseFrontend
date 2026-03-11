@@ -86,6 +86,7 @@ export default function LandingPage() {
 
   return (
     <div style={{ fontFamily: 'serif', background: '#f8f5f0', minHeight: '100vh', color: '#3d5a1a' }}>
+      {/* SEO Section: H1, H2, paragraph, crawlable links */}
       {showThankYou && (
         <div className="modal show d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.25)', zIndex: 9999 }}>
           <div className="modal-dialog modal-dialog-centered">
