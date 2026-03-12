@@ -263,7 +263,7 @@ export default function DevoteeDashboard() {
                                             <li><button className={`dropdown-item${view === "entry" ? " active" : ""}`} onClick={() => handleDropdownSelect("entry", "sadhanaDropdown")}>New Entry</button></li>
                                             <li><button className={`dropdown-item${view === "download" ? " active" : ""}`} onClick={() => handleDropdownSelect("download", "sadhanaDropdown")}>View Entries</button></li>
                                             <li><button className={`dropdown-item${view === "sadhanaTemplate" ? " active" : ""}`} onClick={() => handleDropdownSelect("sadhanaTemplate", "sadhanaDropdown")}>Sadhana Template</button></li>
-                                            <li><button className={`dropdown-item${view === "sadhanaReports" ? " active" : ""}`} onClick={() => handleDropdownSelect("sadhanaReports", "sadhanaDropdown")}>Sadhana Chart Reports</button></li>
+                                            <li><button className={`dropdown-item${view === "sadhanaReports" ? " active" : ""}`} onClick={() => handleDropdownSelect("sadhanaReports", "sadhanaDropdown")}>Chart view</button></li>
                                         </ul>
                                     </li>
                                 </>
@@ -283,7 +283,7 @@ export default function DevoteeDashboard() {
                                         </ul>
                                     </li>
                                         <li className="nav-item">
-                                            <button className={`nav-link btn btn-link${view === "sadhanaReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("sadhanaReports")}>Sadhana Chart Reports</button>
+                                            <button className={`nav-link btn btn-link${view === "sadhanaReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("sadhanaReports")}>Chart Reports</button>
                                         </li>
                                 </>
                             )}
@@ -383,7 +383,7 @@ export default function DevoteeDashboard() {
                                             <li><button className={`drawer-sublink${view === "entry" ? " active" : ""}`} onClick={() => { handleDropdownSelect("entry", "sadhanaDropdown"); setDrawerOpen(false); }}><i className="bi bi-plus-square"></i> New Entry</button></li>
                                             <li><button className={`drawer-sublink${view === "download" ? " active" : ""}`} onClick={() => { handleDropdownSelect("download", "sadhanaDropdown"); setDrawerOpen(false); }}><i className="bi bi-list-check"></i> View Entries</button></li>
                                             <li><button className={`drawer-sublink${view === "sadhanaTemplate" ? " active" : ""}`} onClick={() => { handleDropdownSelect("sadhanaTemplate", "sadhanaDropdown"); setDrawerOpen(false); }}><i className="bi bi-file-earmark-text"></i> Sadhana Template</button></li>
-                                            <li><button className={`drawer-sublink${view === "sadhanaReports" ? " active" : ""}`} onClick={() => { handleDropdownSelect("sadhanaReports", "sadhanaDropdown"); setDrawerOpen(false); }}><i className="bi bi-bar-chart"></i> Sadhana Chart Reports</button></li>
+                                            <li><button className={`drawer-sublink${view === "sadhanaReports" ? " active" : ""}`} onClick={() => { handleDropdownSelect("sadhanaReports", "sadhanaDropdown"); setDrawerOpen(false); }}><i className="bi bi-bar-chart"></i>Chart Reports</button></li>
                                         </ul>
                                     </li>
                                     {/* Admin/Counsellor extra sections */}
@@ -413,7 +413,7 @@ export default function DevoteeDashboard() {
                                                     <li><button className={`drawer-sublink${view === "uploadedReports" ? " active" : ""}`} onClick={() => { handleDropdownSelect("uploadedReports", "devoteeReportsDropdown"); setDrawerOpen(false); }}><i className="bi bi-upload"></i> View Uploaded</button></li>
                                                 </ul>
                                             </li>
-                                            <li className="drawer-section"><button className={`drawer-link${view === "sadhanaReports" ? " active" : ""}`} onClick={() => { setView("sadhanaReports"); setDrawerOpen(false); }}><i className="bi bi-bar-chart"></i> Sadhana Chart Reports</button></li>
+                                            <li className="drawer-section"><button className={`drawer-link${view === "sadhanaReports" ? " active" : ""}`} onClick={() => { setView("sadhanaReports"); setDrawerOpen(false); }}><i className="bi bi-bar-chart"></i> Chart Reports</button></li>
                                         </>
                                     )}
                                     {/* General actions */}
@@ -519,10 +519,14 @@ export default function DevoteeDashboard() {
                     onClick={() => setView('sadhanaReports')}
                 >
                     <i className="bi bi-bar-chart-fill"></i>
-                    <span className="d-none d-md-inline"> Sadhana Chart Report</span>
+                    <span className="d-none d-md-inline"> Chart Report</span>
                 </button>
             </div>
-            {view === 'todoList' && <DevoteeTodoList setView={setView} />}
+            {view === 'todoList' && (
+                (!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date())
+                    ? <UpgradeBlockCard setView={setView} />
+                    : <DevoteeTodoList setView={setView} />
+            )}
         {profileToast.show && (
             <div
                 className={`help-toast ${profileToast.type}`}
