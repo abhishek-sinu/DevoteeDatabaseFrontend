@@ -148,14 +148,14 @@ const QuickLinkPage = ({ setDashboardView, premiumExpiry }) => {
             )}
             <Tooltip title={item.tooltip} placement="top">
               <div style={{display:'flex',justifyContent:'center',alignItems:'center',width:'100%',margin:'32px 0 12px 0'}}>
-                <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'72px'}}>
+                <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'72px',width:'72px'}}>
                   <Button
                     className="quicklink-btn"
                     type="primary"
                     shape="circle"
                     size="large"
                     icon={item.icon}
-                    style={{ background: '#fff', border: 'none', boxShadow: '0 2px 8px #e0e0e0', pointerEvents:'none', width:'72px', height:'72px', display:'flex', alignItems:'center', justifyContent:'center', marginTop: item.key === 'update-profile' ? '24px' : '0' }}
+                    style={{ background: '#fff', border: 'none', boxShadow: '0 2px 8px #e0e0e0', pointerEvents:'none', width:'72px', height:'72px', display:'flex', alignItems:'center', justifyContent:'center', marginTop: item.key === 'update-profile' ? '24px' : '0', padding: 0 }}
                   />
                 </div>
               </div>

@@ -41,17 +41,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
     const handleDownloadPDF = async () => {
         if (!entries || entries.length === 0) return;
         const { PDFDocument, rgb } = await import('pdf-lib');
-        // Load Unicode font (Sanskrit 2003)
-        // You must have a .ttf font file in your project, e.g. public/sanskrit-2003.ttf
-        const fontUrl = `${window.location.origin}/sanskrit-2003.ttf`;
-        const fontRes = await fetch(fontUrl);
-        const fontBytes = await fontRes.arrayBuffer();
-        // Create PDF and embed font
+        // Create PDF and use default font
         const pdfDoc = await PDFDocument.create();
-        // Dynamically import fontkit and register
-        const fontkit = await import('fontkit');
-        pdfDoc.registerFontkit(fontkit.default || fontkit);
-        const unicodeFont = await pdfDoc.embedFont(new Uint8Array(fontBytes));
         // Always fetch user info before export
         let userInfoData = userInfo;
         if (!userInfoData && devoteeId) {
@@ -83,8 +74,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         // Dynamically calculate column widths based on max text length in each column
         const fontSize = 12;
         const pageHeight = 1000;
-        // Use unicodeFont for all text rendering
-        const font = unicodeFont;
+        // Use default font for all text rendering
+        const font = undefined;
         const colWidths = headers.map((header, colIdx) => {
             // Find max text length in this column (header or any cell)
             let maxLen = header.length;

@@ -49,6 +49,13 @@
   font-size: 36px !important;
   background: linear-gradient(135deg, #6A9A5B 60%, #A05A2C 100%);
   color: #fff !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .quicklink-label {
