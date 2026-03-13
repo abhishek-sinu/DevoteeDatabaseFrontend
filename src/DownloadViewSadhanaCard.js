@@ -69,14 +69,19 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
 
         // Calculate page width based on columns
         const margin = 40;
-        // Dynamically calculate column widths based on header text length
+        // Dynamically calculate column widths based on max text length in each column
         const fontSize = 12;
         const pageHeight = 1000;
         const pdfDoc = await PDFDocument.create();
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-        const colWidths = headers.map(header => {
+        const colWidths = headers.map((header, colIdx) => {
+            // Find max text length in this column (header or any cell)
+            let maxLen = header.length;
+            rows.forEach(row => {
+                if (row[colIdx] && row[colIdx].length > maxLen) maxLen = row[colIdx].length;
+            });
             // Estimate width: 7px per character + padding
-            return Math.max(90, header.length * 7 + 20);
+            return Math.max(90, maxLen * 7 + 20);
         });
         const tableWidth = colWidths.reduce((sum, w) => sum + w, 0);
         const pageWidth = Math.max(800, tableWidth + margin * 2);
@@ -88,6 +93,9 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         let imageWidth = 120;
         let imageHeight = 90;
         let page = pdfDoc.addPage([pageWidth, pageHeight]);
+        // Draw 'Hare Krishna!' above devotee info, left-aligned
+        page.drawRectangle({ x: margin, y: pageHeight - 40, width: infoBlockWidth, height: 32, borderColor: rgb(0.8,0.6,0.2), borderWidth: 2 });
+        page.drawText('Hare Krishna!', { x: margin + 15, y: pageHeight - 28, size: 24, font, color: rgb(0.7,0.2,0.2) });
         page.drawRectangle({ x: margin, y: y - infoBlockHeight, width: infoBlockWidth, height: infoBlockHeight, borderColor: rgb(0.27,0.27,0.27), borderWidth: 1 });
         if (userInfoData) {
             const name = userInfoData.initiated_name && userInfoData.initiated_name.trim() ? userInfoData.initiated_name : `${userInfoData.first_name || ''} ${userInfoData.middle_name || ''} ${userInfoData.last_name || ''}`.replace(/ +/g, ' ').trim();
@@ -126,8 +134,10 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
             // Draw header
             let colX = margin;
             headers.forEach((header, i) => {
-                page.drawRectangle({ x: colX, y: rowY, width: colWidths[i], height: 25, borderColor: rgb(0.27,0.27,0.27), borderWidth: 1 });
-                page.drawText(header, { x: colX + 5, y: rowY + 7, size: fontSize, font });
+                // Draw colored header background
+                page.drawRectangle({ x: colX, y: rowY, width: colWidths[i], height: 25, borderColor: rgb(0.27,0.27,0.27), borderWidth: 1, color: rgb(0.98,0.91,0.71) }); // light yellow
+                // Draw header text in bold and dark color
+                page.drawText(header, { x: colX + 5, y: rowY + 7, size: fontSize, font, color: rgb(0.35,0.22,0.07), font: font, fontWeight: 'bold' });
                 colX += colWidths[i];
             });
             rowY -= 25;
@@ -202,8 +212,23 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet("Sadhana");
 
+        // Add 'Hare Krishna!' just above Name cell, with border and normal background
+        const hkRow = worksheet.addRow(["Hare Krishna!", ""]);
+        hkRow.font = { bold: true, size: 16 };
+        hkRow.alignment = { horizontal: 'center', vertical: 'middle' };
+        hkRow.height = 28;
+        worksheet.mergeCells('A1:B1');
+        hkRow.eachCell(cell => {
+            cell.border = {
+                top: { style: 'medium', color: { argb: 'FF444444' } },
+                left: { style: 'medium', color: { argb: 'FF444444' } },
+                bottom: { style: 'medium', color: { argb: 'FF444444' } },
+                right: { style: 'medium', color: { argb: 'FF444444' } }
+            };
+        });
+
         // Add user info rows
-        let infoRowCount = 0;
+        let infoRowCount = 1;
         if (userInfoData) {
             const name = userInfoData.initiated_name && userInfoData.initiated_name.trim() ? userInfoData.initiated_name : `${userInfoData.first_name || ''} ${userInfoData.middle_name || ''} ${userInfoData.last_name || ''}`.replace(/ +/g, ' ').trim();
             const temple = userInfoData.temple_name || '';
@@ -592,27 +617,30 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                         ))}
                                     </select>
                                 </div>
-                                    <button
-                                        className="btn btn-xls align-middle px-3 d-flex align-items-center gap-2"
-                                        type="button"
-                                        style={{ fontWeight: 500 }}
-                                        onClick={handleDownloadXLS}
-                                    >
-                                        <i className="bi bi-download" style={{ fontSize: '1.2em' }}></i>
-                                        XLS
-                                    </button>
-                                    <button
-                                        className="btn btn-pdf align-middle px-3 d-flex align-items-center gap-2"
-                                        type="button"
-                                        style={{ fontWeight: 500 }}
-                                        onClick={handleDownloadPDF}
-                                    >
-                                        <i className="bi bi-file-earmark-pdf" style={{ fontSize: '1.2em' }}></i>
-                                        PDF
-                                    </button>
                             </div>
                         </div>
                         <div className="card-body bg-light rounded-bottom-4">
+                                                        {/* XLS and PDF buttons inside card above table */}
+                                                        <div className="d-flex justify-content-end gap-2 mb-3">
+                                                            <button
+                                                                className="btn btn-xls align-middle px-3 d-flex align-items-center gap-2"
+                                                                type="button"
+                                                                style={{ fontWeight: 500 }}
+                                                                onClick={handleDownloadXLS}
+                                                            >
+                                                                <i className="bi bi-download" style={{ fontSize: '1.2em' }}></i>
+                                                                XLS
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-pdf align-middle px-3 d-flex align-items-center gap-2"
+                                                                type="button"
+                                                                style={{ fontWeight: 500 }}
+                                                                onClick={handleDownloadPDF}
+                                                            >
+                                                                <i className="bi bi-file-earmark-pdf" style={{ fontSize: '1.2em' }}></i>
+                                                                PDF
+                                                            </button>
+                                                        </div>
                             {loading ? (
                                 <div className="text-center py-5">
                                     <div className="spinner-border text-primary mb-2" role="status" />

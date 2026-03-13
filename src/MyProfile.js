@@ -147,17 +147,6 @@ export default function MyProfile() {
                 <div>Loading profile...</div>
             ) : (
                 <div className="card shadow" style={{ maxWidth: "500px", width: "100%", position: 'relative' }}>
-                    <div className="card-header text-center bg-primary text-white" style={{ position: 'relative' }}>
-                        <h4> {profile.initiated_name || "-"}</h4>
-                        {/* Edit icon */}
-                        <span
-                            style={{ position: 'absolute', top: 12, right: 18, cursor: 'pointer', color: '#fff', fontSize: 22 }}
-                            title="Edit Profile"
-                            onClick={handleEditClick}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zm17.71-10.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                        </span>
-                    </div>
                     <div className="card-body">
                         {profile.photo && (
                             <div className="d-flex justify-content-center mb-4">
@@ -169,7 +158,25 @@ export default function MyProfile() {
                                 />
                             </div>
                         )}
+                        {/* Update Photo row above User Type */}
+                        <div className="d-flex align-items-center justify-content-between" style={{background:'#fff3cd', borderRadius:'8px', margin:'16px 0 8px 0', padding:'8px 16px', boxShadow:'none'}}>
+                            <span style={{fontWeight:600, color:'#4B5320', fontSize:'1.08rem'}}>Update Photo</span>
+                            <button
+                                style={{ background: '#43cea2', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 18px 6px 12px', fontWeight: 600, fontSize: 17, display: 'flex', alignItems: 'center', boxShadow: 'none', cursor: 'pointer' }}
+                                title="Edit Profile"
+                                onClick={handleEditClick}
+                            >
+                                <i className="bi bi-pencil-square" style={{ fontSize: 20, marginRight: 6 }}></i>
+                                Edit
+                            </button>
+                        </div>
                         <ul className="list-group list-group-flush">
+                            {/* Initiated Name row if not empty/null */}
+                            {profile.initiated_name && profile.initiated_name.trim() !== "" && (
+                                <li className="list-group-item">
+                                    <strong>Initiated Name:</strong> {profile.initiated_name}
+                                </li>
+                            )}
                             <li className="list-group-item">
                                 <strong>User Type: </strong> 
                                 <span style={{
@@ -194,12 +201,12 @@ export default function MyProfile() {
                             </li>
                             {Object.entries(profile)
                                 .filter(([key, value]) =>
-                                    !["photo", "id", "temple_name", "whatsapp_no", "mobile_no", "created_at", "user_type", "premium_expiry_date", "status", "facilitator_id"].includes(key) &&
+                                    !["photo", "id", "temple_name", "whatsapp_no", "mobile_no", "created_at", "user_type", "premium_expiry_date", "status", "facilitator_id", "initiated_name"].includes(key) &&
                                     value && value.toString().trim() !== ""
                                 )
                                 .map(([key, value]) => (
                                     <li className="list-group-item" key={key}>
-                                        <strong>{key.replace(/_/g, " ")}:</strong> {value}
+                                        <strong>{key.replace(/_/g, " ")}</strong>: {value}
                                     </li>
                                 ))}
                         </ul>

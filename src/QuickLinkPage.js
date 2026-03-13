@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Button, Tooltip } from 'antd';
-import { CheckCircleOutlined, EditOutlined, UnorderedListOutlined, BarChartOutlined, CalendarOutlined, QuestionCircleOutlined, FileTextOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, EditOutlined, UnorderedListOutlined, BarChartOutlined, CalendarOutlined, QuestionCircleOutlined, FileTextOutlined, UserOutlined } from '@ant-design/icons';
 import './QuickLinkPage.css';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -15,11 +15,19 @@ const menuItems = [
     tooltip: 'Start by selecting your Sadhana template.'
   },
   {
+    key: 'update-profile',
+    icon: <UserOutlined style={{ fontSize: 36, color: '#0d6efd', marginTop: '24px' }} />,
+    label: 'Photo For Sadhana Card',
+    dashboardView: 'profile',
+    step: 'Step 2',
+    tooltip: 'Update your profile picture. The same photo will appear on your Sadhana Card.'
+  },
+  {
     key: 'sadhana-entry',
     icon: <EditOutlined style={{ fontSize: 36, color: '#6A9A5B' }} />,
     label: 'Sadhana Entry',
     dashboardView: 'entry',
-    step: 'Step 2',
+    step: 'Step 3',
     tooltip: 'Enter your daily Sadhana activities.'
   },
   {
@@ -27,7 +35,7 @@ const menuItems = [
     icon: <UnorderedListOutlined style={{ fontSize: 36, color: '#35521C' }} />,
     label: 'View Entry',
     dashboardView: 'download',
-    step: 'Step 3',
+    step: 'Step 4',
     tooltip: 'View your previous Sadhana entries.'
   },
   {
@@ -35,7 +43,7 @@ const menuItems = [
     icon: <BarChartOutlined style={{ fontSize: 36, color: '#A05A2C' }} />,
     label: 'Sadhana Chart',
     dashboardView: 'sadhanaReports',
-    step: 'Step 4',
+    step: 'Step 5',
     tooltip: 'Visualize your Sadhana progress.'
   },
   {
@@ -57,7 +65,7 @@ const menuItems = [
 ];
 
 const showSequenceToast = () => {
-  toast.info('To use this page: 1. Select Template 2. Sadhana Entry 3. View Entry 4. Sadhana Chart 5. Plan Your Day', {
+  toast.info('To use this page: 1. Select Template 2. Update Profile Pic (photo will appear on Sadhana Card) 3. Sadhana Entry 4. View Entry 5. Sadhana Chart 6. Plan Your Day', {
     position: 'top-center',
     autoClose: 7000,
     hideProgressBar: false,
@@ -117,7 +125,18 @@ const QuickLinkPage = ({ setDashboardView, premiumExpiry }) => {
       <div className="quicklink-header">
         <img src="/image/logo.png" alt="Logo" className="quicklink-logo" />
         <h2>Quick Links</h2>
-        <p className="quicklink-desc">Follow the sequence for best experience. All features are arranged for easy access.</p>
+        <p className="quicklink-desc" style={{
+          fontSize: '1.25rem',
+          fontWeight: 700,
+          color: '#388e3c',
+          background: '#fff3cd',
+          borderRadius: '8px',
+          padding: '10px 24px',
+          margin: '18px 0',
+          boxShadow: '0 2px 8px #e6cfa5',
+          letterSpacing: '0.5px',
+          textAlign: 'center'
+        }}>Follow the sequence for best experience. All features are arranged for easy access.</p>
       </div>
       <div className="quicklink-card-container">
         {menuItems.map(item => (
@@ -129,15 +148,16 @@ const QuickLinkPage = ({ setDashboardView, premiumExpiry }) => {
             )}
             <Tooltip title={item.tooltip} placement="top">
               <div style={{display:'flex',justifyContent:'center',alignItems:'center',width:'100%',margin:'32px 0 12px 0'}}>
-                <Button
-                  className="quicklink-btn"
-                  type="primary"
-                  shape="circle"
-                  size="large"
-                  icon={item.icon}
-                  // Remove onClick from Button, handled by Card
-                  style={{ background: '#fff', border: 'none', boxShadow: '0 2px 8px #e0e0e0', pointerEvents:'none' }}
-                />
+                <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'72px'}}>
+                  <Button
+                    className="quicklink-btn"
+                    type="primary"
+                    shape="circle"
+                    size="large"
+                    icon={item.icon}
+                    style={{ background: '#fff', border: 'none', boxShadow: '0 2px 8px #e0e0e0', pointerEvents:'none', width:'72px', height:'72px', display:'flex', alignItems:'center', justifyContent:'center', marginTop: item.key === 'update-profile' ? '24px' : '0' }}
+                  />
+                </div>
               </div>
             </Tooltip>
             <div className="quicklink-label">{item.label}</div>
