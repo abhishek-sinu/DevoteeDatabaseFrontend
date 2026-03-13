@@ -170,7 +170,7 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                 // After last table row, add two confirmation rows before the footer
                 colX = margin;
                 page.drawRectangle({ x: colX, y: rowY, width: tableWidth, height: 25, borderColor: rgb(0.27,0.27,0.27), borderWidth: 1 });
-                page.drawText("Prabhu Gopal! (Kṛṣṇa)", { x: colX + 5, y: rowY + 7, size: 12, font });
+                page.drawText("Prabhu Gopal! (Krishna)", { x: colX + 5, y: rowY + 7, size: 12, font });
                 rowY -= 25;
                 page.drawRectangle({ x: colX, y: rowY, width: tableWidth, height: 25, borderColor: rgb(0.27,0.27,0.27), borderWidth: 1 });
                 page.drawText("Hereby I am confirming that whatever mentioned in my above sadhana chart is true and correct.", { x: colX + 5, y: rowY + 7, size: 12, font });
@@ -330,7 +330,7 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         // Add two confirmation rows at the end, merged across all columns
         const colCount = worksheet.columns.length;
         // First confirmation row: Prabhu Gopal (Kṛṣṇa), normal font, left-aligned
-        const confirmRow1 = worksheet.addRow(["Prabhu Gopal (Kṛṣṇa)"]);
+        const confirmRow1 = worksheet.addRow(["Prabhu Gopal (Krishna)"]);
         confirmRow1.font = { size: 12 };
         confirmRow1.alignment = { horizontal: 'left', vertical: 'middle' };
         confirmRow1.height = 22;
