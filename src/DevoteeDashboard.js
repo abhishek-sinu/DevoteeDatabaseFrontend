@@ -61,6 +61,7 @@ import NotificationSend from "./NotificationSend";
 import SadhanaReports from "./SadhanaReports";
 import SadhanaTemplate from "./SadhanaTemplate";
 import UpgradePremium from "./UpgradePremium";
+import QuickLinkPage from "./QuickLinkPage";
 
 
 
@@ -73,8 +74,8 @@ const handleLogout = () => {
 
 export default function DevoteeDashboard() {
     const navigate = useNavigate();
-    // Default view is todoList for all roles
-    const [view, setView] = useState("todoList");
+    // Default view is quickLink for all roles
+    const [view, setView] = useState("quickLink");
     const [role, setRole] = useState("user");
     const [displayName, setDisplayName] = useState("");
     const [devoteeId, setDevoteeId] = useState("");
@@ -492,10 +493,10 @@ export default function DevoteeDashboard() {
                 <button
                     className="btn btn-success fw-bold px-4 py-2 dashboard-quick-link-btn dashboard-quick-link-icon"
                     style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#3b5998', color: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
-                    onClick={() => setView('todoList')}
+                    onClick={() => setView('quickLink')}
                 >
-                    <i className="bi bi-check2-square"></i>
-                    <span className="d-none d-md-inline"> Daily Todo List</span>
+                    <i className="bi bi-link-45deg"></i>
+                    <span className="d-none d-md-inline"> Quick Links</span>
                 </button>
                 <button
                     className="btn btn-primary fw-bold px-4 py-2 dashboard-quick-link-btn dashboard-quick-link-icon"
@@ -521,40 +522,49 @@ export default function DevoteeDashboard() {
                     <i className="bi bi-bar-chart-fill"></i>
                     <span className="d-none d-md-inline"> Chart Report</span>
                 </button>
+                <button
+                    className="btn btn-secondary fw-bold px-4 py-2 dashboard-quick-link-btn dashboard-quick-link-icon"
+                    style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#a05a2c', color: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
+                    onClick={() => setView('todoList')}
+                >
+                    <i className="bi bi-calendar-event"></i>
+                    <span className="d-none d-md-inline"> Plan Your Day</span>
+                </button>
             </div>
-            {view === 'todoList' && (
-                (!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date())
-                    ? <UpgradeBlockCard setView={setView} />
-                    : <DevoteeTodoList setView={setView} />
+            {view === 'quickLink' && (
+                <QuickLinkPage setDashboardView={setView} premiumExpiry={premiumExpiry} />
             )}
-        {profileToast.show && (
-            <div
-                className={`help-toast ${profileToast.type}`}
-                style={{
-                    position: 'fixed',
-                    top: '76px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: profileToast.type === 'warning' ? '#ffeaea' : undefined,
-                    color: profileToast.type === 'warning' ? '#a94442' : undefined,
-                    fontWeight: 700,
-                    fontSize: '1.05rem',
-                    borderRadius: '10px',
-                    boxShadow: '0 2px 8px rgba(160,90,44,0.10)',
-                    padding: '10px 18px',
-                    minWidth: '180px',
-                    maxHeight: '80px',
-                    zIndex: 3002,
-                    border: '1.2px solid #f5c2c7',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                <span style={{marginRight: 8, fontSize: '1.15em'}}>⚠️</span>
-                {profileToast.message}
-            </div>
-        )}
+            {view === 'todoList' && (
+                <DevoteeTodoList setView={setView} premiumExpiry={premiumExpiry} />
+            )}
+            {profileToast.show && (
+                <div
+                    className={`help-toast ${profileToast.type}`}
+                    style={{
+                        position: 'fixed',
+                        top: '76px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: profileToast.type === 'warning' ? '#ffeaea' : undefined,
+                        color: profileToast.type === 'warning' ? '#a94442' : undefined,
+                        fontWeight: 700,
+                        fontSize: '1.05rem',
+                        borderRadius: '10px',
+                        boxShadow: '0 2px 8px rgba(160,90,44,0.10)',
+                        padding: '10px 18px',
+                        minWidth: '180px',
+                        maxHeight: '80px',
+                        zIndex: 3002,
+                        border: '1.2px solid #f5c2c7',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <span style={{marginRight: 8, fontSize: '1.15em'}}>⚠️</span>
+                    {profileToast.message}
+                </div>
+            )}
         </div>
         
     );

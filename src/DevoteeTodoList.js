@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './DevoteeTodoList.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE;
-const DevoteeTodoList = ({ setView }) => {
+const DevoteeTodoList = ({ setView, premiumExpiry }) => {
   const [todos, setTodos] = useState([]);
   const [input, setInput] = useState('');
   const userId = localStorage.getItem('userId');
@@ -58,6 +58,45 @@ const DevoteeTodoList = ({ setView }) => {
   const workTodos = todos.filter((todo) => !todo.completed);
   const completedTodos = todos.filter((todo) => todo.completed);
 
+  // Restriction check
+  const isPremiumValid = premiumExpiry && !isNaN(new Date(premiumExpiry)) && new Date(premiumExpiry) >= new Date();
+
+  if (!isPremiumValid) {
+    // Show restriction card if premium expired
+    return (
+      <div style={{margin:'40px auto',maxWidth:'500px'}}>
+        <div className="card shadow-lg border-0 rounded-4 p-4" style={{ background: '#fff8f3' }}>
+          <div className="text-center mb-3">
+            <span style={{ fontSize: 48, color: '#c82333' }}><i className="bi bi-emoji-frown"></i></span>
+            <h4 className="fw-bold mt-2" style={{ color: '#c82333' }}>Access Restricted</h4>
+          </div>
+          <div className="mb-3 text-center" style={{ fontSize: 18, color: '#7a4f01' }}>
+            Sorry, your <b>trial pack</b> or <b>premium pack</b> has expired.<br />
+            Please upgrade to continue enjoying all features!
+          </div>
+          <div className="mb-3 text-center" style={{ fontSize: 16, color: '#444' }}>
+            <b>Upgrade for just ₹10/month</b> — this helps us maintain the website, domain, and devotee database.
+          </div>
+          <div className="alert alert-success d-flex align-items-center justify-content-between fw-bold mb-3" style={{ fontSize: 16, background: '#e6f4ea', color: '#256029', border: '1px solid #b7e0c7' }}>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ fontSize: 18, marginRight: 8 }}>😊</span> Don't worry, you can still continue entering your sadhana!
+            </span>
+            <button
+              className="btn btn-outline-success btn-sm fw-bold ms-3"
+              style={{ borderRadius: '8px', minWidth: 'auto', fontSize: '0.98rem', whiteSpace: 'nowrap' }}
+              onClick={() => setView && setView("entry")}
+            >
+              Sadhana Entry
+            </button>
+          </div>
+          <div className="text-center mt-3 d-flex flex-column gap-2 align-items-center">
+            <button className="btn btn-danger btn-lg px-5 fw-bold mb-2" onClick={() => setView && setView("upgradePremium")}>Upgrade to Premium</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="todo-container">
       {/* Info banner for first-time users */}
@@ -77,7 +116,7 @@ const DevoteeTodoList = ({ setView }) => {
           </a> for guidance.
         </span>
       </div>
-      <h2 className="todo-title">Devotee Daily Todo List</h2>
+      <h2 className="todo-title">Plan Your Day</h2>
       <div className="todo-input-section">
         <input
           className="todo-input"
