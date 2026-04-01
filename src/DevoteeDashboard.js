@@ -271,18 +271,21 @@ export default function DevoteeDashboard() {
                             )}
                             {role === "counsellor" && (
                                 <>
-                                    <li className="nav-item">
-                                        <button className={`nav-link btn btn-link${view === "view" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("view")}>Assigned Devotees</button>
-                                    </li>
                                     <li className="nav-item dropdown">
-                                        <button className="nav-link dropdown-toggle btn btn-link" id="devoteeReportsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                            Devotees Sadhana Reports
+                                        <button className="nav-link dropdown-toggle btn btn-link" id="assignedDevotees" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Assigned Devotees
                                         </button>
-                                        <ul className="dropdown-menu" aria-labelledby="devoteeReportsDropdown">
-                                            <li><button className={`dropdown-item${view === "reports" ? " active" : ""}`} onClick={() => handleDropdownSelect("reports", "devoteeReportsDropdown")}>View Everyday Entered</button></li>
-                                            <li><button className={`dropdown-item${view === "uploadedReports" ? " active" : ""}`} onClick={() => handleDropdownSelect("uploadedReports", "devoteeReportsDropdown")}>View Uploaded</button></li>
+                                        <ul className="dropdown-menu" aria-labelledby="assignedDevotees">
+                                            <li><button className={`nav-link btn btn-link${view === "view" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("view")}>View Devotees</button></li>
+                                            <li><button className={`nav-link btn btn-link${view === "reports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("reports")}>Sadhana Report</button></li>
                                         </ul>
                                     </li>
+                                    {/* <li className="nav-item">
+                                        <button className={`nav-link btn btn-link${view === "view" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("view")}>Assigned Devotees</button>
+                                    </li>
+                                    <li className="nav-item">
+                                        <button className={`nav-link btn btn-link${view === "reports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("reports")}>Devotees Sadhana Reports</button>
+                                    </li> */}
                                         <li className="nav-item">
                                             <button className={`nav-link btn btn-link${view === "sadhanaReports" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("sadhanaReports")}>Chart Reports</button>
                                         </li>
@@ -454,7 +457,11 @@ export default function DevoteeDashboard() {
             {view === "profile" && (role === "user" || role === "counsellor") && <MyProfile />}
             {view === "bulk" && role === "admin" && <BulkUploadDevotees />}
             {view === "register" && role === "admin" && <Register />}
-            {view === "view" && (role === "admin" || role === "counsellor") &&  <ViewDevoteesTable userId={localStorage.getItem("userId")}/>}
+            {view === "view" && (role === "admin" || role === "counsellor") &&  (
+                <div className="mt-lg-5 mt-3">
+                    <ViewDevoteesTable userId={localStorage.getItem("userId")} />
+                </div>
+            )}
             {view === "entry" && (role === "user"||role === "counsellor") && (
                 <div className="mt-4 mt-md-5">
                     <SadhanaEntryForm userId={localStorage.getItem("userId")} />
