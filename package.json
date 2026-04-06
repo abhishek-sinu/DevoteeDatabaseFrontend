@@ -4,6 +4,10 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/splash-screen": "^8.0.1",
     "@cashfreepayments/cashfree-js": "^1.0.6",
     "antd": "^6.3.2",
     "axios": "^1.13.5",

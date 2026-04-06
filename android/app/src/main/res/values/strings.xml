@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">VSB</string>
+    <string name="title_activity_main">VSB</string>
+    <string name="package_name">com.vaidhi.sadhanabhakti</string>
+    <string name="custom_url_scheme">com.vaidhi.sadhanabhakti</string>
+</resources>

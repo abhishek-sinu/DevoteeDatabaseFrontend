@@ -18,11 +18,13 @@ export default function Login() {
     }, []);
 
     const handleDownloadApp = () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-        } else {
-            window.open('https://support.google.com/chrome/answer/9658361', '_blank'); // fallback info
+        // Check if running inside Capacitor native app
+        if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+            return; // Don't show download inside the app itself
         }
+        // Direct download from server (no intermediate page)
+        const apkUrl = 'https://vaidhisadhanabhakti.cloud/download/VSB.apk';
+        window.location.href = apkUrl;
     };
 
     const [loading, setLoading] = useState(false);
@@ -115,11 +117,11 @@ export default function Login() {
                    <div className="login-logo-container" style={{ position: 'relative' }}>
                     <img src={process.env.PUBLIC_URL + '/image/VSB-logo.png'} alt="Vaidhisadhanabhakti Logo with Text" className="login-logo" />
                        <button
-                           className="btn btn-success d-block d-md-none"
+                           className="btn btn-success"
                            style={{ position: 'fixed', top: 16, right: 32, fontWeight: 600, borderRadius: 8, fontSize: '1rem', background: '#a05a2c', color: '#fff', padding: '10px 22px', zIndex: 1050, boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
                            onClick={handleDownloadApp}
                        >
-                           Download App
+                           <i className="bi bi-download"></i> Download App
                        </button>
                    </div>
                 {/* Help Button */}
