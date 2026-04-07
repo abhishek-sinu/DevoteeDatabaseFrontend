@@ -5,8 +5,37 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Login.css"; // Custom styles
 
+// Simple modal for forgot password
+function ForgotPasswordModal({ show, onClose, onSubmit, email, setEmail, loading, message }) {
+    if (!show) return null;
+    return (
+        <div className="help-modal-overlay" onClick={onClose}>
+            <div className="help-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
+                <button className="help-modal-close" onClick={onClose}>&times;</button>
+                <h4>Forgot Password?</h4>
+                <p>Enter your registered email to receive a password reset link.</p>
+                <form onSubmit={onSubmit}>
+                    <input
+                        type="email"
+                        className="form-control mb-3"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        required
+                    />
+                    <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+                        {loading ? 'Sending...' : 'Send Reset Link'}
+                    </button>
+                </form>
+                {message && <div className="mt-3" style={{ color: message.type === 'success' ? 'green' : 'red' }}>{message.text}</div>}
+            </div>
+        </div>
+    );
+}
+
 export default function Login() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const handler = (e) => {
@@ -44,6 +73,12 @@ export default function Login() {
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
     const [showHelp, setShowHelp] = useState(false);
     const [showHelpToast, setShowHelpToast] = useState(false);
+
+    // Forgot password modal state
+    const [showForgot, setShowForgot] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState("");
+    const [forgotLoading, setForgotLoading] = useState(false);
+    const [forgotMsg, setForgotMsg] = useState(null);
 
     // Show help toast only once on initial load/refresh
     useEffect(() => {
@@ -83,6 +118,21 @@ export default function Login() {
         } finally {
             setLoading(false); // Stop loading
             setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
+        }
+    };
+
+    // Forgot password submit handler
+    const handleForgotSubmit = async (e) => {
+        e.preventDefault();
+        setForgotLoading(true);
+        setForgotMsg(null);
+        try {
+            await axios.post(`${process.env.REACT_APP_API_BASE}/api/forgot-password`, { email: forgotEmail });
+            setForgotMsg({ type: 'success', text: 'Reset link sent! Please check your email.' });
+        } catch (err) {
+            setForgotMsg({ type: 'error', text: err.response?.data?.message || 'Failed to send reset link.' });
+        } finally {
+            setForgotLoading(false);
         }
     };
     return (
@@ -172,14 +222,65 @@ export default function Login() {
                                 />
                             </div>
                             <div className="form-group mb-4">
-                                <input
-                                    type="password"
-                                    className="form-control"
-                                    placeholder="Enter password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        className="form-control"
+                                        placeholder="Enter password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        style={{ paddingRight: 42 }}
+                                    />
+                                    <span
+                                        onClick={() => setShowPassword((v) => !v)}
+                                        style={{
+                                            position: 'absolute',
+                                            right: 10,
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            cursor: 'pointer',
+                                            color: '#a05a2c',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            zIndex: 2,
+                                            userSelect: 'none',
+                                        }}
+                                        title={showPassword ? 'Hide Password' : 'Show Password'}
+                                    >
+                                        {showPassword ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a05a2c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.06 10.06 0 0 1 12 20c-5.05 0-9.29-3.14-11-8 1.06-2.81 2.99-5.12 5.47-6.53"/><path d="M1 1l22 22"/><path d="M9.53 9.53A3.5 3.5 0 0 0 12 15.5c1.93 0 3.5-1.57 3.5-3.5 0-.47-.09-.92-.26-1.33"/><path d="M14.47 14.47A3.5 3.5 0 0 1 12 8.5c-1.93 0-3.5 1.57-3.5 3.5 0 .47.09.92.26 1.33"/></svg>
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a05a2c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12C2.71 7.14 6.95 4 12 4s9.29 3.14 11 8c-1.71 4.86-5.95 8-11 8s-9.29-3.14-11-8z"/><circle cx="12" cy="12" r="3.5"/></svg>
+                                        )}
+                                    </span>
+                                </div>
+                                <div style={{ textAlign: 'right', marginTop: 4 }}>
+                                    <button
+                                        type="button"
+                                        className="btn btn-link"
+                                        style={{
+                                            fontSize: '1rem',
+                                            color: '#a05a2c',
+                                            textDecoration: 'underline',
+                                            fontWeight: 600,
+                                            background: 'none',
+                                            border: 'none',
+                                            padding: 0,
+                                            cursor: 'pointer',
+                                            boxShadow: 'none',
+                                            outline: 'none',
+                                        }}
+                                        onClick={() => {
+                                            setShowForgot(true);
+                                            setForgotEmail("");
+                                            setForgotMsg(null);
+                                        }}
+                                    >
+                                        Forgot Password?
+                                    </button>
+                                </div>
                             </div>
                             <div className="form-group mb-3" style={{ width: '100%', textAlign: 'left', marginLeft: 0 }}>
                                 <input
@@ -227,6 +328,16 @@ export default function Login() {
                     </div>
                 </div>
             </div>
+        {/* Forgot Password Modal */}
+        <ForgotPasswordModal
+            show={showForgot}
+            onClose={() => setShowForgot(false)}
+            onSubmit={handleForgotSubmit}
+            email={forgotEmail}
+            setEmail={setForgotEmail}
+            loading={forgotLoading}
+            message={forgotMsg}
+        />
         </>
     );
 }

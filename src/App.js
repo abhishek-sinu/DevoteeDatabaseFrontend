@@ -12,6 +12,7 @@ import SadhanaTemplate from './SadhanaTemplate';
 import SadhanaEntryForm from './SadhanaEntryForm';
 import SadhanaReports from './SadhanaReports';
 import DevoteeTodoList from './DevoteeTodoList';
+import ResetPassword from "./ResetPassword";
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem("token");
@@ -43,6 +44,7 @@ function App() {
                 <Route path="/view-entry" element={<SadhanaReports devoteeId={null} userRole={"user"} />} />
                 <Route path="/sadhana-chart" element={<SadhanaReports devoteeId={null} userRole={"user"} />} />
                 <Route path="/plan-day" element={<DevoteeTodoList />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
             </Routes>
         </Router>
     );
