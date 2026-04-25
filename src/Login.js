@@ -52,7 +52,7 @@ export default function Login() {
             return; // Don't show download inside the app itself
         }
         // Direct download from server (no intermediate page)
-        const apkUrl = 'https://vaidhisadhanabhakti.cloud/download/VSB.apk';
+        const apkUrl = 'https://vaidhisadhanabhakti.cloud/download/APP-STEPS.png';
         window.location.href = apkUrl;
     };
 
