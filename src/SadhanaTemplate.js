@@ -28,19 +28,52 @@ const snakeToCamel = str => {
     );
 };
 
-const PREDEFINED_TEMPLATES = [
-    'ISKCON HYDERABAD',
-    'ISKCON BBSR'
-];
 
-// Track which template is selected
-// ...existing code...
+// Remove hardcoded templates, use dynamic fetch
+
+
 
 export default function SadhanaTemplate({ devoteeId, email }) {
+    // Debug: Print incoming props on mount
+    useEffect(() => {
+        console.log('[SadhanaTemplate] Incoming devoteeId:', devoteeId);
+        console.log('[SadhanaTemplate] Incoming email:', email);
+    }, [devoteeId, email]);
     const [selectedTemplate, setSelectedTemplate] = useState(null);
-    // Handler for predefined template buttons
+    const [predefinedTemplates, setPredefinedTemplates] = useState([]);
+
+    // Fetch predefined template names on mount
+    useEffect(() => {
+        const fetchTemplates = async () => {
+            try {
+                const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/sadhana/predefined-templates`);
+                // If array of objects, extract template names (support camelCase and snake_case)
+                let names = [];
+                if (Array.isArray(res.data)) {
+                    names = res.data.map(t => t.sadhana_template || t.sadhanaTemplate || t.name || t.template_name).filter(Boolean);
+                }
+                setPredefinedTemplates(names);
+            } catch (err) {
+                setPredefinedTemplates([]);
+            }
+        };
+        fetchTemplates();
+    }, []);
+    // Handler for predefined template dropdown
     const applyPredefinedTemplate = async (templateName) => {
         setSelectedTemplate(templateName);
+        if (templateName === 'Customize Your Own') {
+            // Only core fields enabled, others disabled
+            setTemplateFields(prev => {
+                const updated = {};
+                Object.keys(prev).forEach(field => {
+                    updated[field] = { ...prev[field], enabled: !!prev[field].locked };
+                });
+                return updated;
+            });
+            setToast({ show: true, message: 'Customize your template below.', type: 'success' });
+            return;
+        }
         setToast({ show: true, message: 'Submit Below Save Template', type: 'success' });
         try {
             const res = await axios.get(`${process.env.REACT_APP_API_BASE}/api/sadhana/predefined-templates`, {
@@ -58,7 +91,6 @@ export default function SadhanaTemplate({ devoteeId, email }) {
                     Object.keys(updated).forEach(field => {
                         // Use the same mapping as snakeToCamel but reversed
                         let snakeKey = field;
-                        // Map camelCase to snake_case for known fields
                         if (field === 'chantingBefore700') snakeKey = 'chanting_before_700';
                         else if (field === 'chantingBefore730') snakeKey = 'chanting_before_730';
                         else if (field === 'attendedMangalArati') snakeKey = 'attended_mangal_arati';
@@ -77,7 +109,6 @@ export default function SadhanaTemplate({ devoteeId, email }) {
                         else if (field === 'chantingRounds') snakeKey = 'chanting_rounds';
                         else if (field === 'wakeUpTime') snakeKey = 'wake_up_time';
                         else if (field === 'entryDate') snakeKey = 'entry_date';
-                        // Default fallback for unknown fields
                         else snakeKey = field.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
                         if (templateObj.hasOwnProperty(snakeKey)) {
                             updated[field].enabled = !!templateObj[snakeKey];
@@ -104,7 +135,7 @@ export default function SadhanaTemplate({ devoteeId, email }) {
         hearingTopic: { enabled: true, locked: true, label: 'Hearing Topic' },
         serviceName: { enabled: true, locked: true, label: 'Service Name' },
         serviceTime: { enabled: true, locked: true, label: 'Service Time' },
-        
+
         // Optional/Custom fields
         sleepingTime: { enabled: false, locked: false, label: 'Sleeping Time' },
         chantingBefore700: { enabled: false, locked: false, label: 'How many Round chanted Before 7:00 AM' },
@@ -115,6 +146,7 @@ export default function SadhanaTemplate({ devoteeId, email }) {
         prasadamHonored: { enabled: false, locked: false, label: 'Prasadam Honored' },
         ekadashiFollowed: { enabled: false, locked: false, label: 'Ekadashi Followed' },
         japaQuality: { enabled: false, locked: false, label: 'Japa Quality (1-10)' },
+        sixteenRoundCompletedTime: { enabled: false, locked: false, label: '16 Round Completed Time' },
     });
 
     // Toast auto-hide
@@ -163,15 +195,16 @@ export default function SadhanaTemplate({ devoteeId, email }) {
     const handleSave = async () => {
         try {
             console.log('=== handleSave called ===');
-            console.log('Incoming email:', email);
-            console.log('Incoming devoteeId:', devoteeId);
+            // Print devoteeId and email at submit time
+            console.log('[handleSave] Submitting devoteeId:', devoteeId);
+            console.log('[handleSave] Submitting email:', email);
             console.log('Current templateFields:', templateFields);
-            
+
             const templateData = {
                 userEmail: email,
                 devoteeId: devoteeId
             };
-            
+
             // Add all template field selections
             Object.keys(templateFields).forEach(key => {
                 templateData[key] = templateFields[key].enabled;
@@ -215,19 +248,19 @@ export default function SadhanaTemplate({ devoteeId, email }) {
                         <div className="card-body bg-light rounded-bottom-4">
                             {/* Predefined Template Buttons (moved inside card, above core fields) */}
                             <div className="mb-4 text-center sadhana-template-btn-group">
-                                <span className="me-2 fw-semibold">Predefined Templates:</span>
-                                <div className="template-btns-flex">
-                                    {PREDEFINED_TEMPLATES.map(name => (
-                                        <button
-                                            key={name}
-                                            className={`btn btn-outline-primary btn-sm mx-1 template-btn${selectedTemplate === name ? ' active' : ''}`}
-                                            type="button"
-                                            onClick={() => applyPredefinedTemplate(name)}
-                                        >
-                                            {name}
-                                        </button>
+                                <span className="me-2 fw-semibold">Predefined Template:</span>
+                                <select
+                                    className="form-select d-inline-block w-auto"
+                                    style={{ maxWidth: 260, display: 'inline-block' }}
+                                    value={selectedTemplate || ''}
+                                    onChange={e => applyPredefinedTemplate(e.target.value)}
+                                >
+                                    <option value="" disabled>Select a template...</option>
+                                    {predefinedTemplates.map(name => (
+                                        <option key={name} value={name}>{name}</option>
                                     ))}
-                                </div>
+                                    <option value="Customize Your Own">Customize Your Own</option>
+                                </select>
                             </div>
                             <p className="text-muted mb-4">
                                 <i className="bi bi-info-circle me-2"></i>

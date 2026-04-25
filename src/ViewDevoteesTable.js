@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from "react";
+import { AiOutlineFileExcel } from "react-icons/ai";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-
 
 const API_BASE = process.env.REACT_APP_API_BASE;
 
@@ -14,10 +15,11 @@ export default function ViewDevoteesTable() {
     const [filterType, setFilterType] = useState("Common Filter");
     const [filterValue, setFilterValue] = useState("");
     const [isExporting, setIsExporting] = useState(false);
-
     const [countries, setCountries] = useState([]);
     const [states, setStates] = useState([]);
     const [cities, setCities] = useState([]);
+
+    // ...existing code...
 
 
     useEffect(() => {
@@ -89,6 +91,7 @@ export default function ViewDevoteesTable() {
         setDevotees(res.data);
     };
 
+
     const filteredDevotees = devotees.filter((d) => {
         if (filterType === "Common Filter") {
             return Object.values(d).some((val) =>
@@ -123,6 +126,19 @@ export default function ViewDevoteesTable() {
 
         return true;
     });
+
+    // Update devotee count in navbar when filteredDevotees changes
+    useEffect(() => {
+        const el = document.getElementById('devotee-count');
+        if (el) el.textContent = filteredDevotees.length;
+    }, [filteredDevotees]);
+
+    // Listen for export button click from navbar
+    useEffect(() => {
+        const handler = () => exportToExcel();
+        window.addEventListener('exportDevoteesXLS', handler);
+        return () => window.removeEventListener('exportDevoteesXLS', handler);
+    }, []);
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -175,7 +191,7 @@ export default function ViewDevoteesTable() {
 
     return (
         <>
-            <div className="row mb-3">
+            <div className="row mb-3 align-items-center">
                 <div className="col-md-4">
                     <select className="form-control" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
                         <option>Common Filter</option>
@@ -189,7 +205,7 @@ export default function ViewDevoteesTable() {
                         <option>Full Time Devotees</option>
                     </select>
                 </div>
-                <div className="col-md-5">
+                <div className="col-md-5 d-flex align-items-center">
                     {filterType === "Country" && (
                         <>
                             <select className="form-control mb-2" value={filterValue.country || ""} onChange={(e) => setFilterValue({ country: e.target.value })}>
@@ -217,7 +233,47 @@ export default function ViewDevoteesTable() {
                         </>
                     )}
                     {filterType === "Common Filter" && (
-                        <input type="text" className="form-control" placeholder="Search..." value={filterValue} onChange={(e) => setFilterValue(e.target.value)} />
+                        <div className="d-flex w-100 align-items-center">
+                            <input type="text" className="form-control" placeholder="Search..." value={filterValue} onChange={(e) => setFilterValue(e.target.value)} />
+                            <button
+                                className="d-flex align-items-center ms-2"
+                                style={{
+                                    background: '#217346',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    padding: '6px 16px',
+                                    fontWeight: 600,
+                                    fontSize: '1rem',
+                                    boxShadow: '0 2px 6px rgba(33,115,70,0.08)',
+                                    transition: 'background 0.2s',
+                                    cursor: isExporting ? 'not-allowed' : 'pointer',
+                                    opacity: isExporting ? 0.7 : 1
+                                }}
+                                title="Download Excel"
+                                onClick={exportToExcel}
+                                disabled={isExporting}
+                            >
+                                <AiOutlineFileExcel size={22} style={{marginRight: 8}} />
+                                Download
+                            </button>
+                            <div className="d-flex align-items-center justify-content-center ms-3"
+                                style={{
+                                    background: '#ffe082',
+                                    color: '#7a4f01',
+                                    borderRadius: '8px',
+                                    padding: '6px 22px',
+                                    fontWeight: 700,
+                                    fontSize: '1.08rem',
+                                    border: '1.5px solid #ffd54f',
+                                    minWidth: 0,
+                                    whiteSpace: 'nowrap',
+                                    boxShadow: '0 2px 6px rgba(255,224,130,0.10)',
+                                    height: 40
+                                }}>
+                                <span style={{marginRight: 6, display: 'inline-block'}}>Total: {filteredDevotees.length}</span>
+                            </div>
+                        </div>
                     )}
                     {filterType === "By Age ≥" && (
                         <input type="number" className="form-control" min="0" max="100" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} />
@@ -263,18 +319,7 @@ export default function ViewDevoteesTable() {
                         </select>
                     )}
                 </div>
-                <div className="col-md-3 d-flex align-items-center">
-                    <button className="btn btn-success w-100" onClick={exportToExcel} disabled={isExporting}>
-                        {isExporting ? (
-                            <>
-                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                Exporting...
-                            </>
-                        ) : (
-                            "Export to Excel"
-                        )}
-                    </button>
-                </div>
+                {/* devotee count and export button now beside search bar */}
             </div>
             <div className="table-responsive">
                 <table className="table table-bordered table-striped table-hover">

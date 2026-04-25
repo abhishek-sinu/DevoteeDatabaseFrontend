@@ -31,7 +31,8 @@ const SadhanaEntryForm = () => {
         bookDistribution: '',
         prasadamHonored: false,
         ekadashiFollowed: false,
-        japaQuality: ''
+        japaQuality: '',
+        sixteenRoundCompletedTime: ''
     });
 
     useEffect(() => {
@@ -84,8 +85,20 @@ const SadhanaEntryForm = () => {
         }
     }, [toast.show]);
 
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    // Set default time for wakeUpTime and sleepingTime on focus if empty
+    const handleTimeFocus = (e) => {
+        const { name, value } = e.target;
+        if (name === 'wakeUpTime' && !value) {
+            setFormData((prev) => ({ ...prev, wakeUpTime: '04:00' }));
+        }
+        if (name === 'sleepingTime' && !value) {
+            setFormData((prev) => ({ ...prev, sleepingTime: '22:00' }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -119,11 +132,16 @@ const SadhanaEntryForm = () => {
             chantingBefore700Time: templateFields?.chanting_before_700 ? (formData.chantingBefore700Time || null) : null,
             chantingBefore730Time: templateFields?.chanting_before_730 ? (formData.chantingBefore730Time || null) : null,
             attendedMangalAratiTime: templateFields?.attended_mangal_arati ? (formData.attendedMangalAratiTime || null) : null,
-            attendedBhagavatamClass: templateFields?.attended_bhagavatam_class ? formData.attendedBhagavatamClass : null,
+            attendedBhagavatamClass: templateFields?.attended_bhagavatam_class
+                ? (formData.attendedBhagavatamClass ? 'Yes' : 'No')
+                : null,
             bookDistribution: templateFields?.book_distribution ? (formData.bookDistribution ? parseInt(formData.bookDistribution) : null) : null,
             prasadamHonored: templateFields?.prasadam_honored ? formData.prasadamHonored : null,
             ekadashiFollowed: templateFields?.ekadashi_followed ? formData.ekadashiFollowed : null,
-            japaQuality: templateFields?.japa_quality ? (formData.japaQuality ? parseInt(formData.japaQuality) : null) : null
+            japaQuality: templateFields?.japa_quality ? (formData.japaQuality ? parseInt(formData.japaQuality) : null) : null,
+            sixteen_round_completed_time: (templateFields?.sixteenRoundCompletedTime || templateFields?.sixteen_round_completed_time)
+                ? (formData.sixteenRoundCompletedTime || null)
+                : null
         };
 
         console.log("Sending to backend:", cleanedData);
@@ -196,7 +214,14 @@ const SadhanaEntryForm = () => {
                             {templateFields.wake_up_time && (
                                 <div className="col-md-4">
                                     <label className="form-label">Wake-up Time</label>
-                                    <input type="time" name="wakeUpTime" value={formData.wakeUpTime} onChange={handleChange} className="form-control" />
+                                    <input
+                                        type="time"
+                                        name="wakeUpTime"
+                                        value={formData.wakeUpTime}
+                                        onChange={handleChange}
+                                        onFocus={handleTimeFocus}
+                                        className="form-control"
+                                    />
                                 </div>
                             )}
                             
@@ -351,7 +376,14 @@ const SadhanaEntryForm = () => {
                             {templateFields.sleeping_time && (
                                 <div className="col-md-4">
                                     <label className="form-label">Sleeping Time</label>
-                                    <input type="time" name="sleepingTime" value={formData.sleepingTime} onChange={handleChange} className="form-control" />
+                                    <input
+                                        type="time"
+                                        name="sleepingTime"
+                                        value={formData.sleepingTime}
+                                        onChange={handleChange}
+                                        onFocus={handleTimeFocus}
+                                        className="form-control"
+                                    />
                                 </div>
                             )}
 
@@ -443,6 +475,20 @@ const SadhanaEntryForm = () => {
                                 <div className="col-md-4">
                                     <label className="form-label">Japa Quality (1-10)</label>
                                     <input type="number" name="japaQuality" min="1" max="10" value={formData.japaQuality} onChange={handleChange} className="form-control" />
+                                </div>
+                            )}
+
+                            {/* 16 Round Completed Time - Optional */}
+                            {templateFields.sixteenRoundCompletedTime && (
+                                <div className="col-md-4">
+                                    <label className="form-label">16 Round Completed Time</label>
+                                    <input
+                                        type="time"
+                                        name="sixteenRoundCompletedTime"
+                                        value={formData.sixteenRoundCompletedTime}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
                                 </div>
                             )}
                             

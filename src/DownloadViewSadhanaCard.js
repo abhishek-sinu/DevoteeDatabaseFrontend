@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import jsPDF from "jspdf";
@@ -5,6 +6,21 @@ import "jspdf-autotable";
 import './CustomToast.css';
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+
+// Helper to convert Blob to base64 for Capacitor Filesystem
+async function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
 
 
 const formatTime = (minutes) => {
@@ -190,7 +206,24 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         // Save PDF
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-        saveAs(blob, `Sadhana_${year}_${String(month).padStart(2, '0')}.pdf`);
+        const fileName = `Sadhana_${year}_${String(month).padStart(2, '0')}.pdf`;
+        if (Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+            // Save to device using Filesystem (base64)
+            const base64 = await blobToBase64(blob);
+            try {
+                await Filesystem.writeFile({
+                    path: fileName,
+                    data: base64,
+                    directory: Directory.Documents,
+                    recursive: true,
+                });
+                alert('PDF saved to Documents folder');
+            } catch (e) {
+                alert('Failed to save PDF: ' + e.message);
+            }
+        } else {
+            saveAs(blob, fileName);
+        }
     };
 
     // Download table as XLS
@@ -357,7 +390,24 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         });
         // Export file
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer]), `Sadhana_${year}_${String(month).padStart(2, '0')}.xlsx`);
+        const xlsBlob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const xlsFileName = `Sadhana_${year}_${String(month).padStart(2, '0')}.xlsx`;
+        if (Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+            const base64 = await blobToBase64(xlsBlob);
+            try {
+                await Filesystem.writeFile({
+                    path: xlsFileName,
+                    data: base64,
+                    directory: Directory.Documents,
+                    recursive: true,
+                });
+                alert('XLSX saved to Documents folder');
+            } catch (e) {
+                alert('Failed to save XLSX: ' + e.message);
+            }
+        } else {
+            saveAs(xlsBlob, xlsFileName);
+        }
     };
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -389,6 +439,7 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         prasadamHonored: false,
         ekadashiFollowed: false,
         japaQuality: ''
+        ,sixteenRoundCompletedTime: ''
     });
     const [templateFields, setTemplateFields] = useState(null);
 
@@ -468,11 +519,22 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         const readingData = convertMinutesToForm(entry.reading_time);
         const hearingData = convertMinutesToForm(entry.hearing_time);
         const serviceData = convertMinutesToForm(entry.service_time);
-        const toBoolean = (value) => value === true || value === 1 || value === '1';
+        const toBoolean = (value) =>
+            value === true ||
+            value === 1 ||
+            value === '1' ||
+            (typeof value === 'string' && value.trim().toLowerCase() === 'yes');
 
         setEditingEntry(entry);
         setEditFormData({
-            entryDate: entry.entry_date ? entry.entry_date.split('T')[0] : '',
+            entryDate: entry.entry_date
+                ? (() => {
+                    const d = new Date(entry.entry_date);
+                    const offset = d.getTimezoneOffset();
+                    d.setMinutes(d.getMinutes() - offset);
+                    return d.toISOString().split('T')[0];
+                })()
+                : '',
             wakeUpTime: entry.wake_up_time || '',
             chantingRounds: entry.chanting_rounds || '',
             readingTime: readingData.value,
@@ -492,7 +554,8 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
             bookDistribution: entry.book_distribution || '',
             prasadamHonored: toBoolean(entry.prasadam_honored),
             ekadashiFollowed: toBoolean(entry.ekadashi_followed),
-            japaQuality: entry.japa_quality || ''
+            japaQuality: entry.japa_quality || '',
+            sixteenRoundCompletedTime: entry.sixteenRoundCompletedTime || entry.sixteen_round_completed_time || ''
         });
         setShowEditModal(true);
     };
@@ -559,6 +622,7 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         const chantingBefore730Time = templateFields?.chanting_before_730 ? (editFormData.chantingBefore730Time || null) : null;
         const attendedMangalAratiTime = templateFields?.attended_mangal_arati ? (editFormData.attendedMangalAratiTime || null) : null;
         const attendedBhagavatamClass = templateFields?.attended_bhagavatam_class ? editFormData.attendedBhagavatamClass : null;
+        const sixteenRoundCompletedTime = (templateFields?.sixteenRoundCompletedTime || templateFields?.sixteen_round_completed_time) ? (editFormData.sixteenRoundCompletedTime || null) : null;
         const bookDistribution = templateFields?.book_distribution ? (editFormData.bookDistribution ? parseInt(editFormData.bookDistribution) : null) : null;
         const prasadamHonored = templateFields?.prasadam_honored ? editFormData.prasadamHonored : null;
         const ekadashiFollowed = templateFields?.ekadashi_followed ? editFormData.ekadashiFollowed : null;
@@ -579,6 +643,7 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
             chantingBefore730Time,
             attendedMangalAratiTime,
             attendedBhagavatamClass,
+            sixteen_round_completed_time: sixteenRoundCompletedTime,
             bookDistribution,
             prasadamHonored,
             ekadashiFollowed,
@@ -711,6 +776,7 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                 {templateFields && templateFields.hearing_topic && <th>Hearing Topic</th>}
                                                 {templateFields && templateFields.service_name && <th>Service Name</th>}
                                                 {templateFields && templateFields.service_time && <th>Service Time</th>}
+                                                {templateFields && (templateFields.sixteenRoundCompletedTime || templateFields.sixteen_round_completed_time) && <th>16 Round Completed Time</th>}
                                                 {templateFields && templateFields.sleeping_time && <th>Sleeping Time</th>}
                                                 {templateFields && templateFields.chanting_before_700 && <th>Chanting Before 7:00 AM</th>}
                                                 {templateFields && templateFields.chanting_before_730 && <th>Chanting Before 7:30 AM</th>}
@@ -735,6 +801,9 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                     {templateFields && templateFields.hearing_topic && <td>{entry.hearing_topic}</td>}
                                                     {templateFields && templateFields.service_name && <td>{entry.service_name}</td>}
                                                     {templateFields && templateFields.service_time && <td>{formatMinutes(entry.service_time)}</td>}
+                                                    {templateFields && (templateFields.sixteenRoundCompletedTime || templateFields.sixteen_round_completed_time) && (
+                                                        <td>{entry.sixteenRoundCompletedTime || entry.sixteen_round_completed_time || '-'}</td>
+                                                    )}
                                                     {templateFields && templateFields.sleeping_time && <td>{entry.sleeping_time === 0 ? '-' : entry.sleeping_time}</td>}
                                                     {templateFields && templateFields.chanting_before_700 && <td>{entry.chanting_before_700 === 0 ? '-' : entry.chanting_before_700}</td>}
                                                     {templateFields && templateFields.chanting_before_730 && <td>{entry.chanting_before_730 === 0 ? '-' : entry.chanting_before_730}</td>}
@@ -796,6 +865,20 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                 required 
                                             />
                                         </div>)}
+                                        {(!templateFields || templateFields.sixteenRoundCompletedTime || templateFields?.sixteen_round_completed_time) && (
+                                            <div className="col-md-4">
+                                                <label className="form-label">16 Round Completed Time</label>
+                                                <input
+                                                    type="time"
+                                                    step="1"
+                                                    name="sixteenRoundCompletedTime"
+                                                    value={editFormData.sixteenRoundCompletedTime}
+                                                    onChange={handleEditFormChange}
+                                                    className="form-control"
+                                                    placeholder="hh:mm:ss"
+                                                />
+                                            </div>
+                                        )}
                                         {(!templateFields || templateFields.wake_up_time) && (<div className="col-md-4">
                                             <label className="form-label">Wake-up Time</label>
                                             <input 

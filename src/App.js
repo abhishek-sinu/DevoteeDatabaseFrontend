@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
+// Capacitor Local Notifications
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Login from "./Login";
 import Signup from "./Signup";
@@ -20,6 +23,33 @@ function PrivateRoute({ children }) {
 }
 
 function App() {
+    useEffect(() => {
+        // Only schedule on device (not web)
+        if (Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+            (async () => {
+                try {
+                    await LocalNotifications.requestPermissions();
+                    // Cancel previous notifications with id 1 to avoid duplicates
+                    await LocalNotifications.cancel({ notifications: [{ id: 1 }] });
+                    await LocalNotifications.schedule({
+                        notifications: [
+                            {
+                                title: "Sadhana Reminder",
+                                body: "Please fill your sadhana for today.",
+                                id: 1,
+                                schedule: {
+                                    on: { hour: 21, minute: 0 }, // 9:00pm
+                                    repeats: true
+                                }
+                            }
+                        ]
+                    });
+                } catch (e) {
+                    // Ignore errors
+                }
+            })();
+        }
+    }, []);
     return (
         <Router>
             <Routes>

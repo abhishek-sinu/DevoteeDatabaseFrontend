@@ -197,14 +197,26 @@ export default function DevoteeDashboard() {
                                 <ul className="navbar-nav me-auto mb-2 mb-lg-0 dashboard-nav-main">
                             {role === "admin" && (
                                 <>
-                                    <li className="nav-item">
-                                        <button className={`nav-link btn btn-link${view === "view" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("view")}>View Devotees</button>
-                                    </li>
-                                    <li className="nav-item">
-                                        <button className={`nav-link btn btn-link${view === "add" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("add")}>Add / Update</button>
-                                    </li>
-                                    <li className="nav-item">
-                                        <button className={`nav-link btn btn-link${view === "bulk" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("bulk")}>Bulk Upload</button>
+                                    <li className="nav-item dropdown">
+                                        <button
+                                            className={`nav-link dropdown-toggle btn btn-link${["view","add","bulk"].includes(view) ? " active fw-bold text-primary" : ""}`}
+                                            id="devoteesDropdown"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false"
+                                        >
+                                            Devotees
+                                        </button>
+                                        <ul className="dropdown-menu" aria-labelledby="devoteesDropdown">
+                                            <li>
+                                                <button className={`dropdown-item${view === "view" ? " active" : ""}`} onClick={() => setView("view")}>View Devotees</button>
+                                            </li>
+                                            <li>
+                                                <button className={`dropdown-item${view === "add" ? " active" : ""}`} onClick={() => setView("add")}>Add / Update</button>
+                                            </li>
+                                            <li>
+                                                <button className={`dropdown-item${view === "bulk" ? " active" : ""}`} onClick={() => setView("bulk")}>Bulk Upload</button>
+                                            </li>
+                                        </ul>
                                     </li>
                                     <li className="nav-item">
                                         <button className={`nav-link btn btn-link${view === "register" ? " active fw-bold text-primary" : ""}`} onClick={() => setView("register")}>Assign Role</button>
@@ -476,7 +488,7 @@ export default function DevoteeDashboard() {
                         {view === "sadhanaReports" && (role === "admin" || role === "counsellor" || role === "user") && (
                             (role === "user" || role === "counsellor") && (!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date())
                                 ? <UpgradeBlockCard setView={setView} />
-                                : <SadhanaReports devoteeId={devoteeId} userRole={role} />
+                                : <SadhanaReports devoteeId={devoteeId} email={localStorage.getItem("userId")} userRole={role} />
                         )}
             {view === "reports" && role === "counsellor" && <CounsellorEveryDaySadhanaReports userId={localStorage.getItem("userId")}/>}
             {view === "uploadSadhanaCard" && (role === "user" || role === "counsellor") && <UploadSadhanaCard email={localStorage.getItem("userId")} />}
