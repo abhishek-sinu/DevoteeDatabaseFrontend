@@ -7,6 +7,13 @@ export default function Signup() {
     const isNativeApp = () => {
         return window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
     };
+    const openExternalUrl = async (url) => {
+        if (window.Capacitor?.isNativePlatform?.() && window.Capacitor?.Plugins?.Browser?.open) {
+            await window.Capacitor.Plugins.Browser.open({ url });
+            return;
+        }
+        window.open(url, "_blank", "noopener,noreferrer");
+    };
     const [showSteps, setShowSteps] = useState(false);
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
@@ -116,8 +123,7 @@ export default function Signup() {
     };
 
     const handleDownloadApk = () => {
-        if (isNativeApp()) return;
-        window.location.href = 'https://vaidhisadhanabhakti.cloud/download/VSB.apk';
+        openExternalUrl("https://vaidhisadhanabhakti.cloud/download/VSB.apk");
     };
 
     const handleDownloadSteps = () => {

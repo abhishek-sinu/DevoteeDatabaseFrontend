@@ -51,9 +51,16 @@ export default function Login() {
         return window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
     };
 
+    const openExternalUrl = async (url) => {
+        if (window.Capacitor?.isNativePlatform?.() && window.Capacitor?.Plugins?.Browser?.open) {
+            await window.Capacitor.Plugins.Browser.open({ url });
+            return;
+        }
+        window.open(url, "_blank", "noopener,noreferrer");
+    };
+
     const handleDownloadApk = () => {
-        if (isNativeApp()) return;
-        window.location.href = 'https://vaidhisadhanabhakti.cloud/download/VSB.apk';
+        openExternalUrl("https://vaidhisadhanabhakti.cloud/download/VSB.apk");
     };
 
     const handleDownloadSteps = () => {
