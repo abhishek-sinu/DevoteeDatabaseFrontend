@@ -28,24 +28,80 @@ function App() {
         if (Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
             (async () => {
                 try {
+                    const getTodayKey = () => {
+                        const now = new Date();
+                        const month = String(now.getMonth() + 1).padStart(2, "0");
+                        const day = String(now.getDate()).padStart(2, "0");
+                        return `${now.getFullYear()}-${month}-${day}`;
+                    };
+
+                    const reminderIds = [101, 102, 103, 104];
+                    const reminderTimes = [
+                        { hour: 9, minute: 0 },
+                        { hour: 20, minute: 0 },
+                        { hour: 21, minute: 0 },
+                        { hour: 22, minute: 0 }
+                    ];
+
                     await LocalNotifications.requestPermissions();
-                    // Cancel previous notifications with id 1 to avoid duplicates
-                    await LocalNotifications.cancel({ notifications: [{ id: 1 }] });
-                    await LocalNotifications.schedule({
-                        notifications: [
+                    await LocalNotifications.registerActionTypes({
+                        types: [
                             {
-                                title: "Sadhana Reminder",
-                                body: "Please fill your sadhana for today.",
-                                id: 1,
-                                schedule: {
-                                    every: 'minute',
-                                    count: 1,
-                                    repeats: true,
-                                    on: { minute: new Date().getMinutes() + 2 }
-                                }
+                                id: "SADHANA_ACTIONS",
+                                actions: [
+                                    { id: "filled", title: "Filled" },
+                                    { id: "not_yet", title: "Not yet" }
+                                ]
                             }
                         ]
                     });
+
+                    const actionListener = await LocalNotifications.addListener(
+                        "localNotificationActionPerformed",
+                        async (event) => {
+                            if (event?.actionId === "filled") {
+                                localStorage.setItem("sadhanaFilledDate", getTodayKey());
+                                await LocalNotifications.cancel({
+                                    notifications: reminderIds.map((id) => ({ id }))
+                                });
+                            }
+                        }
+                    );
+
+                    const filledToday = localStorage.getItem("sadhanaFilledDate") === getTodayKey();
+                    await LocalNotifications.cancel({
+                        notifications: reminderIds.map((id) => ({ id }))
+                    });
+
+                    if (filledToday) {
+                        return () => actionListener.remove();
+                    }
+
+                    const now = new Date();
+                    const notificationsToSchedule = reminderTimes
+                        .map((time, index) => {
+                            const at = new Date();
+                            at.setHours(time.hour, time.minute, 0, 0);
+                            if (at <= now) return null;
+                            return {
+                                id: reminderIds[index],
+                                title: "Sadhana Reminder",
+                                body: "Have you filled your sadhana today?",
+                                actionTypeId: "SADHANA_ACTIONS",
+                                smallIcon: "ic_alarm_mono",
+                                largeIcon: "ic_alarm_color",
+                                schedule: { at }
+                            };
+                        })
+                        .filter(Boolean);
+
+                    if (notificationsToSchedule.length) {
+                        await LocalNotifications.schedule({
+                            notifications: notificationsToSchedule
+                        });
+                    }
+
+                    return () => actionListener.remove();
                 } catch (e) {
                     // Ignore errors
                 }
