@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Login.css"; // Custom styles
 
@@ -48,13 +50,17 @@ export default function Login() {
     }, []);
 
     const isNativeApp = () => {
-        return window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+        return Capacitor.isNativePlatform && Capacitor.isNativePlatform();
     };
 
     const openExternalUrl = async (url) => {
-        if (window.Capacitor?.isNativePlatform?.() && window.Capacitor?.Plugins?.Browser?.open) {
-            await window.Capacitor.Plugins.Browser.open({ url });
-            return;
+        if (isNativeApp()) {
+            try {
+                await Browser.open({ url });
+                return;
+            } catch (error) {
+                // Fall back to web open if plugin fails
+            }
         }
         window.open(url, "_blank", "noopener,noreferrer");
     };
