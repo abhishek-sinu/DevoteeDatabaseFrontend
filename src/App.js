@@ -38,8 +38,10 @@ function App() {
                                 body: "Please fill your sadhana for today.",
                                 id: 1,
                                 schedule: {
-                                    on: { hour: 21, minute: 0 }, // 9:00pm
-                                    repeats: true
+                                    every: 'minute',
+                                    count: 1,
+                                    repeats: true,
+                                    on: { minute: new Date().getMinutes() + 2 }
                                 }
                             }
                         ]

@@ -36,6 +36,7 @@ function ForgotPasswordModal({ show, onClose, onSubmit, email, setEmail, loading
 export default function Login() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
+    const [showSteps, setShowSteps] = useState(false);
 
     useEffect(() => {
         const handler = (e) => {
@@ -46,14 +47,18 @@ export default function Login() {
         return () => window.removeEventListener('beforeinstallprompt', handler);
     }, []);
 
-    const handleDownloadApp = () => {
-        // Check if running inside Capacitor native app
-        if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-            return; // Don't show download inside the app itself
-        }
-        // Direct download from server (no intermediate page)
-        const apkUrl = 'https://vaidhisadhanabhakti.cloud/download/APP-STEPS.png';
-        window.location.href = apkUrl;
+    const isNativeApp = () => {
+        return window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+    };
+
+    const handleDownloadApk = () => {
+        if (isNativeApp()) return;
+        window.location.href = 'https://vaidhisadhanabhakti.cloud/download/VSB.apk';
+    };
+
+    const handleDownloadSteps = () => {
+        if (isNativeApp()) return;
+        setShowSteps(true);
     };
 
     const [loading, setLoading] = useState(false);
@@ -163,26 +168,6 @@ export default function Login() {
                     }}
                     dangerouslySetInnerHTML={{ __html: toast.message }}
                 />
-                {/* Logo at top left */}
-                   <div className="login-logo-container" style={{ position: 'relative' }}>
-                    <img src={process.env.PUBLIC_URL + '/image/VSB-logo.png'} alt="Vaidhisadhanabhakti Logo with Text" className="login-logo" />
-                       <button
-                           className="btn btn-success"
-                           style={{ position: 'fixed', top: 16, right: 32, fontWeight: 600, borderRadius: 8, fontSize: '1rem', background: '#a05a2c', color: '#fff', padding: '10px 22px', zIndex: 1050, boxShadow: '0 2px 8px rgba(160,90,44,0.10)' }}
-                           onClick={handleDownloadApp}
-                       >
-                           <i className="bi bi-download"></i> Download App
-                       </button>
-                   </div>
-                {/* Help Button */}
-                <button className="help-btn" onClick={() => setShowHelp(true)}>
-                    <span role="img" aria-label="help">❓</span> Help
-                </button>
-
-                {/* Help Toast */}
-                {showHelpToast && (
-                    <div className="help-toast">How to Use?</div>
-                )}
 
                 {/* Help Modal */}
                 {showHelp && (
@@ -204,11 +189,60 @@ export default function Login() {
                         </div>
                     </div>
                 )}
+                {showSteps && (
+                    <div className="help-modal-overlay" onClick={() => setShowSteps(false)}>
+                        <div className="steps-modal" onClick={e => e.stopPropagation()}>
+                            <button className="help-modal-close" onClick={() => setShowSteps(false)}>&times;</button>
+                            <img
+                                src="https://vaidhisadhanabhakti.cloud/download/APP-STEPS.png"
+                                alt="How to add to home screen"
+                                className="steps-image"
+                            />
+                        </div>
+                    </div>
+                )}
                 <div className="d-flex flex-column justify-content-center align-items-center login-form-bg">
+                    <div className="login-page-logo">
+                        <img
+                            src={process.env.PUBLIC_URL + '/image/VSB-logo.png'}
+                            alt="Vaidhisadhanabhakti Logo with Text"
+                        />
+                    </div>
                     <div className="login-info-card mb-3">
-                        <span className="info-help-link">New here? <b>Check <span className="help-link" onClick={() => setShowHelp(true)}>Help</span></b> before signing up.<br/>Create your account to get started. <span className="info-trial">Enjoy a 1-month free trial!</span></span>
+                        <img
+                            src={process.env.PUBLIC_URL + '/image/logo-nav.png'}
+                            alt="Vaidhisadhanabhakti Logo with Text"
+                            className="login-info-logo"
+                        />
+                        <span className="info-help-link"> <span className="info-trial">Enjoy a 1-month free trial!</span></span>
                     </div>
                     <div className="login-form-container p-4 shadow-lg rounded w-100">
+                        <div className="login-card-top">
+                            {!isNativeApp() && (
+                                <div className="login-download-buttons in-card">
+                                    <button
+                                        className="login-download-btn icon-only"
+                                        onClick={handleDownloadApk}
+                                        type="button"
+                                        aria-label="Download Android APK"
+                                        title="Download Android APK"
+                                    >
+                                        <i className="bi bi-android2"></i>
+                                        <span>APK</span>
+                                    </button>
+                                    <button
+                                        className="login-download-btn secondary icon-only"
+                                        onClick={handleDownloadSteps}
+                                        type="button"
+                                        aria-label="App steps image"
+                                        title="App steps image"
+                                    >
+                                        <i className="bi bi-phone"></i>
+                                        <span>Steps</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         <h2 className="text-center mb-4" style={{ color: '#a05a2c' }}>Hare Kṛṣṇa, Devotee</h2>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group mb-3">

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
 /* Signup link styles */
 .signup-link-text {
     font-size: 1.04rem;
@@ -175,6 +177,24 @@
     font-weight: 700;
     z-index: 10;
 }
+.steps-modal {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 10px 36px rgba(160,90,44,0.22);
+    padding: 16px;
+    max-width: 900px;
+    width: 95vw;
+    max-height: 90vh;
+    overflow: auto;
+    position: relative;
+}
+
+.steps-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+}
 .help-note {
     margin-top: 1.2em;
     color: #7a9c5c;
@@ -195,25 +215,114 @@
     width: 100vw;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(120deg, #f7ecd7 0%, #fff8e1 100%);
+    background: radial-gradient(140% 80% at 20% 10%, #fff7e7 0%, #f7ecd7 35%, #fff8e1 100%);
     position: relative;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
 }
 
-.login-logo-container {
-    position: absolute;
-    top: 32px;
-    left: 32px;
-    z-index: 10;
+.login-page-logo {
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: flex-start;
+    align-self: flex-start;
+    margin-left: 32px;
+    margin-top: 6px;
 }
-.login-logo {
-    height: 90px;
+
+.login-page-logo img {
+    height: 78px;
     max-width: 220px;
     width: auto;
-    border-radius: 12px;
+    border-radius: 16px;
     background: #fff;
-    box-shadow: 0 2px 8px rgba(160,90,44,0.13);
-    padding: 0;
-    display: block;
+    box-shadow: 0 10px 24px rgba(160,90,44,0.16);
+    padding: 8px 12px;
+}
+
+.signup-top-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px 24px 4px;
+}
+
+.signup-top-row .login-page-logo {
+    margin: 0;
+    align-self: center;
+    justify-content: center;
+}
+
+.signup-download-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: #7a9c5c;
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(122,156,92,0.25);
+}
+
+.login-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.login-download-buttons {
+    z-index: 2;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.login-download-buttons.in-card {
+    margin-left: auto;
+}
+
+.login-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: #a05a2c;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(160,90,44,0.12);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+
+.login-download-btn.secondary {
+    background: #7a9c5c;
+}
+
+.login-download-btn:hover {
+    background: #6b3f1d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(160,90,44,0.18);
+}
+
+.login-download-btn.secondary:hover {
+    background: #4f6b3b;
+}
+
+.login-download-btn i {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.login-download-btn.icon-only span {
+    font-size: 0.78rem;
+    letter-spacing: 0.2px;
 }
 
 .login-form-bg {
@@ -222,32 +331,103 @@
     justify-content: center;
     align-items: center;
     display: flex;
-    transform: translateY(-84px);
+    padding: 32px 16px 60px;
 }
 
 .login-form-container {
-    background: #fff;
+    background: rgba(255, 255, 255, 0.92);
     width: 100%;
     max-width: 400px;
-    border-radius: 16px;
-    box-shadow: 0 2px 16px rgba(160,90,44,0.10);
+    border-radius: 22px;
+    box-shadow: 0 18px 45px rgba(160,90,44,0.18);
+    border: 1px solid rgba(204, 176, 145, 0.35);
+    backdrop-filter: blur(10px);
+}
+
+.login-form-container .form-control {
+    border-radius: 12px;
+    border: 1px solid rgba(210, 190, 168, 0.7);
+    background: #f7f1e8;
+    padding: 12px 14px;
+    font-size: 1rem;
+}
+
+.login-form-container .form-control:focus {
+    border-color: #a05a2c;
+    box-shadow: 0 0 0 3px rgba(160,90,44,0.18);
+    background: #fff;
+}
+
+.login-form-container .btn.w-100 {
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 1.05rem;
+    box-shadow: 0 10px 20px rgba(160,90,44,0.18);
+}
+
+.login-info-card {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(204, 176, 145, 0.35);
+    box-shadow: 0 10px 24px rgba(160,90,44,0.14);
+}
+
+.login-info-logo {
+    display: none;
 }
 
 @media (max-width: 767px) {
-    .login-logo-container {
-        top: 16px;
-        left: 16px;
+    .login-page-logo {
+        display: none;
     }
-    .login-logo {
-        height: 90px;
-        max-width: 98vw;
+    .signup-top-row .login-page-logo {
+        display: flex;
+    }
+    .login-info-card {
+        padding-top: 0.8rem;
+    }
+    .login-info-logo {
+        display: block;
+        margin: 0 auto 8px;
+        height: 46px;
+        max-width: 160px;
+        width: auto;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 6px 16px rgba(160,90,44,0.14);
+        padding: 6px 10px;
+    }
+    .login-page-logo {
+        align-self: center;
+        justify-content: center;
+        margin-left: 0;
+        margin-top: 0;
+    }
+    .signup-top-row {
+        flex-wrap: wrap;
+        padding: 16px 16px 0;
+    }
+    .login-card-top {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .login-page-logo img {
+        height: 64px;
+        max-width: 70vw;
     }
     .login-form-container {
         max-width: 98vw;
         padding: 1.5rem 0.5rem;
     }
     .login-form-bg {
-        transform: translateY(-38px);
+        padding: 20px 14px 48px;
+    }
+    .login-download-buttons {
+        gap: 6px;
+        justify-content: center;
+    }
+    .login-download-btn {
+        font-size: 0.78rem;
+        padding: 6px 10px;
     }
 }
 
