@@ -44,6 +44,7 @@ function App() {
                     ];
 
                     await LocalNotifications.requestPermissions();
+                    await LocalNotifications.cancelAll();
                     await LocalNotifications.registerActionTypes({
                         types: [
                             {
@@ -69,10 +70,6 @@ function App() {
                     );
 
                     const filledToday = localStorage.getItem("sadhanaFilledDate") === getTodayKey();
-                    await LocalNotifications.cancel({
-                        notifications: reminderIds.map((id) => ({ id }))
-                    });
-
                     if (filledToday) {
                         return () => actionListener.remove();
                     }
