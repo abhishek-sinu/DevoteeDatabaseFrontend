@@ -8,6 +8,7 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 // Helper to convert Blob to base64 for Capacitor Filesystem
 async function blobToBase64(blob) {
@@ -20,6 +21,47 @@ async function blobToBase64(blob) {
         reader.onerror = reject;
         reader.readAsDataURL(blob);
     });
+}
+
+async function writeBase64FileWithFallback(fileName, base64Data) {
+    await Filesystem.requestPermissions();
+    try {
+        await Filesystem.writeFile({
+            path: fileName,
+            data: base64Data,
+            directory: Directory.Documents,
+            recursive: true,
+        });
+        return { directory: Directory.Documents, fallback: false };
+    } catch (error) {
+        if (Capacitor.getPlatform() !== "android") {
+            throw error;
+        }
+        await Filesystem.writeFile({
+            path: fileName,
+            data: base64Data,
+            directory: Directory.External,
+            recursive: true,
+        });
+        return { directory: Directory.External, fallback: true };
+    }
+}
+
+async function shareSavedFile(fileName, directory, label) {
+    try {
+        const uriResult = await Filesystem.getUri({
+            path: fileName,
+            directory,
+        });
+        await Share.share({
+            title: label,
+            text: label,
+            url: uriResult.uri,
+            dialogTitle: label,
+        });
+    } catch (error) {
+        alert('Saved file but could not open share: ' + error.message);
+    }
 }
 
 
@@ -211,13 +253,13 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
             // Save to device using Filesystem (base64)
             const base64 = await blobToBase64(blob);
             try {
-                await Filesystem.writeFile({
-                    path: fileName,
-                    data: base64,
-                    directory: Directory.Documents,
-                    recursive: true,
-                });
-                alert('PDF saved to Documents folder');
+                const result = await writeBase64FileWithFallback(fileName, base64);
+                if (result.fallback) {
+                    alert('PDF saved to app storage (not Documents). Opening share...');
+                } else {
+                    alert('PDF saved to Documents folder. Opening share...');
+                }
+                await shareSavedFile(fileName, result.directory, 'Sadhana PDF');
             } catch (e) {
                 alert('Failed to save PDF: ' + e.message);
             }
@@ -395,13 +437,13 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         if (Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
             const base64 = await blobToBase64(xlsBlob);
             try {
-                await Filesystem.writeFile({
-                    path: xlsFileName,
-                    data: base64,
-                    directory: Directory.Documents,
-                    recursive: true,
-                });
-                alert('XLSX saved to Documents folder');
+                const result = await writeBase64FileWithFallback(xlsFileName, base64);
+                if (result.fallback) {
+                    alert('XLSX saved to app storage (not Documents). Opening share...');
+                } else {
+                    alert('XLSX saved to Documents folder. Opening share...');
+                }
+                await shareSavedFile(xlsFileName, result.directory, 'Sadhana XLSX');
             } catch (e) {
                 alert('Failed to save XLSX: ' + e.message);
             }

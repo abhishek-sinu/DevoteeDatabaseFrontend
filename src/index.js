@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
 import App from './App';
 import './index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -11,6 +13,12 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+if (Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+  window.addEventListener('load', () => {
+    SplashScreen.hide();
+  });
+}
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
