@@ -37,14 +37,14 @@ function App() {
 
                     const reminderIds = [101, 102, 103, 104];
                     const reminderTimes = [
-                        { hour: 9, minute: 0 },
+                        { hour: 9, minute: 30 },
+                        { hour: 10, minute: 0 },
                         { hour: 20, minute: 0 },
                         { hour: 21, minute: 0 },
                         { hour: 22, minute: 0 }
                     ];
 
                     await LocalNotifications.requestPermissions();
-                    await LocalNotifications.cancelAll();
                     await LocalNotifications.registerActionTypes({
                         types: [
                             {
@@ -57,6 +57,21 @@ function App() {
                         ]
                     });
 
+                    const buildRepeatingNotifications = () =>
+                        reminderTimes.map((time, index) => ({
+                            id: reminderIds[index],
+                            title: "Sadhana Reminder",
+                            body: "Have you filled your sadhana today?",
+                            actionTypeId: "SADHANA_ACTIONS",
+                            smallIcon: "ic_alarm_mono",
+                            largeIcon: "ic_alarm_color",
+                            schedule: {
+                                repeats: true,
+                                every: "day",
+                                on: { hour: time.hour, minute: time.minute }
+                            }
+                        }));
+
                     const actionListener = await LocalNotifications.addListener(
                         "localNotificationActionPerformed",
                         async (event) => {
@@ -65,32 +80,18 @@ function App() {
                                 await LocalNotifications.cancel({
                                     notifications: reminderIds.map((id) => ({ id }))
                                 });
+                                await LocalNotifications.schedule({
+                                    notifications: buildRepeatingNotifications()
+                                });
                             }
                         }
                     );
 
-                    const filledToday = localStorage.getItem("sadhanaFilledDate") === getTodayKey();
-                    if (filledToday) {
-                        return () => actionListener.remove();
-                    }
+                    const pending = await LocalNotifications.getPending();
+                    const pendingIds = new Set((pending?.notifications || []).map((n) => n.id));
 
-                    const now = new Date();
-                    const notificationsToSchedule = reminderTimes
-                        .map((time, index) => {
-                            const at = new Date();
-                            at.setHours(time.hour, time.minute, 0, 0);
-                            if (at <= now) return null;
-                            return {
-                                id: reminderIds[index],
-                                title: "Sadhana Reminder",
-                                body: "Have you filled your sadhana today?",
-                                actionTypeId: "SADHANA_ACTIONS",
-                                smallIcon: "ic_alarm_mono",
-                                largeIcon: "ic_alarm_color",
-                                schedule: { at }
-                            };
-                        })
-                        .filter(Boolean);
+                    const notificationsToSchedule = buildRepeatingNotifications()
+                        .filter((notification) => !pendingIds.has(notification.id));
 
                     if (notificationsToSchedule.length) {
                         await LocalNotifications.schedule({
