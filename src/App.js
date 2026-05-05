@@ -24,53 +24,116 @@ function PrivateRoute({ children }) {
 
 function App() {
     useEffect(() => {
-        // Only schedule on device (not web)
-        if (Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+        const getTodayKey = () => {
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const day = String(now.getDate()).padStart(2, "0");
+            return `${now.getFullYear()}-${month}-${day}`;
+        };
+
+        const reminderIds = [101, 102, 103, 104, 105];
+        const reminderTimes = [
+            { hour: 9, minute: 30 },
+            { hour: 10, minute: 0 },
+            { hour: 20, minute: 0 },
+            { hour: 21, minute: 0 },
+            { hour: 22, minute: 0 }
+        ];
+
+        const buildRepeatingNotifications = (startTomorrow = false) =>
+            reminderTimes.map((time, index) => {
+                const at = new Date();
+                at.setHours(time.hour, time.minute, 0, 0);
+                if (startTomorrow || at <= new Date()) {
+                    at.setDate(at.getDate() + 1);
+                }
+
+                return {
+                    id: reminderIds[index],
+                    title: "Sadhana Reminder",
+                    body: "Have you filled your sadhana today?",
+                    actionTypeId: "SADHANA_ACTIONS",
+                    smallIcon: "ic_alarm_mono",
+                    largeIcon: "ic_alarm_color",
+                    schedule: {
+                        at,
+                        repeats: true
+                    }
+                };
+            });
+
+        const webTimeoutIds = [];
+        let removeNativeListener = null;
+
+        const showBrowserNotification = async () => {
+            const title = "Sadhana Reminder";
+            const body = "Have you filled your sadhana today?";
+
+            try {
+                if ("serviceWorker" in navigator) {
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    if (registration) {
+                        await registration.showNotification(title, { body });
+                        return;
+                    }
+                }
+            } catch (e) {
+                // Fallback to Notification constructor
+            }
+
+            if (localStorage.getItem("sadhanaFilledDate") === getTodayKey()) {
+                return;
+            }
+
+            if (Notification.permission === "granted") {
+                new Notification(title, { body });
+            }
+        };
+
+        const scheduleBrowserDailyNotifications = () => {
+            reminderTimes.forEach((time) => {
+                const firstRun = new Date();
+                firstRun.setHours(time.hour, time.minute, 0, 0);
+                if (firstRun <= new Date()) {
+                    firstRun.setDate(firstRun.getDate() + 1);
+                }
+
+                const scheduleNext = (runAt) => {
+                    const delayMs = Math.max(runAt.getTime() - Date.now(), 0);
+                    const timeoutId = window.setTimeout(async () => {
+                        await showBrowserNotification();
+                        const nextRun = new Date(runAt);
+                        nextRun.setDate(nextRun.getDate() + 1);
+                        scheduleNext(nextRun);
+                    }, delayMs);
+                    webTimeoutIds.push(timeoutId);
+                };
+
+                scheduleNext(firstRun);
+            });
+        };
+
+        const isNative = Capacitor.isNativePlatform && Capacitor.isNativePlatform();
+
+        if (isNative) {
             (async () => {
                 try {
-                    const getTodayKey = () => {
-                        const now = new Date();
-                        const month = String(now.getMonth() + 1).padStart(2, "0");
-                        const day = String(now.getDate()).padStart(2, "0");
-                        return `${now.getFullYear()}-${month}-${day}`;
-                    };
+                    const permissions = await LocalNotifications.requestPermissions();
+                    if (permissions?.display !== "granted") {
+                        return;
+                    }
 
-                    const reminderIds = [101, 102, 103, 104];
-                    const reminderTimes = [
-                        { hour: 9, minute: 30 },
-                        { hour: 10, minute: 0 },
-                        { hour: 20, minute: 0 },
-                        { hour: 21, minute: 0 },
-                        { hour: 22, minute: 0 }
-                    ];
-
-                    await LocalNotifications.requestPermissions();
                     await LocalNotifications.registerActionTypes({
                         types: [
                             {
                                 id: "SADHANA_ACTIONS",
                                 actions: [
-                                    { id: "filled", title: "Filled" },
-                                    { id: "not_yet", title: "Not yet" }
+                                    { id: "filled", title: "YES - Filled" },
+                                    { id: "not_yet", title: "NO - Not Filled" }
                                 ]
                             }
                         ]
                     });
-
-                    const buildRepeatingNotifications = () =>
-                        reminderTimes.map((time, index) => ({
-                            id: reminderIds[index],
-                            title: "Sadhana Reminder",
-                            body: "Have you filled your sadhana today?",
-                            actionTypeId: "SADHANA_ACTIONS",
-                            smallIcon: "ic_alarm_mono",
-                            largeIcon: "ic_alarm_color",
-                            schedule: {
-                                repeats: true,
-                                every: "day",
-                                on: { hour: time.hour, minute: time.minute }
-                            }
-                        }));
 
                     const actionListener = await LocalNotifications.addListener(
                         "localNotificationActionPerformed",
@@ -81,30 +144,55 @@ function App() {
                                     notifications: reminderIds.map((id) => ({ id }))
                                 });
                                 await LocalNotifications.schedule({
-                                    notifications: buildRepeatingNotifications()
+                                    notifications: buildRepeatingNotifications(true)
                                 });
                             }
                         }
                     );
 
-                    const pending = await LocalNotifications.getPending();
-                    const pendingIds = new Set((pending?.notifications || []).map((n) => n.id));
+                    removeNativeListener = () => actionListener.remove();
 
-                    const notificationsToSchedule = buildRepeatingNotifications()
-                        .filter((notification) => !pendingIds.has(notification.id));
+                    // Refresh fixed IDs every launch to avoid stale pending schedules.
+                    await LocalNotifications.cancel({
+                        notifications: reminderIds.map((id) => ({ id }))
+                    });
 
-                    if (notificationsToSchedule.length) {
+                    const filledToday = localStorage.getItem("sadhanaFilledDate") === getTodayKey();
+                    if (filledToday) {
                         await LocalNotifications.schedule({
-                            notifications: notificationsToSchedule
+                            notifications: buildRepeatingNotifications(true)
+                        });
+                    } else {
+                        await LocalNotifications.schedule({
+                            notifications: buildRepeatingNotifications()
                         });
                     }
-
-                    return () => actionListener.remove();
                 } catch (e) {
                     // Ignore errors
                 }
             })();
+        } else if (typeof window !== "undefined" && "Notification" in window) {
+            (async () => {
+                if (Notification.permission === "default") {
+                    try {
+                        await Notification.requestPermission();
+                    } catch (e) {
+                        // Ignore permission prompt errors
+                    }
+                }
+
+                if (Notification.permission === "granted") {
+                    scheduleBrowserDailyNotifications();
+                }
+            })();
         }
+
+        return () => {
+            webTimeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+            if (removeNativeListener) {
+                removeNativeListener();
+            }
+        };
     }, []);
     return (
         <Router>
