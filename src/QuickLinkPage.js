@@ -89,6 +89,15 @@ const QuickLinkPage = ({ setDashboardView, premiumExpiry }) => {
     showSequenceToast();
   }, []);
 
+  const openPasswordManager = (e) => {
+    e.preventDefault();
+    if (setDashboardView) {
+      setDashboardView('passwordManager');
+      return;
+    }
+    navigate('/password-manager');
+  };
+
   // Restriction check
   const isPremiumValid = premiumExpiry && !isNaN(new Date(premiumExpiry)) && new Date(premiumExpiry) >= new Date();
 
@@ -168,6 +177,7 @@ const QuickLinkPage = ({ setDashboardView, premiumExpiry }) => {
             <a
               href="/password-manager"
               className="quicklink-apk-btn"
+              onClick={openPasswordManager}
               style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
               <KeyOutlined className="quicklink-apk-icon" />

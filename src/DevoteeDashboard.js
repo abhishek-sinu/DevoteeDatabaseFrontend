@@ -164,14 +164,14 @@ export default function DevoteeDashboard() {
                         if (res.data.user_type) {
                             sessionStorage.setItem("user_type", res.data.user_type);
                         }
-                        if (res.data.expiryDate) {
-                            sessionStorage.setItem("premium_expiry", res.data.expiryDate);
+                        if (res.data.premium_expiry_date) {
+                            sessionStorage.setItem("premium_expiry_date", res.data.premium_expiry_date);
                         }
                     } catch {
                         setPremiumExpiry(null);
                         setUserType(null);
                         sessionStorage.removeItem("user_type");
-                        sessionStorage.removeItem("premium_expiry");
+                        sessionStorage.removeItem("premium_expiry_date");
                     }
                 };
                 fetchPremiumInfo();
@@ -369,6 +369,11 @@ export default function DevoteeDashboard() {
                         <div className="drawer-body p-0">
                             <nav className="drawer-menu">
                                 <ul className="drawer-list">
+                                    <li className="drawer-section">
+                                        <button className={`drawer-link${view === "quickLink" ? " active" : ""}`} onClick={() => { setView("quickLink"); setDrawerOpen(false); }}>
+                                            <span className="drawer-icon"><i className="bi bi-link-45deg"></i></span> Quick Links
+                                        </button>
+                                    </li>
                                     {/* My Profile and Sadhana section always at top, vertical */}
                                     <li className="drawer-section">
                                         <button className={`drawer-link${view === "profile" ? " active" : ""}`} onClick={() => { setView("profile"); setDrawerOpen(false); }}>
@@ -432,6 +437,7 @@ export default function DevoteeDashboard() {
                                     )}
                                     {/* General actions */}
                                     <li className="drawer-section mt-3"><button className={`drawer-link${view === "notificationView" ? " active" : ""}`} onClick={() => { setView("notificationView"); setDrawerOpen(false); }}><i className="bi bi-envelope"></i> View Messages</button></li>
+                                    <li className="drawer-section"><button className={`drawer-link${view === "passwordManager" ? " active" : ""}`} onClick={() => { setView("passwordManager"); setDrawerOpen(false); }}><i className="bi bi-key"></i> Password Manager</button></li>
                                     <li className="drawer-section"><button className={`drawer-link${view === "contact" ? " active" : ""}`} onClick={() => { setView("contact"); setDrawerOpen(false); }}><i className="bi bi-chat-dots"></i> Contact Us</button></li>
                                     <li className="drawer-section"><span className="drawer-link fw-bold text-primary"><i className="bi bi-person-badge"></i> {displayName}</span></li>
                                     <li className="drawer-section"><button onClick={() => { handleLogout(); setDrawerOpen(false); }} className="drawer-link text-danger"><i className="bi bi-box-arrow-right"></i> Logout</button></li>
@@ -505,7 +511,11 @@ export default function DevoteeDashboard() {
             )}
             {view === "helpGuide" && <HelpGuide setView={setView} />}
             {view === "contact" && <ContactUs />}
-            {view === "passwordManager" && <PasswordManager />}
+            {view === "passwordManager" && (
+                (!premiumExpiry || isNaN(new Date(premiumExpiry)) || new Date(premiumExpiry) < new Date())
+                    ? <UpgradeBlockCard setView={setView} />
+                    : <PasswordManager />
+            )}
             {/* Quick Access Links */}
             <div className="dashboard-quick-links d-flex justify-content-center align-items-center gap-3 mt-2 mb-1">
                 <button
