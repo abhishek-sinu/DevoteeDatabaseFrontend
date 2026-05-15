@@ -33,7 +33,6 @@ function App() {
 
         const reminderIds = [101, 102, 103, 104, 105];
         const reminderTimes = [
-            { hour: 9, minute: 30 },
             { hour: 10, minute: 0 },
             { hour: 20, minute: 0 },
             { hour: 21, minute: 0 },
@@ -69,6 +68,11 @@ function App() {
             const title = "Sadhana Reminder";
             const body = "Have you filled your sadhana today?";
 
+            // Always check filled status first
+            if (localStorage.getItem("sadhanaFilledDate") === getTodayKey()) {
+                return;
+            }
+
             try {
                 if ("serviceWorker" in navigator) {
                     const registration = await navigator.serviceWorker.getRegistration();
@@ -79,10 +83,6 @@ function App() {
                 }
             } catch (e) {
                 // Fallback to Notification constructor
-            }
-
-            if (localStorage.getItem("sadhanaFilledDate") === getTodayKey()) {
-                return;
             }
 
             if (Notification.permission === "granted") {

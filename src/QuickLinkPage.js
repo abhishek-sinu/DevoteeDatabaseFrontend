@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Button, Tooltip } from 'antd';
-import { CheckCircleOutlined, EditOutlined, UnorderedListOutlined, BarChartOutlined, CalendarOutlined, QuestionCircleOutlined, FileTextOutlined, UserOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, EditOutlined, UnorderedListOutlined, BarChartOutlined, CalendarOutlined, QuestionCircleOutlined, FileTextOutlined, UserOutlined, WhatsAppOutlined, BellOutlined, LockOutlined, AndroidOutlined, KeyOutlined } from '@ant-design/icons';
 import './QuickLinkPage.css';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -61,6 +61,14 @@ const menuItems = [
     dashboardView: 'helpGuide',
     step: '',
     tooltip: 'Get detailed help and instructions.'
+  },
+  {
+    key: 'password-manager',
+    icon: <CheckCircleOutlined style={{ fontSize: 36, color: '#343a40' }} />,
+    label: 'Password Manager',
+    dashboardView: 'passwordManager',
+    step: 'Step 6',
+    tooltip: 'Manage your passwords securely.'
   }
 ];
 
@@ -124,7 +132,6 @@ const QuickLinkPage = ({ setDashboardView, premiumExpiry }) => {
     <div className="quicklink-page">
       <div className="quicklink-header">
         <img src="/image/logo.png" alt="Logo" className="quicklink-logo" />
-        <h2>Quick Links</h2>
         <p className="quicklink-desc" style={{
           fontSize: '1.25rem',
           fontWeight: 700,
@@ -138,6 +145,49 @@ const QuickLinkPage = ({ setDashboardView, premiumExpiry }) => {
           textAlign: 'center'
         }}>Follow the sequence for best experience. All features are arranged for easy access.</p>
       </div>
+
+      {/* New Features Section */}
+      <div className="quicklink-new-features">
+        <div className="qnf-title">✨ New Features (v2 App features)</div>
+        <ul className="qnf-list">
+          <li>
+            <b style={{display:'inline-flex',alignItems:'center'}}><BellOutlined style={{color:'#f7b500',fontSize:18,marginRight:4}} />:</b>
+            &nbsp;Get Reminder to fill your Sandhna Daily, Download the app.
+            <a
+              href="/download/VSB.apk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="quicklink-apk-btn"
+              aria-label="Download Android APK"
+              style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <AndroidOutlined className="quicklink-apk-icon" />
+            </a>
+          </li>
+          <li><b style={{display:'inline-flex',alignItems:'center'}}><LockOutlined style={{color:'#388e3c',fontSize:18,marginRight:4}} />:</b> Securely manage all your passwords in one place, protected and encrypted.
+            <a
+              href="/password-manager"
+              className="quicklink-apk-btn"
+              style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <KeyOutlined className="quicklink-apk-icon" />
+            </a>
+          </li>
+          <li><b style={{display:'inline-flex',alignItems:'center'}}><WhatsAppOutlined style={{color:'#25D366',fontSize:18,marginRight:4}} />:</b> Instantly share your Sadhana progress with your group via WhatsApp.(Download App)
+          <a
+              href="/download/VSB.apk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="quicklink-apk-btn"
+              aria-label="Download Android APK"
+              style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <AndroidOutlined className="quicklink-apk-icon" />
+            </a>
+          </li>
+        </ul>
+      </div>
+
       <div className="quicklink-card-container">
         {menuItems.map(item => (
           <Card key={item.key} className="quicklink-card" style={{position:'relative',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',cursor:'pointer'}} onClick={() => setDashboardView && setDashboardView(item.dashboardView)}>

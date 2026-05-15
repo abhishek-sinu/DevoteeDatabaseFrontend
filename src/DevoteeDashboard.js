@@ -62,9 +62,7 @@ import SadhanaReports from "./SadhanaReports";
 import SadhanaTemplate from "./SadhanaTemplate";
 import UpgradePremium from "./UpgradePremium";
 import QuickLinkPage from "./QuickLinkPage";
-
-
-
+import PasswordManager from "./PasswordManager";
 
 const handleLogout = () => {
     localStorage.removeItem("token");
@@ -507,6 +505,7 @@ export default function DevoteeDashboard() {
             )}
             {view === "helpGuide" && <HelpGuide setView={setView} />}
             {view === "contact" && <ContactUs />}
+            {view === "passwordManager" && <PasswordManager />}
             {/* Quick Access Links */}
             <div className="dashboard-quick-links d-flex justify-content-center align-items-center gap-3 mt-2 mb-1">
                 <button
@@ -548,6 +547,14 @@ export default function DevoteeDashboard() {
                 >
                     <i className="bi bi-calendar-event"></i>
                     <span className="d-none d-md-inline"> Plan Your Day</span>
+                </button>
+                <button
+                    className="btn btn-dark fw-bold px-4 py-2 dashboard-quick-link-btn dashboard-quick-link-icon"
+                    style={{ borderRadius: '10px', fontSize: '1.08rem', background: '#343a40', color: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }}
+                    onClick={() => setView('passwordManager')}
+                >
+                    <i className="bi bi-key"></i>
+                    <span className="d-none d-md-inline"> Password Manager</span>
                 </button>
             </div>
             {view === 'quickLink' && (
