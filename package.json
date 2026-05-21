@@ -18,6 +18,7 @@
     "bootstrap": "^5.3.8",
     "browser-image-compression": "^2.0.2",
     "chart.js": "^4.5.1",
+    "crypto-js": "^4.2.0",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "fontkit": "^2.0.4",

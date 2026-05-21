@@ -177,6 +177,11 @@ export default function DevoteeDashboard() {
                 fetchPremiumInfo();
             }
         }
+        // Capacitor Android: if returning from Cashfree _self redirect, switch to upgradePremium view
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('order_id')) {
+            setView('upgradePremium');
+        }
     }, []);
 
     return (

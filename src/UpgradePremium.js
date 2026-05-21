@@ -115,6 +115,22 @@ export default function UpgradePremium({ name, email, phone, onClose }) {
 
   insitialzeSDK()
 
+	// Detect if running inside Capacitor native app (Android/iOS)
+	const isCapacitor = typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.();
+
+	// On mount: if redirected back from Cashfree (Android _self flow), auto-verify
+	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		const returnOrderId = params.get('order_id');
+		if (returnOrderId) {
+			const savedPlan = JSON.parse(localStorage.getItem('pendingPaymentPlan') || 'null');
+			localStorage.removeItem('pendingPaymentPlan');
+			// Clean the query param from URL without reload
+			window.history.replaceState({}, '', window.location.pathname);
+			verifyPayment(returnOrderId, savedPlan);
+		}
+	}, []);
+
 	const getSessionId = async (amount) => {
 		try {
 			// Replace with devotee details from API
@@ -197,20 +213,30 @@ export default function UpgradePremium({ name, email, phone, onClose }) {
 				console.error('Invalid or missing payment_session_id:', sessionId);
 				return;
 			}
-			let checkoutOptions = {
-				paymentSessionId: sessionId,
-				redirectTarget: "_modal",
-			};
 			// Log the value being sent to Cashfree
-			console.log('Invoking Cashfree with paymentSessionId:', sessionId);
-			setModalOpen(true); // Blur main content when modal opens
-			cashfree.checkout(checkoutOptions).then((res) => {
-				console.log("payment initialized");
-				verifyPayment(newOrderId, plan);
-				setModalOpen(false); // Remove blur when modal closes
-			}).catch(() => {
-				setModalOpen(false); // Remove blur if modal fails
-			});
+			console.log('Invoking Cashfree with paymentSessionId:', sessionId, '| isCapacitor:', isCapacitor);
+			if (isCapacitor) {
+				// Android WebView blocks popups — save plan and use full-page redirect
+				localStorage.setItem('pendingPaymentPlan', JSON.stringify(plan));
+				let checkoutOptions = {
+					paymentSessionId: sessionId,
+					redirectTarget: "_self",
+				};
+				cashfree.checkout(checkoutOptions);
+			} else {
+				let checkoutOptions = {
+					paymentSessionId: sessionId,
+					redirectTarget: "_modal",
+				};
+				setModalOpen(true); // Blur main content when modal opens
+				cashfree.checkout(checkoutOptions).then((res) => {
+					console.log("payment initialized");
+					verifyPayment(newOrderId, plan);
+					setModalOpen(false); // Remove blur when modal closes
+				}).catch(() => {
+					setModalOpen(false); // Remove blur if modal fails
+				});
+			}
 		} catch (error) {
 			setModalOpen(false);
 			console.log(error);
