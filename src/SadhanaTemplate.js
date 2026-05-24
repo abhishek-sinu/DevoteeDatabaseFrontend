@@ -23,6 +23,8 @@ const snakeToCamel = str => {
     if (str === 'chanting_rounds') return 'chantingRounds';
     if (str === 'wake_up_time') return 'wakeUpTime';
     if (str === 'entry_date') return 'entryDate';
+    if (str === 'day_sleep') return 'daySleep';
+    if (str === 'guru_puja') return 'guruPuja';
     return str.replace(/([-_][a-z])/g, group =>
         group.toUpperCase().replace('-', '').replace('_', '')
     );
@@ -100,6 +102,8 @@ export default function SadhanaTemplate({ devoteeId, email }) {
                         else if (field === 'ekadashiFollowed') snakeKey = 'ekadashi_followed';
                         else if (field === 'japaQuality') snakeKey = 'japa_quality';
                         else if (field === 'sleepingTime') snakeKey = 'sleeping_time';
+                        else if (field === 'daySleep') snakeKey = 'day_sleep';
+                        else if (field === 'guruPuja') snakeKey = 'guru_puja';
                         else if (field === 'serviceName') snakeKey = 'service_name';
                         else if (field === 'serviceTime') snakeKey = 'service_time';
                         else if (field === 'hearingTopic') snakeKey = 'hearing_topic';
@@ -147,6 +151,9 @@ export default function SadhanaTemplate({ devoteeId, email }) {
         ekadashiFollowed: { enabled: false, locked: false, label: 'Ekadashi Followed' },
         japaQuality: { enabled: false, locked: false, label: 'Japa Quality (1-10)' },
         sixteenRoundCompletedTime: { enabled: false, locked: false, label: '16 Round Completed Time' },
+        daySleep: { enabled: false, locked: false, label: 'Day Sleep' },
+        place: { enabled: false, locked: false, label: 'Place' },
+        guruPuja: { enabled: false, locked: false, label: 'Guru Puja' },
     });
 
     // Toast auto-hide

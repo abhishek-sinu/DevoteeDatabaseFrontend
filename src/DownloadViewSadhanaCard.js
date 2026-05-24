@@ -481,7 +481,11 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         prasadamHonored: false,
         ekadashiFollowed: false,
         japaQuality: ''
-        ,sixteenRoundCompletedTime: ''
+        ,sixteenRoundCompletedTime: '',
+        daySleep: '',
+        daySleepUnit: 'minutes',
+        place: '',
+        guruPuja: false
     });
     const [templateFields, setTemplateFields] = useState(null);
 
@@ -597,7 +601,11 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
             prasadamHonored: toBoolean(entry.prasadam_honored),
             ekadashiFollowed: toBoolean(entry.ekadashi_followed),
             japaQuality: entry.japa_quality || '',
-            sixteenRoundCompletedTime: entry.sixteenRoundCompletedTime || entry.sixteen_round_completed_time || ''
+            sixteenRoundCompletedTime: entry.sixteenRoundCompletedTime || entry.sixteen_round_completed_time || '',
+            daySleep: entry.day_sleep ? (entry.day_sleep % 60 === 0 ? entry.day_sleep / 60 : entry.day_sleep) : '',
+            daySleepUnit: entry.day_sleep && entry.day_sleep % 60 === 0 && entry.day_sleep >= 60 ? 'hours' : 'minutes',
+            place: entry.place || '',
+            guruPuja: toBoolean(entry.guru_puja)
         });
         setShowEditModal(true);
     };
@@ -670,6 +678,15 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
         const ekadashiFollowed = templateFields?.ekadashi_followed ? editFormData.ekadashiFollowed : null;
         const japaQuality = templateFields?.japa_quality ? (editFormData.japaQuality ? parseInt(editFormData.japaQuality) : null) : null;
 
+        const daySleep = templateFields?.day_sleep ? (() => {
+            if (!editFormData.daySleep || editFormData.daySleep === '') return null;
+            const num = parseInt(editFormData.daySleep);
+            if (isNaN(num)) return null;
+            return editFormData.daySleepUnit === 'hours' ? num * 60 : num;
+        })() : null;
+        const place = templateFields?.place ? (editFormData.place || null) : null;
+        const guruPuja = templateFields?.guru_puja ? editFormData.guruPuja : null;
+
         const updatedData = {
             entryDate,
             wakeUpTime,
@@ -707,7 +724,10 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
             book_distribution: bookDistribution,
             prasadam_honored: prasadamHonored,
             ekadashi_followed: ekadashiFollowed,
-            japa_quality: japaQuality
+            japa_quality: japaQuality,
+            day_sleep: daySleep,
+            place: place,
+            guru_puja: guruPuja
         };
 
         console.log("Updating entry ID:", editingEntry.id);
@@ -828,6 +848,9 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                 {templateFields && templateFields.prasadam_honored && <th>Prasadam Honored</th>}
                                                 {templateFields && templateFields.ekadashi_followed && <th>Ekadashi Followed</th>}
                                                 {templateFields && templateFields.japa_quality && <th>Japa Quality</th>}
+                                                {templateFields && templateFields.day_sleep && <th>Day Sleep</th>}
+                                                {templateFields && templateFields.place && <th>Place</th>}
+                                                {templateFields && templateFields.guru_puja && <th>Guru Puja</th>}
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
@@ -855,6 +878,9 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                     {templateFields && templateFields.prasadam_honored && <td>{entry.prasadam_honored === 0 ? '-' : entry.prasadam_honored}</td>}
                                                     {templateFields && templateFields.ekadashi_followed && <td>{entry.ekadashi_followed === 0 ? '-' : entry.ekadashi_followed}</td>}
                                                     {templateFields && templateFields.japa_quality && <td>{entry.japa_quality === 0 ? '-' : entry.japa_quality}</td>}
+                                                    {templateFields && templateFields.day_sleep && <td>{entry.day_sleep != null ? formatMinutes(entry.day_sleep) : '-'}</td>}
+                                                    {templateFields && templateFields.place && <td>{entry.place || '-'}</td>}
+                                                    {templateFields && templateFields.guru_puja && <td>{entry.guru_puja ? 'Yes' : (entry.guru_puja === 0 ? 'No' : '-')}</td>}
                                                     <td style={{ whiteSpace: 'nowrap' }}>
                                                         <div className="d-flex gap-1">
                                                             <button 
@@ -1175,6 +1201,65 @@ export default function DownloadViewSadhanaCard({ userRole, devoteeId, email }) 
                                                     onChange={handleEditFormChange}
                                                     className="form-control"
                                                 />
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.day_sleep && (
+                                            <div className="col-md-4">
+                                                <label className="form-label">Day Sleep</label>
+                                                <div className="input-group">
+                                                    <input
+                                                        type="number"
+                                                        name="daySleep"
+                                                        value={editFormData.daySleep}
+                                                        onChange={handleEditFormChange}
+                                                        className="form-control"
+                                                        placeholder="0"
+                                                    />
+                                                    <select
+                                                        name="daySleepUnit"
+                                                        value={editFormData.daySleepUnit}
+                                                        onChange={handleEditFormChange}
+                                                        className="form-select"
+                                                        style={{ maxWidth: '120px' }}
+                                                    >
+                                                        <option value="minutes">Minutes</option>
+                                                        <option value="hours">Hours</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.place && (
+                                            <div className="col-md-4">
+                                                <label className="form-label">Place</label>
+                                                <input
+                                                    type="text"
+                                                    name="place"
+                                                    value={editFormData.place}
+                                                    onChange={handleEditFormChange}
+                                                    className="form-control"
+                                                    placeholder="e.g. Home, Temple"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {templateFields && templateFields.guru_puja && (
+                                            <div className="col-md-4">
+                                                <label className="form-label d-block">Guru Puja</label>
+                                                <div className="form-check">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="guruPuja"
+                                                        checked={editFormData.guruPuja}
+                                                        onChange={(e) => setEditFormData({ ...editFormData, guruPuja: e.target.checked })}
+                                                        className="form-check-input"
+                                                        id="editGuruPuja"
+                                                    />
+                                                    <label className="form-check-label" htmlFor="editGuruPuja">
+                                                        Attended Guru Puja
+                                                    </label>
+                                                </div>
                                             </div>
                                         )}
                                     </div>

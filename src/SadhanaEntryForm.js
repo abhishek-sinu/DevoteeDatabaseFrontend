@@ -32,7 +32,11 @@ const SadhanaEntryForm = () => {
         prasadamHonored: false,
         ekadashiFollowed: false,
         japaQuality: '',
-        sixteenRoundCompletedTime: ''
+        sixteenRoundCompletedTime: '',
+        daySleep: '',
+        daySleepUnit: 'minutes',
+        place: '',
+        guruPuja: false
     });
 
     useEffect(() => {
@@ -72,7 +76,10 @@ const SadhanaEntryForm = () => {
                 book_distribution: false,
                 prasadam_honored: false,
                 ekadashi_followed: false,
-                japa_quality: false
+                japa_quality: false,
+                day_sleep: false,
+                place: false,
+                guru_puja: false
             });
         }
     };
@@ -141,7 +148,10 @@ const SadhanaEntryForm = () => {
             japaQuality: templateFields?.japa_quality ? (formData.japaQuality ? parseInt(formData.japaQuality) : null) : null,
             sixteen_round_completed_time: (templateFields?.sixteenRoundCompletedTime || templateFields?.sixteen_round_completed_time)
                 ? (formData.sixteenRoundCompletedTime || null)
-                : null
+                : null,
+            daySleep: templateFields?.day_sleep ? convertToMinutes(formData.daySleep, formData.daySleepUnit) : null,
+            place: templateFields?.place ? (formData.place || null) : null,
+            guruPuja: templateFields?.guru_puja ? formData.guruPuja : null
         };
 
         console.log("Sending to backend:", cleanedData);
@@ -170,7 +180,11 @@ const SadhanaEntryForm = () => {
                 bookDistribution: '',
                 prasadamHonored: false,
                 ekadashiFollowed: false,
-                japaQuality: ''
+                japaQuality: '',
+                daySleep: '',
+                daySleepUnit: 'minutes',
+                place: '',
+                guruPuja: false
             });
         } catch (err) {
             setToast({ show: true, message: 'Error submitting entry', type: 'error' });
@@ -489,6 +503,69 @@ const SadhanaEntryForm = () => {
                                         onChange={handleChange}
                                         className="form-control"
                                     />
+                                </div>
+                            )}
+
+                            {/* Day Sleep - Optional */}
+                            {templateFields.day_sleep && (
+                                <div className="col-md-4">
+                                    <label className="form-label">Day Sleep</label>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <input
+                                            type="number"
+                                            name="daySleep"
+                                            className="form-control"
+                                            style={{ maxWidth: '110px', minWidth: '80px' }}
+                                            value={formData.daySleep}
+                                            onChange={handleChange}
+                                            placeholder="0"
+                                        />
+                                        <select
+                                            name="daySleepUnit"
+                                            className="form-select"
+                                            style={{ maxWidth: '110px', minWidth: '80px' }}
+                                            value={formData.daySleepUnit}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="minutes">Minutes</option>
+                                            <option value="hours">Hours</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Place - Optional */}
+                            {templateFields.place && (
+                                <div className="col-md-4">
+                                    <label className="form-label">Place</label>
+                                    <input
+                                        type="text"
+                                        name="place"
+                                        value={formData.place}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                        placeholder="e.g. Home, Temple"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Guru Puja - Optional */}
+                            {templateFields.guru_puja && (
+                                <div className="col-md-4">
+                                    <label className="form-label d-block">Guru Puja</label>
+                                    <div className="form-check">
+                                        <input
+                                            type="checkbox"
+                                            name="guruPuja"
+                                            checked={formData.guruPuja}
+                                            onChange={(e) => setFormData({ ...formData, guruPuja: e.target.checked })}
+                                            className="form-check-input"
+                                            id="guruPuja"
+                                        />
+                                        <label className="form-check-label" htmlFor="guruPuja">
+                                            Attended Guru Puja
+                                        </label>
+                                    </div>
                                 </div>
                             )}
                             
