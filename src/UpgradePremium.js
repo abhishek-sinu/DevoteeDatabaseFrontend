@@ -1,6 +1,7 @@
 import React from "react";
 import axios from "axios";
 import { useState, useEffect, useRef } from "react";
+import { Browser } from '@capacitor/browser';
 import { load } from '@cashfreepayments/cashfree-js';
 
 export default function UpgradePremium({ name, email, phone, onClose }) {
@@ -216,13 +217,23 @@ export default function UpgradePremium({ name, email, phone, onClose }) {
 			// Log the value being sent to Cashfree
 			console.log('Invoking Cashfree with paymentSessionId:', sessionId, '| isCapacitor:', isCapacitor);
 			if (isCapacitor) {
-				// Android WebView blocks popups — save plan and use full-page redirect
+				// Open payment in Chrome Custom Tabs (not WebView) to avoid "Invalid Session ID"
 				localStorage.setItem('pendingPaymentPlan', JSON.stringify(plan));
-				let checkoutOptions = {
-					paymentSessionId: sessionId,
-					redirectTarget: "_self",
-				};
-				cashfree.checkout(checkoutOptions);
+				localStorage.setItem('pendingPaymentOrderId', newOrderId);
+				const CASHFREE_BASE = process.env.REACT_APP_CASHFREE_MODE === 'PROD'
+					? 'https://api.cashfree.com'
+					: 'https://sandbox.cashfree.com';
+				const paymentUrl = `${CASHFREE_BASE}/pg/view/checkout?sid=${encodeURIComponent(sessionId)}`;
+				await Browser.open({ url: paymentUrl, presentationStyle: 'fullscreen' });
+				// When the user returns from the browser (payment done or cancelled), verify payment
+				const browserListener = await Browser.addListener('browserFinished', async () => {
+					browserListener.remove();
+					const savedPlan = JSON.parse(localStorage.getItem('pendingPaymentPlan') || 'null');
+					const savedOrderId = localStorage.getItem('pendingPaymentOrderId') || newOrderId;
+					localStorage.removeItem('pendingPaymentPlan');
+					localStorage.removeItem('pendingPaymentOrderId');
+					verifyPayment(savedOrderId, savedPlan);
+				});
 			} else {
 				let checkoutOptions = {
 					paymentSessionId: sessionId,
