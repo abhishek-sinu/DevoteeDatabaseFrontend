@@ -1,7 +1,6 @@
 import React from "react";
 import axios from "axios";
 import { useState, useEffect, useRef } from "react";
-import { Browser } from '@capacitor/browser';
 import { load } from '@cashfreepayments/cashfree-js';
 
 export default function UpgradePremium({ name, email, phone, onClose }) {
@@ -12,16 +11,25 @@ export default function UpgradePremium({ name, email, phone, onClose }) {
 	const [selectedPlanId, setSelectedPlanId] = useState(null);
 	const [confirmation, setConfirmation] = useState(null);
 	const [confirmationType, setConfirmationType] = useState('success'); // 'success' or 'failure'
+	const [cashfree, setCashfree] = useState(null);
 	const plansContainerRef = useRef(null);
 	const firstPlanRef = useRef(null);
-	let cashfree;
 	// Determine Cashfree mode from environment variable (default to 'sandbox')
 	const CASHFREE_MODE = process.env.REACT_APP_CASHFREE_MODE === 'PROD' ? 'production' : 'sandbox';
-	let insitialzeSDK = async function () {
-		cashfree = await load({
-			mode: CASHFREE_MODE,
-		})
-	}
+
+	useEffect(() => {
+		let isMounted = true;
+		const initializeSDK = async () => {
+			try {
+				const sdk = await load({ mode: CASHFREE_MODE });
+				if (isMounted) setCashfree(sdk);
+			} catch (e) {
+				console.error('Cashfree SDK failed to load:', e);
+			}
+		};
+		initializeSDK();
+		return () => { isMounted = false; };
+	}, [CASHFREE_MODE]);
 
 // const UpgradePremium = () => (
 //   <div style={{
@@ -113,9 +121,6 @@ export default function UpgradePremium({ name, email, phone, onClose }) {
 			window.scrollTo({ top: 0, behavior: 'auto' });
 		});
 	}, []);
-
-  insitialzeSDK()
-
 	// Detect if running inside Capacitor native app (Android/iOS)
 	const isCapacitor = typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.();
 
@@ -209,36 +214,26 @@ export default function UpgradePremium({ name, email, phone, onClose }) {
 		try {
 			let { sessionId, orderId: newOrderId } = await getSessionId(plan.price) || {};
 			// Validate payment_session_id before proceeding
-			if (!sessionId || typeof sessionId !== 'string' || !sessionId.trim()) {
+			if (!sessionId || typeof sessionId !== 'string' || !sessionId.trim() || !cashfree) {
 				setError('Payment session could not be created. Please try again.');
-				console.error('Invalid or missing payment_session_id:', sessionId);
+				console.error('Invalid payment setup:', { sessionId, hasCashfree: !!cashfree });
 				return;
 			}
 			// Log the value being sent to Cashfree
 			console.log('Invoking Cashfree with paymentSessionId:', sessionId, '| isCapacitor:', isCapacitor);
+			const checkoutOptions = {
+				paymentSessionId: sessionId,
+				redirectTarget: isCapacitor ? "_self" : "_modal",
+			};
+
 			if (isCapacitor) {
-				// Open payment in Chrome Custom Tabs (not WebView) to avoid "Invalid Session ID"
+				// _self redirects to Cashfree and back to return_url with order_id; verification runs on mount.
 				localStorage.setItem('pendingPaymentPlan', JSON.stringify(plan));
-				localStorage.setItem('pendingPaymentOrderId', newOrderId);
-				const CASHFREE_BASE = process.env.REACT_APP_CASHFREE_MODE === 'PROD'
-					? 'https://api.cashfree.com'
-					: 'https://sandbox.cashfree.com';
-				const paymentUrl = `${CASHFREE_BASE}/pg/view/checkout?sid=${encodeURIComponent(sessionId)}`;
-				await Browser.open({ url: paymentUrl, presentationStyle: 'fullscreen' });
-				// When the user returns from the browser (payment done or cancelled), verify payment
-				const browserListener = await Browser.addListener('browserFinished', async () => {
-					browserListener.remove();
-					const savedPlan = JSON.parse(localStorage.getItem('pendingPaymentPlan') || 'null');
-					const savedOrderId = localStorage.getItem('pendingPaymentOrderId') || newOrderId;
-					localStorage.removeItem('pendingPaymentPlan');
-					localStorage.removeItem('pendingPaymentOrderId');
-					verifyPayment(savedOrderId, savedPlan);
+				cashfree.checkout(checkoutOptions).catch((err) => {
+					console.error('Cashfree checkout failed on Capacitor:', err);
+					setError('Unable to open payment page. Please try again.');
 				});
 			} else {
-				let checkoutOptions = {
-					paymentSessionId: sessionId,
-					redirectTarget: "_modal",
-				};
 				setModalOpen(true); // Blur main content when modal opens
 				cashfree.checkout(checkoutOptions).then((res) => {
 					console.log("payment initialized");
